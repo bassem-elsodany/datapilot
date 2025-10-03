@@ -1,0 +1,225 @@
+/* ========================================
+   CREATE CONVERSATION MODAL - ISOLATED STYLES
+   ======================================== */
+
+.create-conversation-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: create-conversation-modal-overlay-fade-in 0.3s ease-out;
+}
+
+@keyframes create-conversation-modal-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.create-conversation-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 500px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: create-conversation-modal-slide-in 0.4s ease-out;
+  transform-origin: center;
+}
+
+@keyframes create-conversation-modal-slide-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.create-conversation-modal-header {
+  background: #f8fafc;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.create-conversation-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.create-conversation-modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #64748b;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.create-conversation-modal-close:hover {
+  background: #e2e8f0;
+  color: #374151;
+}
+
+.create-conversation-modal-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.create-conversation-modal-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.create-conversation-modal-input-group label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.create-conversation-modal-input-group input,
+.create-conversation-modal-input-group textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  background: white;
+  font-family: inherit;
+}
+
+.create-conversation-modal-input-group input:focus,
+.create-conversation-modal-input-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.create-conversation-modal-input-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.create-conversation-modal-initial-message {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.create-conversation-modal-initial-message-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.create-conversation-modal-initial-message-content {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.create-conversation-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.create-conversation-modal-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  min-width: 80px;
+  transition: all 0.2s ease;
+}
+
+.create-conversation-modal-button.cancel {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.create-conversation-modal-button.cancel:hover {
+  background: #e2e8f0;
+}
+
+.create-conversation-modal-button.create {
+  background: #3b82f6;
+  color: white;
+}
+
+.create-conversation-modal-button.create:hover {
+  background: #2563eb;
+}
+
+.create-conversation-modal-button.create:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Exit animations */
+.create-conversation-modal-overlay.closing {
+  animation: create-conversation-modal-overlay-fade-out 0.3s ease-in forwards;
+}
+
+.create-conversation-modal.closing {
+  animation: create-conversation-modal-slide-out 0.3s ease-in forwards;
+}
+
+@keyframes create-conversation-modal-overlay-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes create-conversation-modal-slide-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+}
+
+/* Ensure modal appears above everything */
+.create-conversation-modal-overlay * {
+  box-sizing: border-box;
+}

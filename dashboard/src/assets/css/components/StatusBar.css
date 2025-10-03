@@ -1,0 +1,208 @@
+/* StatusBar Component Styles */
+.status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+  min-height: 40px;
+  gap: 12px;
+  z-index: 1000;
+  color: #6b7280;
+}
+
+.status-bar .status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.status-bar .status-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+  overflow: visible;
+}
+
+.status-bar .status-center .mantine-Group-root {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: visible;
+}
+
+.status-bar .status-center .mantine-Badge-root {
+  overflow: visible;
+}
+
+.status-bar .status-center .mantine-Badge-inner {
+  overflow: visible;
+}
+
+.status-bar .status-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Ensure all Badge components have visible overflow */
+.status-bar .mantine-Badge-root {
+  overflow: visible;
+}
+
+.status-bar .mantine-Badge-inner {
+  overflow: visible;
+}
+
+.status-bar .mantine-Badge-section {
+  overflow: visible;
+}
+
+/* COMPREHENSIVE ICON VISIBILITY FIXES */
+/* Fix for all SVG icons in StatusBar */
+.status-bar svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for SVG paths */
+.status-bar svg path {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: 1.5 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for ActionIcon components */
+.status-bar .mantine-ActionIcon-root svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for Button components */
+.status-bar .mantine-Button-root svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for Badge leftSection */
+.status-bar .mantine-Badge-section svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for any flex containers with icons */
+.status-bar [style*="display: flex"] svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure all icon containers are visible */
+.status-bar .mantine-ActionIcon-root,
+.status-bar .mantine-Button-root,
+.status-bar .mantine-Badge-root {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
+}
+
+/* Fix for any potential CSS layer conflicts */
+@layer mantine {
+  .status-bar svg {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 1em !important;
+    min-height: 1em !important;
+    flex-shrink: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  .status-bar .mantine-ActionIcon-root svg,
+  .status-bar .mantine-Button-root svg,
+  .status-bar .mantine-Badge-section svg {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 1em !important;
+    min-height: 1em !important;
+    flex-shrink: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
+
+
+
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .status-bar {
+    padding: 6px 12px;
+    font-size: 11px;
+    grid-template-columns: 1fr auto 1fr;
+  }
+  
+  .status-bar .status-center {
+    gap: 4px;
+    white-space: nowrap;
+  }
+  
+  .status-bar .status-right {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .status-bar .status-center {
+    display: none;
+  }
+}

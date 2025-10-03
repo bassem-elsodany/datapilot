@@ -1,0 +1,152 @@
+/* ========================================
+   SAVE QUERY MODAL - SIMPLE & CLEAN
+   ======================================== */
+
+.save-query-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.save-query-modal {
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 300px;
+  max-width: 90vw;
+}
+
+.save-query-modal-header {
+  background: #f8fafc;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.save-query-modal-header h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.save-query-modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #64748b;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.save-query-modal-close:hover {
+  background: #e2e8f0;
+  color: #374151;
+}
+
+.save-query-modal-content {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-query-modal-input-group {
+  margin-bottom: 15px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.save-query-modal-input-group label {
+  display: block;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 5px;
+  font-size: 12px;
+  text-align: center;
+  width: 100%;
+}
+
+.save-query-modal-input-group input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  box-sizing: border-box;
+  background: white;
+  text-align: center;
+}
+
+.save-query-modal-input-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.save-query-modal-input-group small {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  margin-top: 4px;
+  text-align: center;
+  width: 100%;
+}
+
+.save-query-modal-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.save-query-modal-button {
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  min-width: 50px;
+}
+
+.save-query-modal-button.cancel {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.save-query-modal-button.cancel:hover {
+  background: #e2e8f0;
+}
+
+.save-query-modal-button.save {
+  background: #3b82f6;
+  color: white;
+}
+
+.save-query-modal-button.save:hover {
+  background: #2563eb;
+}
+
+.save-query-modal-button.save:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}

@@ -1,0 +1,1579 @@
+/* ========================================
+   SCHEMA GRAPH TAB - FULLSCREEN STYLES
+   ======================================== */
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.schema-tab-fullscreen {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+
+.schema-tab-title h3 {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 20px;
+  letter-spacing: -0.025em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.schema-tab-subtitle {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 400;
+  letter-spacing: 0.025em;
+  max-width: 600px;
+  min-width: 300px;
+  line-height: 1.5;
+  flex: 1;
+  text-align: left;
+}
+
+.schema-tab-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.schema-tab-actions .mantine-ActionIcon-root {
+  width: 36px;
+  height: 36px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #64748b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.schema-tab-actions .mantine-ActionIcon-root:hover {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+/* Export button specific styling */
+.schema-tab-actions .mantine-ActionIcon-root[data-export="image"]:hover {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #059669;
+}
+
+.schema-tab-actions .mantine-ActionIcon-root[data-export="pdf"]:hover {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+}
+
+/* Report Export Button Styling */
+.schema-report-modern .mantine-ActionIcon-root[color="green"] {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #059669;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.schema-report-modern .mantine-ActionIcon-root[color="green"]:hover {
+  border-color: #059669;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+/* Fix tooltip z-index for report modals - Ultra aggressive approach */
+.schema-report-modern .mantine-Tooltip-root {
+  z-index: 999999 !important;
+  position: relative !important;
+}
+
+.schema-report-modern .mantine-Tooltip-dropdown {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+.schema-report-modern .mantine-Tooltip-arrow {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+/* Alternative approach - target all tooltips within modals */
+.schema-report-modern [data-mantine-tooltip] {
+  z-index: 999999 !important;
+}
+
+/* Force tooltip portal to highest z-index */
+.mantine-Tooltip-dropdown {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+.mantine-Tooltip-root {
+  z-index: 999999 !important;
+  position: relative !important;
+}
+
+/* Global tooltip fix */
+[data-mantine-tooltip] {
+  z-index: 999999 !important;
+}
+
+/* Force all tooltips to be on top */
+.mantine-Tooltip-root,
+.mantine-Tooltip-dropdown,
+.mantine-Tooltip-arrow {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+/* Additional tooltip fixes for reports */
+.schema-report-section .mantine-Tooltip-root,
+.schema-report-section .mantine-Tooltip-dropdown,
+.schema-report-section .mantine-Tooltip-arrow {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+/* Fix tooltips in DataTable components */
+.mantine-DataTable-root .mantine-Tooltip-root,
+.mantine-DataTable-root .mantine-Tooltip-dropdown,
+.mantine-DataTable-root .mantine-Tooltip-arrow {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+/* Fix tooltips in Card components */
+.mantine-Card-root .mantine-Tooltip-root,
+.mantine-Card-root .mantine-Tooltip-dropdown,
+.mantine-Card-root .mantine-Tooltip-arrow {
+  z-index: 999999 !important;
+  position: fixed !important;
+}
+
+/* Fix tooltips in Mantine Modals - Ultra high priority */
+.mantine-Modal-root .mantine-Tooltip-root,
+.mantine-Modal-root .mantine-Tooltip-dropdown,
+.mantine-Modal-root .mantine-Tooltip-arrow {
+  z-index: 9999999 !important;
+  position: fixed !important;
+}
+
+/* Fix tooltips in field selection modal specifically */
+.field-selection-modal .mantine-Tooltip-root,
+.field-selection-modal .mantine-Tooltip-dropdown,
+.field-selection-modal .mantine-Tooltip-arrow {
+  z-index: 9999999 !important;
+  position: fixed !important;
+}
+
+/* Fix tooltips in any modal backdrop */
+.mantine-Modal-overlay .mantine-Tooltip-root,
+.mantine-Modal-overlay .mantine-Tooltip-dropdown,
+.mantine-Modal-overlay .mantine-Tooltip-arrow {
+  z-index: 9999999 !important;
+  position: fixed !important;
+}
+
+/* Global modal tooltip fix - highest priority */
+[data-mantine-modal] .mantine-Tooltip-root,
+[data-mantine-modal] .mantine-Tooltip-dropdown,
+[data-mantine-modal] .mantine-Tooltip-arrow {
+  z-index: 9999999 !important;
+  position: fixed !important;
+}
+
+/* Nuclear option - force ALL tooltips to be above everything */
+.mantine-Tooltip-dropdown,
+.mantine-Tooltip-arrow {
+  z-index: 9999999 !important;
+  position: fixed !important;
+}
+
+/* Force tooltip portal to render at the highest level */
+body .mantine-Tooltip-dropdown,
+body .mantine-Tooltip-arrow {
+  z-index: 9999999 !important;
+  position: fixed !important;
+}
+
+/* Override Mantine Modal z-index to be lower than tooltips */
+.mantine-Modal-root {
+  z-index: 1000 !important;
+}
+
+.mantine-Modal-overlay {
+  z-index: 999 !important;
+}
+
+/* Force tooltips to render in body with highest z-index */
+.mantine-Tooltip-dropdown {
+  z-index: 99999999 !important;
+  position: fixed !important;
+  pointer-events: none !important;
+}
+
+.mantine-Tooltip-arrow {
+  z-index: 99999999 !important;
+  position: fixed !important;
+  pointer-events: none !important;
+}
+
+/* Ensure tooltip content is interactive */
+.mantine-Tooltip-dropdown > * {
+  pointer-events: auto !important;
+}
+
+/* Override specific modal z-indexes from inline styles */
+.field-selection-modal {
+  z-index: 1000 !important;
+}
+
+/* Target the backdrop specifically */
+div[style*="zIndex: 99998"] {
+  z-index: 1000 !important;
+}
+
+div[style*="zIndex: 999"] {
+  z-index: 1000 !important;
+}
+
+/* Force all tooltips to be above any modal backdrop */
+div[style*="backdropFilter"] + * .mantine-Tooltip-dropdown,
+div[style*="backdropFilter"] + * .mantine-Tooltip-arrow {
+  z-index: 99999999 !important;
+  position: fixed !important;
+}
+
+/* Alternative approach: Hide Mantine tooltips in reports and use native tooltips */
+.schema-report-section .mantine-Tooltip-dropdown,
+.schema-report-modern .mantine-Tooltip-dropdown {
+  display: none !important;
+}
+
+
+/* Target Schema Report specifically - completely disable Mantine tooltips */
+.schema-report-modern .mantine-Tooltip-dropdown {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Completely disable Mantine Tooltip functionality */
+.schema-report-modern .mantine-Tooltip-root {
+  pointer-events: none !important;
+}
+
+/* Make sure the wrapped element can receive native tooltips */
+.schema-report-modern .mantine-Tooltip-root > * {
+  pointer-events: auto !important;
+}
+
+
+.schema-tab-actions .mantine-ActionIcon-root[data-color="red"]:hover {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+  color: #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+/* ========================================
+   GRAPH CONTAINER
+   ======================================== */
+
+.schema-graph-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+  cursor: grab;
+}
+
+.schema-graph-container:active {
+  cursor: grabbing;
+}
+
+.schema-graph-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
+}
+
+/* ========================================
+   FIELD SELECTION MODAL ANIMATIONS - ISOLATED
+   ======================================== */
+
+/* High specificity to avoid conflicts */
+.schema-tab-container .field-selection-modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+  z-index: 99998 !important;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  pointer-events: auto;
+}
+
+.schema-tab-container .field-selection-modal-backdrop.show {
+  opacity: 1 !important;
+}
+
+.schema-tab-container .field-selection-modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 90vw !important;
+  max-width: 800px !important;
+  max-height: 80vh !important;
+  z-index: 99999 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%) !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  opacity: 0;
+  transform: translate(-50%, 100vh);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+
+.schema-tab-container .field-selection-modal.show {
+  opacity: 1 !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Modal content scrollbar styling - isolated */
+.schema-tab-container .field-selection-modal .mantine-ScrollArea-root {
+  max-height: 400px;
+}
+
+.schema-tab-container .field-selection-modal .mantine-ScrollArea-viewport {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.schema-tab-container .field-selection-modal .mantine-ScrollArea-viewport::-webkit-scrollbar {
+  width: 8px;
+}
+
+.schema-tab-container .field-selection-modal .mantine-ScrollArea-viewport::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.schema-tab-container .field-selection-modal .mantine-ScrollArea-viewport::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.schema-tab-container .field-selection-modal .mantine-ScrollArea-viewport::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Ensure modal content doesn't overflow - isolated */
+.schema-tab-container .field-selection-modal .mantine-Card-section {
+  overflow: hidden;
+}
+
+.schema-tab-container .field-selection-modal .mantine-Card-section:last-child {
+  padding-bottom: 0;
+}
+
+/* Field selection modal button styling - isolated */
+.schema-tab-container .field-selection-modal .mantine-Button-root {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.schema-tab-container .field-selection-modal .mantine-Button-root:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-variant="light"] {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-variant="light"]:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-color="blue"] {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  border: 1px solid #1d4ed8 !important;
+  font-weight: 500 !important;
+}
+
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-color="blue"]:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border-color: #1e40af !important;
+}
+
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-color="blue"]:disabled {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+  border-color: #94a3b8 !important;
+  color: #64748b !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  opacity: 0.6 !important;
+}
+
+/* More specific targeting for the Apply button - isolated */
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-color="blue"][data-size="sm"] {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  border: 1px solid #1d4ed8 !important;
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+  min-height: 32px !important;
+  font-weight: 500 !important;
+}
+
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-color="blue"][data-size="sm"]:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border-color: #1e40af !important;
+}
+
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-color="blue"][data-size="sm"]:disabled {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+  border-color: #94a3b8 !important;
+  color: #64748b !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  opacity: 0.6 !important;
+}
+
+/* Select All/None buttons specific styling - isolated */
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-size="xs"] {
+  padding: 6px 12px;
+  font-size: 12px;
+  min-height: 28px;
+}
+
+/* Add Selected Fields button specific styling - isolated */
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-size="sm"] {
+  padding: 8px 16px;
+  font-size: 13px;
+  min-height: 32px;
+}
+
+/* Cancel button specific styling - isolated */
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-variant="light"][data-size="sm"] {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  padding: 8px 16px;
+  font-size: 13px;
+  min-height: 32px;
+}
+
+.schema-tab-container .field-selection-modal .mantine-Button-root[data-variant="light"][data-size="sm"]:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+/* Field item styling for better selection visibility - isolated */
+.schema-tab-container .field-selection-item {
+  transition: all 0.2s ease;
+  opacity: 1 !important;
+}
+
+.schema-tab-container .field-selection-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Unselected field styling - isolated */
+.schema-tab-container .field-selection-item-unselected {
+  background-color: white !important;
+  border-color: #e2e8f0 !important;
+  opacity: 1 !important;
+}
+
+/* Already selected field styling (fields already in the node) - isolated */
+.schema-tab-container .field-selection-item-already-selected {
+  background-color: #f0f9ff !important;
+  border-color: #0ea5e9 !important;
+  opacity: 1 !important;
+}
+
+/* Newly selected field styling (fields selected in modal) - isolated */
+.schema-tab-container .field-selection-item-newly-selected {
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  opacity: 1 !important;
+}
+
+/* ========================================
+   FLOATING TOOLBAR
+   ======================================== */
+
+.schema-floating-toolbar {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  z-index: 20;
+  transition: all 0.2s ease;
+}
+
+.schema-floating-toolbar:hover {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.schema-floating-toolbar .toolbar-btn,
+.schema-floating-toolbar .mantine-ActionIcon-root {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+  color: #374151 !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+}
+
+.schema-floating-toolbar .toolbar-btn:hover,
+.schema-floating-toolbar .mantine-ActionIcon-root:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  color: #1f2937 !important;
+}
+
+.schema-floating-toolbar .toolbar-btn:active,
+.schema-floating-toolbar .mantine-ActionIcon-root:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Special styling for colored buttons */
+.schema-floating-toolbar .mantine-ActionIcon-root[data-color="blue"] {
+  background: rgba(59, 130, 246, 0.9) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: white !important;
+}
+
+.schema-floating-toolbar .mantine-ActionIcon-root[data-color="blue"]:hover {
+  background: rgba(59, 130, 246, 1) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+  color: white !important;
+}
+
+.schema-floating-toolbar .mantine-ActionIcon-root[data-color="red"] {
+  background: rgba(239, 68, 68, 0.9) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: white !important;
+}
+
+.schema-floating-toolbar .mantine-ActionIcon-root[data-color="red"]:hover {
+  background: rgba(239, 68, 68, 1) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: white !important;
+}
+
+.schema-floating-toolbar .mantine-Divider-root {
+  border-color: rgba(0, 0, 0, 0.1);
+  margin: 0 4px;
+}
+
+/* ========================================
+   CANVAS SUBTITLE OVERLAY
+   ======================================== */
+
+.schema-canvas-subtitle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 5;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.schema-canvas-subtitle:hover {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.schema-canvas-subtitle .mantine-Text-root {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 400;
+  letter-spacing: 0.025em;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ========================================
+   EMPTY STATE
+   ======================================== */
+
+.schema-graph-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 5;
+  pointer-events: none;
+  max-width: 400px;
+  padding: 40px;
+}
+
+.schema-graph-empty .mantine-Text-root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  line-height: 1.5;
+}
+
+/* ========================================
+   LOADING STATE
+   ======================================== */
+
+.schema-graph-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ========================================
+   DRAG & DROP STYLES
+   ======================================== */
+
+.schema-graph-container.drag-over {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+}
+
+.schema-graph-container.drag-over::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 3px dashed #3b82f6;
+  border-radius: 12px;
+  margin: 16px;
+  pointer-events: none;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+/* ========================================
+   NODE STYLES (Canvas rendered)
+   ======================================== */
+
+/* These styles are for any HTML overlays we might add later */
+.schema-node-overlay {
+  position: absolute;
+  background: white;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.schema-node-overlay:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.schema-node-overlay.custom {
+  border-color: #f59e0b;
+  background: #fef3c7;
+}
+
+/* ========================================
+   LINK STYLES (Canvas rendered)
+   ======================================== */
+
+/* These styles are for any HTML link overlays we might add later */
+.schema-link-overlay {
+  position: absolute;
+  height: 2px;
+  background: #3b82f6;
+  transform-origin: left center;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.schema-link-overlay.master-detail {
+  background: #ef4444;
+  height: 3px;
+}
+
+.schema-link-overlay::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: -3px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+/* ========================================
+   MODAL STYLES
+   ======================================== */
+
+.schema-node-modal .mantine-Modal-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 20px 24px;
+}
+
+.schema-node-modal .mantine-Modal-title {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 18px;
+}
+
+.schema-node-modal .mantine-Modal-body {
+  padding: 24px;
+}
+
+.schema-node-modal .mantine-Badge-root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.025em;
+}
+
+.schema-node-modal .mantine-Paper-root {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.schema-node-modal .mantine-Paper-root:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+
+  .schema-tab-subtitle {
+    font-size: 13px;
+    max-width: none;
+    min-width: auto;
+    flex: 1;
+    text-align: left;
+  }
+
+  .schema-tab-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .schema-tab-actions .mantine-ActionIcon-root {
+    width: 40px;
+    height: 40px;
+  }
+
+  .schema-floating-toolbar {
+    top: 16px;
+    left: 16px;
+    padding: 6px;
+  }
+
+  .schema-floating-toolbar .mantine-ActionIcon-root {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+  }
+
+  .schema-canvas-subtitle {
+    top: 16px;
+    right: 16px;
+    max-width: 300px;
+    padding: 10px 12px;
+  }
+
+  .schema-canvas-subtitle .mantine-Text-root {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .schema-tab-subtitle {
+    font-size: 12px;
+    max-width: none;
+    min-width: auto;
+    flex: 1;
+    text-align: left;
+  }
+
+  .schema-tab-actions .mantine-ActionIcon-root {
+    width: 36px;
+    height: 36px;
+  }
+
+  .schema-graph-empty {
+    padding: 20px;
+    max-width: 300px;
+  }
+
+  .schema-floating-toolbar {
+    top: 12px;
+    left: 12px;
+    padding: 4px;
+  }
+
+  .schema-floating-toolbar .mantine-ActionIcon-root {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+  }
+
+  .schema-canvas-subtitle {
+    top: 12px;
+    right: 12px;
+    max-width: 250px;
+    padding: 8px 10px;
+  }
+
+  .schema-canvas-subtitle .mantine-Text-root {
+    font-size: 10px;
+  }
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.schema-tab-fullscreen {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+.schema-graph-container::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.schema-graph-container::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.5);
+  border-radius: 6px;
+}
+
+.schema-graph-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  border-radius: 6px;
+  border: 2px solid rgba(241, 245, 249, 0.5);
+}
+
+.schema-graph-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+}
+
+/* ========================================
+   SCHEMA REPORT SECTION
+   ======================================== */
+
+.schema-report-section {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border-top: 3px solid #3b82f6;
+  box-shadow: 
+    0 -8px 32px rgba(59, 130, 246, 0.1),
+    0 -4px 16px rgba(0, 0, 0, 0.05);
+  max-height: 45vh;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(10px);
+  border-radius: 16px 16px 0 0;
+  margin: 0 8px;
+  z-index: 1000;
+  position: relative;
+}
+
+.schema-report-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+  border-radius: 16px 16px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.schema-report-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    rgba(59, 130, 246, 0.1) 0%, 
+    rgba(139, 92, 246, 0.1) 50%, 
+    rgba(6, 182, 212, 0.1) 100%);
+  opacity: 0.3;
+}
+
+.schema-report-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.schema-report-title h4 {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 18px;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.schema-report-title .mantine-Text-root {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ========================================
+   SCHEMA REPORT FILTER SECTION
+   ======================================== */
+
+.schema-report-filter {
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.filter-input-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-input::placeholder {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.schema-report-content {
+  flex: 1;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 0 0 16px 16px;
+}
+
+.schema-report-table-container {
+  height: 100%;
+  overflow: auto;
+  padding: 0;
+  border-radius: 0 0 16px 16px;
+}
+
+.schema-report-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  background: #ffffff;
+}
+
+.schema-report-table thead {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.schema-report-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  position: relative;
+}
+
+.schema-report-table th:first-child {
+  border-top-left-radius: 16px;
+}
+
+.schema-report-table th:last-child {
+  border-top-right-radius: 16px;
+}
+
+.schema-report-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+  transition: all 0.2s ease;
+}
+
+.schema-report-table tbody tr {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.schema-report-table tbody tr:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.schema-report-table tbody tr:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%);
+  border-radius: 0 2px 2px 0;
+}
+
+.field-name {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.field-name:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.field-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.field-type {
+  white-space: nowrap;
+}
+
+.field-properties {
+  max-width: 400px;
+  word-wrap: break-word;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 24px;
+}
+
+.picklist-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 400px;
+  padding: 8px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.picklist-value {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #374151;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.picklist-value:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.picklist-view-all-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.picklist-view-all-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* ========================================
+   PICKLIST MODAL STYLES
+   ======================================== */
+
+.picklist-modal-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border: 1px solid #e2e8f0;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.picklist-modal-card .mantine-Card-section {
+  border-color: #f1f5f9;
+}
+
+.picklist-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  padding: 8px;
+}
+
+.picklist-modal-item {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.picklist-modal-item:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+}
+
+.reference-to {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 8px;
+  border: 1px solid #f59e0b;
+}
+
+.currency-type,
+.double-type,
+.text-type,
+.textarea-type,
+.address-type {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e40af;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #3b82f6;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2);
+  transition: all 0.2s ease;
+}
+
+.currency-type:hover,
+.double-type:hover,
+.text-type:hover,
+.textarea-type:hover,
+.address-type:hover {
+  background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+/* ========================================
+   SCHEMA REPORT SCROLLBAR STYLING
+   ======================================== */
+
+.schema-report-table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.schema-report-table-container::-webkit-scrollbar-track {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 4px;
+}
+
+.schema-report-table-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.schema-report-table-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+}
+
+.schema-report-table-container::-webkit-scrollbar-corner {
+  background: #f8fafc;
+}
+
+/* ========================================
+   MODERN SCHEMA REPORT STYLES
+   ======================================== */
+
+.schema-report-modern {
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border: 1px solid #e2e8f0;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: schemaReportSlideIn 0.3s ease-out;
+  z-index: 1000;
+  position: relative;
+}
+
+.schema-report-modern .mantine-Card-section {
+  border-color: #f1f5f9;
+}
+
+.schema-report-modern .mantine-DataTable-root {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.schema-report-modern .mantine-DataTable-table {
+  background: #ffffff;
+}
+
+.schema-report-modern .mantine-DataTable-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.schema-report-modern .mantine-DataTable-header th {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 16px 20px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.schema-report-modern .mantine-DataTable-body td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.schema-report-modern .mantine-DataTable-body tr:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.schema-report-modern .mantine-DataTable-pagination {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 20px;
+}
+
+
+
+/* ========================================
+   SCHEMA REPORT ANIMATIONS
+   ======================================== */
+
+@keyframes schemaReportSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.schema-report-section {
+  animation: schemaReportSlideIn 0.3s ease-out;
+}
+
+/* ========================================
+   CONTEXT MENU
+   ======================================== */
+
+.schema-context-menu {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  min-width: 160px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  z-index: 1000;
+  animation: contextMenuFadeIn 0.15s ease-out;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.context-menu-item:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.context-menu-item:active {
+  background: #e5e7eb;
+  transform: translateY(1px);
+}
+
+.context-menu-item svg {
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+@keyframes contextMenuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.schema-graph-container.dragging {
+  cursor: grabbing !important;
+}
+
+.schema-graph-container.dragging * {
+  pointer-events: none;
+}
+
+.schema-graph-container.dragging .schema-graph-canvas {
+  pointer-events: auto;
+}
+
+.schema-graph-container.dragging-node {
+  cursor: grabbing !important;
+}
+
+.schema-graph-container.dragging-node .schema-graph-canvas {
+  pointer-events: auto;
+}
+
+/* Visual feedback for draggable nodes */
+.schema-graph-container:hover {
+  cursor: grab;
+}
+
+.schema-graph-container:active {
+  cursor: grabbing;
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.schema-tab-fullscreen:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.schema-tab-actions .mantine-ActionIcon-root:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+  .schema-tab-actions {
+    display: none;
+  }
+
+  .schema-graph-container {
+    background: white;
+  }
+
+  .schema-graph-canvas {
+    filter: grayscale(100%);
+  }
+}

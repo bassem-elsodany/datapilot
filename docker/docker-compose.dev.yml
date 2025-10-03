@@ -1,0 +1,46 @@
+version: '3.8'
+name: datapilot
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    env_file:
+      - env/backend.env
+    volumes:
+      # Mount source code for hot reload
+      - ../backend:/app
+      # Mount logs directory
+      - ../backend/logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - MONGODB_URL=mongodb://admin:password123@mongodb:27017/datapilot?authSource=admin
+      - ENVIRONMENT=development
+      - DEBUG=true
+    command: ["uv", "run", "python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dashboard
+    env_file:
+      - env/dashboard.env
+    volumes:
+      # Mount source code for hot reload
+      - ../dashboard/src:/usr/share/nginx/html/src
+      - ../dashboard/public:/usr/share/nginx/html/public
+    environment:
+      - NODE_ENV=development
+      # Override API URL for development (use localhost instead of service name)
+      - VITE_API_BASE_URL=http://localhost:8001
+    # Override nginx config for development
+    command: >
+      sh -c "
+        # Install development dependencies
+        npm install &&
+        # Start development server
+        npm run dev -- --host 0.0.0.0 --port 80
+      "

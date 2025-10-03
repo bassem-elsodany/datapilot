@@ -1,0 +1,198 @@
+/**
+ * Conversation List Component Styles
+ * 
+ * Styles for the conversation list container and its elements.
+ */
+
+.conversation-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.conversation-list .mantine-Stack-root {
+  height: 100%;
+}
+
+/* Header styling */
+.conversation-list .list-header {
+
+}
+
+.conversation-list .list-header .mantine-Text-root {
+  color: var(--mantine-color-gray-8);
+  font-weight: 600;
+}
+
+.conversation-list .list-header .mantine-Button-root {
+  font-weight: 500;
+  border-radius: var(--mantine-radius-sm);
+}
+
+.conversation-list .list-header .mantine-ActionIcon-root {
+  border-radius: var(--mantine-radius-sm);
+}
+
+/* Filter section */
+.conversation-list .filters-section {
+  background: var(--mantine-color-gray-0);
+  border-radius: var(--mantine-radius-md);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.conversation-list .filters-section .mantine-TextInput-root,
+.conversation-list .filters-section .mantine-Select-root {
+  background: var(--mantine-color-white);
+}
+
+/* Conversations container */
+.conversation-list .conversations-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.conversation-list .conversations-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.conversation-list .conversations-container::-webkit-scrollbar-track {
+  background: var(--mantine-color-gray-1);
+  border-radius: 3px;
+}
+
+.conversation-list .conversations-container::-webkit-scrollbar-thumb {
+  background: var(--mantine-color-gray-4);
+  border-radius: 3px;
+}
+
+.conversation-list .conversations-container::-webkit-scrollbar-thumb:hover {
+  background: var(--mantine-color-gray-5);
+}
+
+/* Empty state */
+.conversation-list .empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--mantine-color-gray-6);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.conversation-list .empty-state .empty-conversations-icon {
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
+}
+
+.conversation-list .empty-state .mantine-Text-root {
+  max-width: 280px;
+  line-height: 1.4;
+}
+
+.conversation-list .empty-state .mantine-Text-root[data-fw="600"] {
+  color: var(--mantine-color-gray-8);
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.conversation-list .empty-state .mantine-Text-root[data-c="dimmed"] {
+  color: var(--mantine-color-gray-6);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.conversation-list .empty-state .mantine-Button-root {
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+/* Loading state */
+.conversation-list .loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  gap: 0.5rem;
+}
+
+.conversation-list .loading-state .mantine-Text-root {
+  color: var(--mantine-color-gray-6);
+}
+
+/* Error state */
+.conversation-list .error-state .mantine-Alert-root {
+  margin: 1rem 0;
+}
+
+/* Conversation count */
+.conversation-list .conversation-count {
+  text-align: center;
+  padding: 0.5rem;
+  color: var(--mantine-color-gray-6);
+  font-size: 0.875rem;
+  border-top: 1px solid var(--mantine-color-gray-2);
+  margin-top: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .conversation-list .filters-section {
+    padding: 0.75rem;
+  }
+  
+  .conversation-list .filters-section .mantine-Group-root {
+    flex-direction: column;
+  }
+  
+  .conversation-list .list-header .mantine-Group-root {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* Animation for new conversations */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.conversation-list .conversation-item.new {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+/* Hover effects for action buttons */
+.conversation-list .mantine-ActionIcon-root {
+  transition: all 0.2s ease;
+}
+
+.conversation-list .mantine-ActionIcon-root:hover {
+  transform: scale(1.1);
+}
+
+/* Status indicator colors */
+.conversation-list .status-active {
+  color: var(--mantine-color-green-6);
+}
+
+.conversation-list .status-archived {
+  color: var(--mantine-color-yellow-6);
+}
+
+.conversation-list .status-completed {
+  color: var(--mantine-color-blue-6);
+}
+
+.conversation-list .status-deleted {
+  color: var(--mantine-color-red-6);
+}

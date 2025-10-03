@@ -1,0 +1,1043 @@
+/* ========================================
+   QUERY TAB STYLES
+   ======================================== */
+
+.query-tab-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f8fafc;
+  position: relative;
+}
+
+/* Ensure the results section is properly positioned */
+.query-tab-page .results-section {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Ensure the query tab page respects height constraints */
+.query-tab-page {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+/* Draggable separator styling */
+.results-separator {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  position: relative;
+}
+
+.results-separator:hover {
+  background-color: #3b82f6 !important;
+  height: 12px !important;
+}
+
+.results-separator:hover > div {
+  background-color: #ffffff !important;
+  width: 50px !important;
+  height: 6px !important;
+}
+
+.results-separator:active {
+  background-color: #1d4ed8 !important;
+}
+
+/* Add visual feedback when dragging */
+.results-separator.dragging {
+  background-color: #1d4ed8 !important;
+  height: 12px !important;
+}
+
+.results-separator.dragging > div {
+  background-color: #ffffff !important;
+  width: 50px !important;
+  height: 6px !important;
+}
+
+/* ========================================
+   QUERY RESULTS SECTION ANIMATIONS
+   ======================================== */
+
+.results-section {
+  flex: 1;
+  overflow: hidden;
+  min-height: 200px;
+  transition: height 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              flex 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.results-section.collapsed {
+  min-height: 30px !important;
+  max-height: 30px !important;
+}
+
+/* Smooth content transitions */
+.results-section > div:last-child {
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: top;
+}
+
+/* Enhanced button transitions */
+.results-section .mantine-Button-root {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center;
+}
+
+.results-section .mantine-Button-root:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.results-section .mantine-Button-root:active {
+  transform: translateY(0) scale(0.98);
+  transition: all 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Beautiful collapse button animations */
+.results-section .mantine-ActionIcon-root {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center;
+  border: 2px solid transparent;
+  font-weight: bold;
+  position: relative;
+  overflow: hidden;
+}
+
+.results-section .mantine-ActionIcon-root:hover {
+  transform: scale(1.15) !important;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.results-section .mantine-ActionIcon-root:active {
+  transform: scale(0.9) !important;
+}
+
+/* Make the button pulse to draw attention */
+@keyframes attentionPulse {
+  0% { box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 4px 16px rgba(59, 130, 246, 0.6); }
+  100% { box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); }
+}
+
+@keyframes subtleBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.results-section .mantine-ActionIcon-root {
+  animation: attentionPulse 2s infinite, subtleBounce 3s infinite;
+}
+
+.results-section .mantine-ActionIcon-root::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.results-section .mantine-ActionIcon-root:active::before {
+  width: 100px;
+  height: 100px;
+}
+
+/* Smooth chevron rotation */
+.results-section .mantine-ActionIcon-root svg {
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Badge animations */
+.results-section .mantine-Badge-root {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.results-section .mantine-Badge-root:hover {
+  transform: scale(1.05);
+}
+
+/* Beautiful header animations */
+.results-section > div:first-child {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.results-section > div:first-child::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.results-section > div:first-child:hover::before {
+  left: 100%;
+}
+
+/* Smooth text animations */
+.results-section .mantine-Text-root {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.results-section:hover .mantine-Text-root {
+  color: #1e40af !important;
+}
+
+/* Group hover effects */
+.results-section .mantine-Group-root {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.results-section:hover .mantine-Group-root {
+  transform: translateX(2px);
+}
+
+/* Spring-like bounce animation for state changes */
+@keyframes gentleBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.results-section.collapsed {
+  animation: gentleBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Smooth fade-in for content */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.results-section:not(.collapsed) .mantine-Group-root {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Beautiful gradient background animation */
+.results-section > div:first-child {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  transition: background 0.3s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.results-section:hover > div:first-child {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+}
+
+/* ========================================
+   HEADER SECTION
+   ======================================== */
+
+.query-tab-page-header {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 8px 8px 0 0;
+}
+
+.query-tab-page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.query-tab-page-icon {
+  color: #3b82f6;
+  filter: drop-shadow(0 1px 2px rgba(59, 130, 246, 0.3));
+}
+
+.query-tab-page-title span {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.query-tab-page-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 400;
+}
+
+/* ========================================
+   CONTENT SECTION
+   ======================================== */
+
+.query-tab-page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  overflow: visible;
+}
+
+.query-tab-page-input-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 8px;
+  overflow: visible;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  padding: 16px;
+  gap: 12px;
+}
+
+.query-tab-page-input-container:hover {
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.query-tab-page-input-container.drag-over {
+  border: 2px dashed #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.query-tab-page-textarea.drag-over {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: #3b82f6;
+}
+
+/* ========================================
+   SQL TEXTAREA STYLES
+   ======================================== */
+
+.sql-textarea-wrapper {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sql-textarea-input {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace !important;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1e293b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+  resize: vertical;
+  tab-size: 2;
+  white-space: pre;
+  word-wrap: normal;
+  overflow-wrap: normal;
+  width: 100%;
+  min-height: 200px;
+  flex: 1;
+}
+
+.sql-textarea-input:focus {
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.sql-textarea-input::placeholder {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* ========================================
+   AUTOCOMPLETE DROPDOWN
+   ======================================== */
+
+.query-tab-autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  min-width: 150px;
+}
+
+.query-tab-autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  background-color: transparent;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s ease;
+}
+
+.query-tab-autocomplete-item:hover,
+.query-tab-autocomplete-item.selected {
+  background-color: #f0f0f0;
+}
+
+.query-tab-autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.query-tab-page-input-header {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.query-tab-page-input-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+  border-radius: 8px 8px 0 0;
+}
+
+.query-tab-page-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.query-tab-page-textarea {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.query-tab-page-textarea .mantine-Textarea-input {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #1e293b;
+  background: transparent;
+  border: none;
+  padding: 12px;
+  resize: none;
+  flex: 1;
+  min-height: 0;
+  transition: all 0.2s ease;
+  /* Word wrapping */
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.query-tab-page-textarea .mantine-Textarea-input:focus {
+  outline: none;
+  background: rgba(59, 130, 246, 0.02);
+}
+
+/* Drag and drop styles */
+.query-tab-page-textarea .mantine-Textarea-input.drag-over {
+  background: rgba(59, 130, 246, 0.05);
+  border: 2px dashed #3b82f6;
+  border-radius: 4px;
+}
+
+.query-tab-page-textarea .mantine-Textarea-input.drag-over::placeholder {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.query-tab-page-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(241, 245, 249, 0.8);
+  background: linear-gradient(135deg, #fafafa 0%, #f8fafc 100%);
+  position: relative;
+}
+
+.query-tab-page-footer::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+}
+
+.query-tab-page-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ========================================
+   STYLISH COMPACT BUTTONS
+   ======================================== */
+
+/* All Query Tab Buttons - Unified Styling */
+.query-tab-execute-button,
+.query-tab-execute-all-button,
+.query-tab-save-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  border: none !important;
+  color: white !important;
+  font-weight: 600 !important;
+  box-shadow: 
+    0 2px 4px rgba(59, 130, 246, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.query-tab-execute-button::before,
+.query-tab-execute-all-button::before,
+.query-tab-save-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.query-tab-execute-button:hover,
+.query-tab-execute-all-button:hover,
+.query-tab-save-button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 
+    0 4px 8px rgba(59, 130, 246, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+.query-tab-execute-button:hover::before,
+.query-tab-execute-all-button:hover::before,
+.query-tab-save-button:hover::before {
+  left: 100%;
+}
+
+.query-tab-execute-button:active,
+.query-tab-execute-all-button:active,
+.query-tab-save-button:active {
+  transform: translateY(0) !important;
+  box-shadow: 
+    0 2px 4px rgba(59, 130, 246, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Disabled State for All Buttons */
+.query-tab-execute-button:disabled,
+.query-tab-execute-all-button:disabled,
+.query-tab-save-button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.query-tab-execute-button:disabled:hover,
+.query-tab-execute-all-button:disabled:hover,
+.query-tab-save-button:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Loading State */
+.query-tab-execute-button[data-loading="true"] {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+  cursor: wait !important;
+}
+
+/* Icon Styling */
+.query-tab-execute-button svg,
+.query-tab-execute-all-button svg,
+.query-tab-save-button svg {
+  transition: transform 0.2s ease !important;
+}
+
+.query-tab-execute-button:hover svg,
+.query-tab-execute-all-button:hover svg,
+.query-tab-save-button:hover svg {
+  transform: scale(1.1) !important;
+}
+
+/* ========================================
+   LEGACY BUTTON STYLES (for backward compatibility)
+   ======================================== */
+
+.query-tab-page-button {
+  border-radius: 1px;
+  font-weight: 400;
+  font-size: 11px;
+  padding: 1px 3px;
+  height: 18px;
+  transition: none;
+  box-shadow: none;
+  min-width: auto;
+  line-height: 1;
+  transform: none;
+  outline: none;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  color: #374151;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.query-tab-page-button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.query-tab-page-button:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.query-tab-page-button:hover {
+  transform: none;
+  box-shadow: none;
+  transition: none;
+  outline: none;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.query-tab-page-button:active {
+  outline: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.query-tab-page-button:focus-within {
+  outline: none;
+  box-shadow: none;
+}
+
+.query-tab-page-button.primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  color: white;
+}
+
+.query-tab-page-button.primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: none;
+  border: none;
+}
+
+.query-tab-page-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   QUERY TAB - MONACO EDITOR STYLES
+   ======================================== */
+
+.query-tab-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.query-tab-page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.query-tab-page-input-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.query-tab-page-input-container.drag-over {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.query-tab-page-input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.query-tab-page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.query-tab-page-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+/* Validation Status Styles */
+.query-validation-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.validation-error {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #fecaca;
+}
+
+.validation-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #d97706;
+  background: #fffbeb;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #fed7aa;
+}
+
+.validation-success {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #059669;
+  background: #f0fdf4;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #bbf7d0;
+}
+
+.query-tab-page-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.query-tab-execute-button,
+.query-tab-execute-all-button,
+.query-tab-save-button {
+  transition: all 0.2s ease;
+}
+
+.query-tab-execute-button:hover,
+.query-tab-execute-all-button:hover,
+.query-tab-save-button:hover {
+  transform: translateY(-1px);
+}
+
+/* Action Icons */
+.query-tab-page-actions .mantine-ActionIcon-root {
+  transition: all 0.2s ease;
+}
+
+.query-tab-page-actions .mantine-ActionIcon-root:hover {
+  transform: scale(1.05);
+}
+
+/* Monaco Editor Container */
+.monaco-editor-container {
+  flex: 1;
+  position: relative;
+  background: white;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  /* Ensure tooltips are always visible */
+  z-index: 1;
+}
+
+.monaco-editor-container.drag-over {
+  background: #f0f9ff;
+  border: 2px dashed #3b82f6;
+}
+
+.monaco-editor-container.drag-over::after {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #3b82f6;
+  font-size: 1rem;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Monaco Editor Customization */
+.monaco-editor-container .monaco-editor {
+  border-radius: 0 0 8px 8px;
+}
+
+/* Fix text selection styling to prevent black arrows */
+.monaco-editor-container .monaco-editor ::selection {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: inherit !important;
+}
+
+.monaco-editor-container .monaco-editor ::-moz-selection {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: inherit !important;
+}
+
+/* Override any problematic selection styles */
+.monaco-editor-container .monaco-editor .view-lines {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Force Monaco Editor selection styling */
+.monaco-editor-container .monaco-editor .selected-text {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: inherit !important;
+}
+
+.monaco-editor-container .monaco-editor .view-overlay {
+  background: transparent !important;
+}
+
+.monaco-editor-container .monaco-editor .view-overlay .selected-text {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: inherit !important;
+}
+
+/* Disable any problematic visual effects */
+.monaco-editor-container .monaco-editor .view-overlay .selected-text::before,
+.monaco-editor-container .monaco-editor .view-overlay .selected-text::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Force clean selection rendering */
+.monaco-editor-container .monaco-editor .view-overlay .selected-text * {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* Clean selection styling without breaking functionality */
+.monaco-editor-container .monaco-editor .view-lines {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Only target selection pseudo-elements, not all elements */
+.monaco-editor-container .monaco-editor .view-lines::selection {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: inherit !important;
+}
+
+.monaco-editor-container .monaco-editor .view-lines::-moz-selection {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: inherit !important;
+}
+
+/* Fix: Hide Monaco Editor canvas elements that draw selection arrows */
+.monaco-editor-container .monaco-editor canvas {
+  display: none !important;
+}
+
+/* Fix: Hide pseudo-elements that might contain selection arrows */
+.monaco-editor-container .monaco-editor *::before,
+.monaco-editor-container .monaco-editor *::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Fix tooltip visibility issues */
+.monaco-editor-container .monaco-editor .monaco-editor-overlaymessage {
+  z-index: 1000 !important;
+}
+
+.monaco-editor-container .monaco-editor .monaco-hover {
+  z-index: 1000 !important;
+}
+
+.monaco-editor-container .monaco-editor .monaco-tooltip {
+  z-index: 1000 !important;
+}
+
+/* Ensure Monaco tooltips are always visible */
+.monaco-editor-container .monaco-editor .monaco-editor-overlaymessage,
+.monaco-editor-container .monaco-editor .monaco-hover,
+.monaco-editor-container .monaco-editor .monaco-tooltip {
+  position: fixed !important;
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+}
+
+/* Specific fix for hover tooltips on first line */
+.monaco-editor-container .monaco-editor .monaco-hover {
+  position: fixed !important;
+  z-index: 9999 !important;
+  /* Ensure tooltip appears above other elements */
+  pointer-events: auto !important;
+}
+
+/* Fix for validation error tooltips */
+.monaco-editor-container .monaco-editor .monaco-editor-overlaymessage {
+  position: fixed !important;
+  z-index: 9999 !important;
+  /* Ensure error messages are always visible */
+  background: rgba(220, 38, 38, 0.95) !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.monaco-editor-container .monaco-editor .overflow-guard {
+  border-radius: 0 0 8px 8px;
+}
+
+/* Custom Theme Styles */
+.monaco-editor-container .monaco-editor[data-theme="sql-blue"] {
+  background: #F8FAFC;
+}
+
+.monaco-editor-container .monaco-editor[data-theme="sql-dark"] {
+  background: #1E293B;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .query-tab-page {
+    padding: 0.5rem;
+  }
+  
+  .query-tab-page-input-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .query-tab-page-header-left {
+    justify-content: space-between;
+  }
+  
+  .query-validation-status {
+    flex-wrap: wrap;
+  }
+  
+  .query-tab-page-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .monaco-editor-container {
+    height: 300px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .query-tab-page {
+    padding: 0.25rem;
+  }
+  
+  .query-tab-page-input-header {
+    padding: 0.75rem;
+  }
+  
+  .query-tab-page-header-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .query-validation-status {
+    font-size: 0.7rem;
+  }
+  
+  .query-tab-page-actions {
+    gap: 0.25rem;
+  }
+  
+  .monaco-editor-container {
+    height: 250px !important;
+  }
+}
+
+/* Dark theme support removed - app uses light mode only */
+
+
+

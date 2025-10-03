@@ -1,0 +1,34 @@
+# Simple development server for React dashboard
+FROM node:20-alpine
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY dashboard/package*.json ./
+
+# Install all dependencies (including dev dependencies for build)
+RUN npm install
+# Fix esbuild version conflicts by forcing a specific version
+RUN rm -rf node_modules/.cache/esbuild
+RUN rm -rf node_modules/esbuild
+RUN npm install esbuild@0.25.9 --force
+
+# Copy source code
+COPY dashboard/ ./
+
+# Create environment file from template if it doesn't exist
+RUN if [ ! -f .env ]; then cp env.example .env; fi
+
+# Expose port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
+
+# Start development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "80"]

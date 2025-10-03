@@ -1,0 +1,30 @@
+{
+  "name": "datapilot-backend",
+  "version": "1.0.0",
+  "description": "DataPilot Backend - FastAPI-based backend service",
+  "private": true,
+  "scripts": {
+    "dev": "uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "start": "uvicorn main:app --host 0.0.0.0 --port 8000",
+    "test": "pytest",
+    "lint": "flake8 .",
+    "format": "black .",
+    "install-deps": "pip install -r requirements.txt",
+    "setup-db": "python setup_database.py",
+    "migrate": "python -c \"from app.core.database import create_tables_if_not_exist; create_tables_if_not_exist()\"",
+    "db-reset": "python -c \"from app.core.database import engine; from app.models import *; Base.metadata.drop_all(engine); Base.metadata.create_all(engine)\""
+  },
+  "keywords": [
+    "fastapi",
+    "python",
+    "salesforce",
+    "datapilot",
+    "api",
+    "backend"
+  ],
+  "author": "DataPilot Team",
+  "license": "MIT",
+  "engines": {
+    "python": ">=3.11.0"
+  }
+}

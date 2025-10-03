@@ -1,0 +1,300 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: #213547;
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Light theme only - no dark mode support */
+
+/* ========================================
+   NOTIFICATION POSITIONING FIXES
+   ======================================== */
+/* Force notifications to appear at top-right */
+.mantine-Notifications-root {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+}
+
+.mantine-Notifications-root .mantine-Notification-root {
+  pointer-events: auto !important;
+  margin-bottom: 10px !important;
+}
+
+/* ========================================
+   GLOBAL ICON VISIBILITY FIXES
+   ======================================== */
+/* This ensures Tabler icons are always visible even with @mantine/core/styles.layer.css */
+
+/* Fix for all SVG icons globally */
+svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for SVG paths - only for Mantine components */
+.mantine-ActionIcon-root svg path,
+.mantine-Button-root svg path,
+.mantine-Badge-section svg path,
+[style*="display: flex"] svg path {
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+/* ========================================
+   SELECT COMPONENT STYLING
+   ======================================== */
+/* Remove checkmark icons from Select dropdown options */
+.mantine-Select-option[data-selected]::before {
+  display: none !important;
+}
+
+.mantine-Select-option[data-selected] svg {
+  display: none !important;
+}
+
+.mantine-Select-option[data-selected] path {
+  display: none !important;
+}
+
+
+
+
+
+/* Fix for Mantine ActionIcon components */
+.mantine-ActionIcon-root svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for Mantine Button components */
+.mantine-Button-root svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for Mantine Badge leftSection */
+.mantine-Badge-section svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Fix for any flex containers with icons */
+[style*="display: flex"] svg {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 1em !important;
+  min-height: 1em !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure all Mantine icon containers are visible */
+.mantine-ActionIcon-root,
+.mantine-Button-root,
+.mantine-Badge-root {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-flex !important;
+}
+
+/* Fix for any potential CSS layer conflicts */
+@layer mantine {
+  svg {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 1em !important;
+    min-height: 1em !important;
+    flex-shrink: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  
+  .mantine-ActionIcon-root svg,
+  .mantine-Button-root svg,
+  .mantine-Badge-section svg {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 1em !important;
+    min-height: 1em !important;
+    flex-shrink: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
+/* Notification styling for proper text wrapping and scrolling */
+.mantine-Notification-root {
+  max-width: 35vw !important;
+  min-width: 300px !important;
+  max-height: 300px !important;
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Content-aware width adjustments */
+.mantine-Notification-root[data-short-content] {
+  max-width: 25vw !important;
+}
+
+.mantine-Notification-root[data-medium-content] {
+  max-width: 35vw !important;
+}
+
+.mantine-Notification-root[data-long-content] {
+  max-width: 45vw !important;
+}
+
+.mantine-Notification-body {
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  overflow: visible !important;
+}
+
+.mantine-Notification-description {
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  line-height: 1.4 !important;
+  overflow: visible !important;
+}
+
+/* More aggressive notification targeting */
+[data-mantine-notification] {
+  max-width: 35vw !important;
+  min-width: 300px !important;
+  max-height: 300px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Content-aware width for data attributes */
+[data-mantine-notification][data-short-content] {
+  max-width: 25vw !important;
+}
+
+[data-mantine-notification][data-medium-content] {
+  max-width: 35vw !important;
+}
+
+[data-mantine-notification][data-long-content] {
+  max-width: 45vw !important;
+}
+
+[data-mantine-notification] .mantine-Notification-body {
+  overflow: visible !important;
+}
+
+[data-mantine-notification] .mantine-Notification-description {
+  overflow: visible !important;
+}
+
+/* Custom scrollbar styling for notifications - only on root container */
+.mantine-Notification-root::-webkit-scrollbar,
+[data-mantine-notification]::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.mantine-Notification-root::-webkit-scrollbar-track,
+[data-mantine-notification]::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-radius: 4px !important;
+}
+
+.mantine-Notification-root::-webkit-scrollbar-thumb,
+[data-mantine-notification]::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 4px !important;
+}
+
+.mantine-Notification-root::-webkit-scrollbar-thumb:hover,
+[data-mantine-notification]::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.6) !important;
+}

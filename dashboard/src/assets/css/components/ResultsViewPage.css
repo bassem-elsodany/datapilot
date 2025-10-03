@@ -1,0 +1,906 @@
+/* ========================================
+   RESULTS VIEW PAGE - CLEAN CSS
+   ======================================== */
+
+/* Simple table styling with text wrapping */
+.mantine-DataTable-root .mantine-DataTable-table th,
+.mantine-DataTable-root .mantine-DataTable-table td,
+.mantine-Table-th,
+.mantine-Table-td,
+.mantine-datatable-ellipsis,
+.mantine-datatable-nowrap {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  vertical-align: top !important;
+  text-align: left !important;
+  overflow: visible !important;
+  text-overflow: initial !important;
+}
+
+/* Pagination controls styling */
+.mantine-DataTable-root .mantine-Pagination-control {
+  min-width: 36px !important;
+  height: 36px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+  border: 1px solid #e2e8f0 !important;
+  background-color: white !important;
+  color: #374151 !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mantine-DataTable-root .mantine-Pagination-control:hover {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.mantine-DataTable-root .mantine-Pagination-control[data-active="true"] {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3) !important;
+}
+
+.mantine-DataTable-root .mantine-Pagination-control:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  background-color: #f9fafb !important;
+  color: #9ca3af !important;
+  border-color: #e5e7eb !important;
+}
+
+.mantine-DataTable-root .mantine-Pagination-control:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Pagination text styling */
+.mantine-DataTable-root .mantine-Pagination-text {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+  margin: 0 12px !important;
+  white-space: nowrap !important;
+}
+
+/* Pagination container styling */
+.mantine-DataTable-root .mantine-Pagination-root {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 16px 0 !important;
+  margin-top: 16px !important;
+  border-top: 1px solid #e5e7eb !important;
+  background-color: #fafbfc !important;
+}
+
+/* Pagination size selector styling */
+.mantine-DataTable-root .mantine-Select-root {
+  font-size: 13px !important;
+}
+
+.mantine-DataTable-root .mantine-Select-input {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 6px 12px !important;
+  min-height: 36px !important;
+}
+
+/* Main container */
+.results-view-page-results-view-page-compact {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent double scrollbars */
+  min-height: 0; /* Allow flex item to shrink */
+}
+
+/* Header */
+.results-view-page-results-header-compact {
+  flex-shrink: 0;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+
+.results-view-page-header-content-compact {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.results-view-page-header-title-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+.results-view-page-page-title-compact {
+  margin: 0;
+  color: #1e293b;
+}
+
+.results-view-page-results-badge-compact {
+  font-weight: 600;
+}
+
+.results-view-page-header-controls-compact {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Action Buttons */
+.results-view-page-header-controls-compact .mantine-Button-root {
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+.results-view-page-header-controls-compact .mantine-Button-root:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Override inline styles for specific buttons */
+.results-view-page-header-controls-compact .mantine-Button-root[style*="padding"] {
+  padding: 4px 8px !important;
+  min-height: 24px !important;
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+.results-view-page-header-controls-compact .mantine-Button-root[style*="padding"]:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Target all buttons in the header controls with maximum specificity */
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root {
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Target buttons with compact-xs size specifically */
+.results-view-page-header-controls-compact .mantine-Button-root[data-size="compact-xs"] {
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+.results-view-page-header-controls-compact .mantine-Button-root[data-size="compact-xs"]:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Ultra-specific targeting for all possible button variations */
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root,
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-size="compact-xs"],
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="subtle"],
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="filled"],
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="outline"],
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="light"],
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="default"] {
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root:hover,
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-size="compact-xs"]:hover,
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="subtle"]:hover,
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="filled"]:hover,
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="outline"]:hover,
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="light"]:hover,
+.results-view-page-header-controls-compact .mantine-Group-root .mantine-Button-root[data-variant="default"]:hover {
+  transform: scale(1.05) !important;
+}
+
+.results-view-page-action-controls-compact {
+  display: flex;
+  gap: 8px;
+}
+
+.results-view-page-action-btn-compact {
+  font-weight: 500;
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  min-height: 24px !important;
+}
+
+.results-view-page-action-btn-compact:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Direct class targeting with maximum specificity */
+.results-view-page-header-controls-compact .results-view-page-action-btn-compact {
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+.results-view-page-header-controls-compact .results-view-page-action-btn-compact:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Nuclear option - target everything with maximum specificity */
+div.results-view-page-header-controls-compact div.mantine-Group-root button.mantine-Button-root {
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+div.results-view-page-header-controls-compact div.mantine-Group-root button.mantine-Button-root:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Target the specific button with the class */
+div.results-view-page-header-controls-compact div.mantine-Group-root button.results-view-page-action-btn-compact {
+  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+}
+
+div.results-view-page-header-controls-compact div.mantine-Group-root button.results-view-page-action-btn-compact:hover {
+  transform: scale(1.05) !important;
+}
+
+/* Table container - THIS IS THE KEY FOR SCROLLING */
+.results-view-page-table-container-compact {
+  flex: 1;
+  overflow: auto !important;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  margin: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  min-height: 0; /* Allow flex item to shrink */
+  position: relative; /* For proper scroll positioning */
+}
+
+/* Show master button */
+.results-view-page-show-master-container {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.results-view-page-show-master-btn {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* DataTable styling */
+.results-view-page-datatable-compact {
+  width: 100%;
+  height: 100%;
+}
+
+/* Allow table to expand horizontally without forcing layout */
+.results-view-page-datatable-compact .mantine-DataTable-table {
+  /* Remove table-layout constraint to allow resizing */
+}
+
+/* Ensure DataTable root has proper dimensions */
+.results-view-page-table-container-compact .mantine-DataTable-root {
+  height: 100%;
+  width: 100%;
+}
+
+/* Ensure DataTable viewport handles scrolling */
+.results-view-page-table-container-compact .mantine-DataTable-viewport {
+  overflow: auto !important;
+  height: 100%;
+}
+
+/* Ensure DataTable table container handles overflow */
+.results-view-page-table-container-compact .mantine-DataTable-tableContainer {
+  overflow: visible !important;
+}
+
+/* CRITICAL: Force DataTable to handle scrolling properly */
+.results-view-page-results-view-page-compact .mantine-DataTable-root {
+  height: 100% !important;
+  width: 100% !important;
+  overflow: auto !important;
+}
+
+.results-view-page-results-view-page-compact .mantine-DataTable-viewport {
+  overflow: auto !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+
+.results-view-page-results-view-page-compact .mantine-DataTable-tableContainer {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+.results-view-page-results-view-page-compact .mantine-DataTable-table {
+  table-layout: auto !important;
+}
+
+/* Ensure Collapse doesn't interfere with DataTable scrolling */
+.results-view-page-results-view-page-compact .mantine-Collapse-content {
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+.results-view-page-results-view-page-compact .mantine-Collapse-body {
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+/* FINAL SOLUTION: Force DataTable to be scrollable */
+.results-view-page-results-view-page-compact .mantine-DataTable-root {
+  height: 100% !important;
+  width: 100% !important;
+  overflow: auto !important;
+  min-height: 400px !important; /* Ensure minimum height for scrolling */
+}
+
+.results-view-page-results-view-page-compact .mantine-DataTable-viewport {
+  overflow: auto !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+
+.results-view-page-results-view-page-compact .mantine-DataTable-tableContainer {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+.results-view-page-results-view-page-compact .mantine-DataTable-table {
+  table-layout: auto !important;
+}
+
+/* Ensure scrollbars are visible */
+.results-view-page-results-view-page-compact .mantine-DataTable-root::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.results-view-page-results-view-page-compact .mantine-DataTable-root::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+.results-view-page-results-view-page-compact .mantine-DataTable-root::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
+}
+
+.results-view-page-results-view-page-compact .mantine-DataTable-root::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Ensure Collapse component doesn't interfere with scrolling */
+.results-view-page-results-view-page-compact .mantine-Collapse-content {
+  overflow: visible !important;
+}
+
+.results-view-page-results-view-page-compact .mantine-Collapse-body {
+  overflow: visible !important;
+}
+
+/* Custom scrollbar styling for better visibility */
+.results-view-page-table-container-compact::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.results-view-page-table-container-compact::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+.results-view-page-table-container-compact::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
+}
+
+.results-view-page-table-container-compact::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.results-view-page-table-container-compact::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+
+/* Detail sections */
+.results-view-page-detail-section {
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 16px;
+  margin: 0;
+}
+
+.results-view-page-detail-container {
+  margin-bottom: 16px;
+}
+
+.results-view-page-detail-container:last-child {
+  margin-bottom: 0;
+}
+
+.results-view-page-detail-grid {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  overflow: hidden;
+}
+
+.results-view-page-detail-header {
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.results-view-page-detail-table-container {
+  max-height: 300px;
+  overflow: auto;
+}
+
+/* Detail field styling */
+.results-view-page-detail-field-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.results-view-page-detail-field-text {
+  flex: 1;
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.results-view-page-detail-toggle-btn-compact {
+  flex-shrink: 0;
+  color: #3b82f6;
+  transition: all 0.2s ease;
+}
+
+.results-view-page-detail-toggle-btn-compact:hover {
+  background: rgba(59, 130, 246, 0.1);
+  transform: scale(1.1);
+}
+
+/* Detail DataTable */
+.results-view-page-detail-datatable-compact {
+  /* Let Mantine handle styling - no custom styles needed */
+  min-width: 100%;
+  overflow-x: auto !important;
+  max-width: 100%;
+}
+
+/* Detail table container - Dynamic sizing */
+.results-view-page-detail-table-container {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  /* Width constraints removed to allow inline styles to take effect */
+  min-width: 0 !important;
+}
+
+/* Detail table styling */
+.results-view-page-detail-table-container .mantine-DataTable-root {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Detail table element styling */
+.results-view-page-detail-table-container .mantine-DataTable-table {
+  width: 100% !important;
+  min-width: 0 !important;
+  table-layout: auto !important;
+}
+
+/* Detail table cells styling */
+.results-view-page-detail-table-container .mantine-DataTable-table th,
+.results-view-page-detail-table-container .mantine-DataTable-table td {
+  white-space: normal !important;
+  overflow: visible !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  padding: 8px 12px !important;
+  vertical-align: top !important;
+  text-align: left !important;
+}
+
+/* Override Mantine's default table cell widths */
+.results-view-page-datatable-compact .mantine-Table-td,
+.results-view-page-datatable-compact .mantine-Table-th {
+  /* Remove fixed width constraints to allow resizing */
+  vertical-align: top !important;
+  text-align: left !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+/* Detail table viewport styling */
+.results-view-page-detail-table-container .mantine-DataTable-viewport {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  min-width: 0 !important;
+}
+
+/* Detail table table container styling */
+.results-view-page-detail-table-container .mantine-DataTable-tableContainer {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  min-width: 0 !important;
+}
+
+/* Expandable content container - enable horizontal scrolling */
+.results-view-page-expandable-content {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  /* Width constraints removed to allow inline styles to take effect */
+  min-width: 0 !important;
+}
+
+/* Mantine DataTable expandable row content - enable horizontal scrolling */
+.mantine-DataTable-expanded-row-content {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Mantine DataTable expandable row - enable horizontal scrolling */
+.mantine-DataTable-expanded-row {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Expandable row container - enable horizontal scrolling */
+.results-view-page-datatable-with-spanning-rows tbody tr td {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Spanning row content - enable horizontal scrolling */
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-content {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Spanning row body - enable horizontal scrolling */
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-body {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Detail DataTable root - enable horizontal scrolling */
+.results-view-page-detail-datatable-compact .mantine-DataTable-root {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Detail DataTable viewport - enable horizontal scrolling */
+.results-view-page-detail-datatable-compact .mantine-DataTable-viewport {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Detail DataTable table container - enable horizontal scrolling */
+.results-view-page-detail-datatable-compact .mantine-DataTable-tableContainer {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Detail DataTable table - allow horizontal expansion */
+.results-view-page-detail-datatable-compact .mantine-DataTable-table {
+  table-layout: auto !important;
+}
+
+/* Spanning rows for expand details */
+.results-view-page-datatable-with-spanning-rows tbody tr {
+  position: relative;
+}
+
+.results-view-page-datatable-with-spanning-rows tbody tr td {
+  position: relative;
+  overflow: visible;
+}
+
+/* Edit modal */
+.results-view-page-edit-modal-compact {
+  padding: 16px;
+}
+
+/* Loading Progress Indicator */
+.results-view-page-loading-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  margin: 16px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.results-view-page-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+  max-width: 400px;
+}
+
+.results-view-page-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: results-view-page-spin 1s linear infinite;
+}
+
+.results-view-page-loading-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.results-view-page-loading-progress {
+  width: 100%;
+  max-width: 300px;
+}
+
+.results-view-page-loading-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.results-view-page-loading-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: results-view-page-progress 2s ease-in-out infinite;
+  width: 30%;
+  position: absolute;
+  left: -30%;
+}
+
+@keyframes results-view-page-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes results-view-page-progress {
+  0% { left: -30%; }
+  100% { left: 100%; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .results-view-page-header-content-compact {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .results-view-page-header-controls-compact {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .results-view-page-table-container-compact {
+    margin: 8px;
+  }
+  
+  .results-view-page-loading-container {
+    margin: 8px;
+    padding: 20px 16px;
+  }
+  
+  .results-view-page-loading-content {
+    gap: 16px;
+  }
+  
+  .results-view-page-loading-spinner {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .results-view-page-header-controls-compact {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .results-view-page-header-controls-compact {
+    gap: 0.25rem;
+  }
+}
+
+/* Context Menu Badge Styles */
+.context-menu-badge {
+  transition: all 0.2s ease;
+}
+
+.context-menu-badge:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Override mantine-contextmenu default hover styles */
+[data-mantine-contextmenu-item] {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+[data-mantine-contextmenu-item]:hover {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Force detail tables to use auto layout for horizontal scrolling */
+.results-view-page-detail-datatable-compact table {
+  table-layout: auto !important;
+}
+
+.results-view-page-detail-datatable-compact .mantine-DataTable-root {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.results-view-page-detail-datatable-compact .mantine-DataTable-table {
+  table-layout: auto !important;
+}
+
+.results-view-page-detail-datatable-compact th,
+.results-view-page-detail-datatable-compact td {
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* Detail table header font size - make smaller than main table */
+.results-view-page-detail-datatable-compact th {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 6px 8px !important;
+  line-height: 1.2 !important;
+}
+
+/* Detail table cell font size - make smaller than main table */
+.results-view-page-detail-datatable-compact td {
+  font-size: 11px !important;
+  padding: 4px 8px !important;
+  line-height: 1.2 !important;
+}
+
+/* Ensure detail table headers are smaller than main table headers */
+.results-view-page-detail-datatable-compact .mantine-DataTable-header th {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 6px 8px !important;
+  line-height: 1.2 !important;
+}
+
+/* Ensure detail table cells are smaller than main table cells */
+.results-view-page-detail-datatable-compact .mantine-DataTable-body td {
+  font-size: 11px !important;
+  padding: 4px 8px !important;
+  line-height: 1.2 !important;
+}
+
+/* Custom scrollbar styling for expandable row containers */
+.results-view-page-expandable-content::-webkit-scrollbar,
+.mantine-DataTable-expanded-row-content::-webkit-scrollbar,
+.mantine-DataTable-expanded-row::-webkit-scrollbar,
+.results-view-page-datatable-with-spanning-rows tbody tr td::-webkit-scrollbar,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-content::-webkit-scrollbar,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-body::-webkit-scrollbar,
+.results-view-page-detail-table-container::-webkit-scrollbar,
+.results-view-page-detail-datatable-compact::-webkit-scrollbar,
+.results-view-page-detail-datatable-compact .mantine-DataTable-root::-webkit-scrollbar,
+.results-view-page-detail-datatable-compact .mantine-DataTable-viewport::-webkit-scrollbar,
+.results-view-page-detail-datatable-compact .mantine-DataTable-tableContainer::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.results-view-page-expandable-content::-webkit-scrollbar-track,
+.mantine-DataTable-expanded-row-content::-webkit-scrollbar-track,
+.mantine-DataTable-expanded-row::-webkit-scrollbar-track,
+.results-view-page-datatable-with-spanning-rows tbody tr td::-webkit-scrollbar-track,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-content::-webkit-scrollbar-track,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-body::-webkit-scrollbar-track,
+.results-view-page-detail-table-container::-webkit-scrollbar-track,
+.results-view-page-detail-datatable-compact::-webkit-scrollbar-track,
+.results-view-page-detail-datatable-compact .mantine-DataTable-root::-webkit-scrollbar-track,
+.results-view-page-detail-datatable-compact .mantine-DataTable-viewport::-webkit-scrollbar-track,
+.results-view-page-detail-datatable-compact .mantine-DataTable-tableContainer::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.results-view-page-expandable-content::-webkit-scrollbar-thumb,
+.mantine-DataTable-expanded-row-content::-webkit-scrollbar-thumb,
+.mantine-DataTable-expanded-row::-webkit-scrollbar-thumb,
+.results-view-page-datatable-with-spanning-rows tbody tr td::-webkit-scrollbar-thumb,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-content::-webkit-scrollbar-thumb,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-body::-webkit-scrollbar-thumb,
+.results-view-page-detail-table-container::-webkit-scrollbar-thumb,
+.results-view-page-detail-datatable-compact::-webkit-scrollbar-thumb,
+.results-view-page-detail-datatable-compact .mantine-DataTable-root::-webkit-scrollbar-thumb,
+.results-view-page-detail-datatable-compact .mantine-DataTable-viewport::-webkit-scrollbar-thumb,
+.results-view-page-detail-datatable-compact .mantine-DataTable-tableContainer::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+  border: 1px solid #f1f5f9;
+}
+
+.results-view-page-expandable-content::-webkit-scrollbar-thumb:hover,
+.mantine-DataTable-expanded-row-content::-webkit-scrollbar-thumb:hover,
+.mantine-DataTable-expanded-row::-webkit-scrollbar-thumb:hover,
+.results-view-page-datatable-with-spanning-rows tbody tr td::-webkit-scrollbar-thumb:hover,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-content::-webkit-scrollbar-thumb:hover,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-body::-webkit-scrollbar-thumb:hover,
+.results-view-page-detail-table-container::-webkit-scrollbar-thumb:hover,
+.results-view-page-detail-datatable-compact::-webkit-scrollbar-thumb:hover,
+.results-view-page-detail-datatable-compact .mantine-DataTable-root::-webkit-scrollbar-thumb:hover,
+.results-view-page-detail-datatable-compact .mantine-DataTable-viewport::-webkit-scrollbar-thumb:hover,
+.results-view-page-detail-datatable-compact .mantine-DataTable-tableContainer::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.results-view-page-expandable-content::-webkit-scrollbar-corner,
+.mantine-DataTable-expanded-row-content::-webkit-scrollbar-corner,
+.mantine-DataTable-expanded-row::-webkit-scrollbar-corner,
+.results-view-page-datatable-with-spanning-rows tbody tr td::-webkit-scrollbar-corner,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-content::-webkit-scrollbar-corner,
+.results-view-page-datatable-with-spanning-rows .mantine-Collapse-body::-webkit-scrollbar-corner,
+.results-view-page-detail-table-container::-webkit-scrollbar-corner,
+.results-view-page-detail-datatable-compact::-webkit-scrollbar-corner,
+.results-view-page-detail-datatable-compact .mantine-DataTable-root::-webkit-scrollbar-corner,
+.results-view-page-detail-datatable-compact .mantine-DataTable-viewport::-webkit-scrollbar-corner,
+.results-view-page-detail-datatable-compact .mantine-DataTable-tableContainer::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+

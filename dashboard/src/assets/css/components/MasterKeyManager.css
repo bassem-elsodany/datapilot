@@ -1,0 +1,415 @@
+/* ========================================
+   MASTER KEY MANAGER - COMPLETELY DEDICATED CSS
+   NO SHARED DEPENDENCIES - 100% CUSTOM
+   ======================================== */
+
+.master-key-manager {
+  min-height: 400px;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: transparent;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Removed grain pattern overlay since background is transparent */
+
+.master-key-manager .card-container {
+  width: 100%;
+  max-width: 480px;
+  min-width: 300px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 24px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.master-key-manager .card-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+/* Loading Container */
+.master-key-manager .loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 60px 20px;
+}
+
+.master-key-manager .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Icon Container */
+.master-key-manager .icon-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.master-key-manager .icon-wrapper {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  position: relative;
+}
+
+.master-key-manager .icon-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, #60a5fa, #3b82f6, #1d4ed8);
+  border-radius: 50%;
+  z-index: -1;
+  opacity: 0.7;
+}
+
+/* Title Section */
+.master-key-manager .title-section {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.master-key-manager .card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 6px 0;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.master-key-manager .card-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+  max-width: 350px;
+  margin: 0 auto;
+}
+
+/* Form Section */
+.master-key-manager .form-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* Custom Password Input */
+.master-key-manager .password-input-container {
+  width: 100%;
+  position: relative;
+}
+
+.master-key-manager .password-input-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.master-key-manager .password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.master-key-manager .password-input-field {
+  width: 100%;
+  height: 42px;
+  padding: 10px 14px 10px 44px;
+  font-size: 14px;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.master-key-manager .password-input-field:focus {
+  border-color: #3b82f6;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.master-key-manager .password-input-field::placeholder {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.master-key-manager .password-input-left-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.master-key-manager .password-input-right-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  z-index: 2;
+}
+
+.master-key-manager .password-input-right-icon:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.master-key-manager .password-input-error {
+  font-size: 12px;
+  color: #dc2626;
+  margin-top: 6px;
+  line-height: 1.2;
+}
+
+/* Custom Buttons */
+.master-key-manager .custom-button {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.master-key-manager .custom-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.master-key-manager .custom-button:hover::before {
+  left: 100%;
+}
+
+.master-key-manager .custom-button.primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.master-key-manager .custom-button.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.master-key-manager .custom-button.primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.master-key-manager .custom-button.reset {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.master-key-manager .custom-button.reset:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
+}
+
+.master-key-manager .custom-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.master-key-manager .custom-button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Divider */
+.master-key-manager .divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+  margin: 20px 0;
+  border: none;
+}
+
+/* Info Section */
+.master-key-manager .info-section {
+  width: 100%;
+}
+
+.master-key-manager .info-alert {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.master-key-manager .info-alert-icon {
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.master-key-manager .info-alert-content {
+  flex: 1;
+}
+
+.master-key-manager .info-alert-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #374151;
+  margin: 0;
+}
+
+.master-key-manager .info-alert-note {
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+/* Master Key Info */
+.master-key-manager .master-key-info {
+  width: 100%;
+  margin-top: -10px;
+}
+
+.master-key-manager .length-indicator {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(107, 114, 128, 0.1);
+}
+
+.master-key-manager .valid-indicator {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.master-key-manager .invalid-indicator {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+/* Failed attempts info */
+.master-key-manager .failed-attempts-info {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.master-key-manager .failed-attempts-text {
+  margin: 0;
+  font-size: 12px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.master-key-manager .reset-available-text {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  color: #991b1b;
+  font-weight: 400;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .master-key-manager {
+    padding: 12px;
+    min-height: 350px;
+  }
+  
+  .master-key-manager .card-container {
+    padding: 20px 16px;
+    border-radius: 12px;
+    min-width: 260px;
+  }
+  
+  .master-key-manager .card-title {
+    font-size: 18px;
+  }
+  
+  .master-key-manager .card-subtitle {
+    font-size: 12px;
+  }
+  
+  .master-key-manager .icon-wrapper {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .master-key-manager .form-section {
+    gap: 12px;
+  }
+}
+
+/* Light theme only - no dark mode support */

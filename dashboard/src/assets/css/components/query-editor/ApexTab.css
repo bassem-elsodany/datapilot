@@ -1,0 +1,301 @@
+/* ========================================
+   APEX TAB STYLES
+   ======================================== */
+
+.apex-tab {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ========================================
+   HEADER SECTION
+   ======================================== */
+
+.apex-tab-header {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.apex-tab-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.apex-tab-icon {
+  color: #3b82f6;
+}
+
+.apex-tab-title span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.apex-tab-subtitle {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ========================================
+   CONTENT SECTION
+   ======================================== */
+
+.apex-tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.apex-controls {
+  flex-shrink: 0;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.apex-search {
+  flex: 1;
+  max-width: 300px;
+}
+
+.apex-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.apex-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.apex-main {
+  flex: 1;
+  overflow: hidden;
+}
+
+.apex-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.apex-list {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.apex-items {
+  flex: 0 0 330px;
+  overflow-y: auto;
+  padding: 8px;
+  height: 100%;
+}
+
+.apex-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apex-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.apex-item.selected {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+}
+
+.apex-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.apex-item-row-1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.apex-item-row-2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.apex-item-row-3 {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.apex-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.apex-item-icon {
+  flex-shrink: 0;
+  color: #3b82f6;
+}
+
+.apex-item-details {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.apex-item-name {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apex-item-description {
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apex-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.apex-item-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.apex-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.apex-edit-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #e5e7eb;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.apex-edit-header {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+}
+
+.apex-edit-content {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.apex-edit-compact-fields {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.apex-edit-code-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.apex-edit-code-section .mantine-Textarea-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.apex-edit-code-section .mantine-Textarea-input {
+  flex: 1;
+  min-height: 400px !important;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+  .apex-list {
+    flex-direction: column;
+  }
+  
+  .apex-items {
+    flex: none;
+    height: 200px;
+  }
+}
+
+/* ========================================
+   NATIVE SELECT STYLING
+   ======================================== */
+
+/* Style native select elements to match app design */
+.apex-tab select {
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.apex-tab select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.apex-tab select:hover {
+  border-color: #94a3b8;
+}

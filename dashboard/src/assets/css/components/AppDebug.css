@@ -1,0 +1,337 @@
+/* ========================================
+   APP DEBUG - DEDICATED CSS
+   ======================================== */
+
+.app-debug {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 9999;
+  max-width: 400px;
+  min-width: 250px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.app-debug:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.app-debug .debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.app-debug .debug-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.app-debug .debug-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-debug .debug-mode-selector {
+  width: 80px;
+  font-size: 11px;
+}
+
+.app-debug .debug-content {
+  padding: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.app-debug .debug-section {
+  margin-bottom: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.app-debug .debug-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(59, 130, 246, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.app-debug .debug-section-header:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.app-debug .debug-section-title {
+  flex: 1;
+  font-weight: 500;
+  font-size: 13px;
+  color: #374151;
+}
+
+.app-debug .debug-section-content {
+  padding: 14px;
+  background: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.app-debug .debug-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.app-debug .debug-badge.blue {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+}
+
+.app-debug .debug-badge.green {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+}
+
+.app-debug .debug-badge.red {
+  background: rgba(239, 68, 68, 0.1);
+  color: #991b1b;
+}
+
+.app-debug .debug-badge.orange {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+}
+
+.app-debug .debug-code {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 11px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 6px 0;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.app-debug .debug-log {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  padding: 10px;
+  margin: 6px 0;
+  background: #fafbfc;
+}
+
+.app-debug .debug-log-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.app-debug .debug-log-message {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.app-debug .debug-log-context {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.app-debug .debug-actions {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: #f8f9fa;
+}
+
+.app-debug .debug-button {
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-debug .debug-button:hover {
+  background: #f3f4f6;
+  border-color: rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.app-debug .debug-button:active {
+  transform: translateY(0);
+}
+
+.app-debug .debug-scroll-area {
+  max-height: 120px;
+  overflow-y: auto;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  background: white;
+}
+
+.app-debug .debug-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.app-debug .debug-metric:last-child {
+  border-bottom: none;
+}
+
+.app-debug .debug-metric-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.app-debug .debug-metric-value {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .app-debug {
+    top: 5px;
+    right: 5px;
+    left: 5px;
+    max-width: none;
+    min-width: auto;
+  }
+  
+  .app-debug .debug-content {
+    max-height: 50vh;
+  }
+  
+  .app-debug .debug-mode-selector {
+    width: 70px;
+  }
+}
+
+/* Animation for section expansion */
+.app-debug .debug-section-content {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.app-debug .debug-section-content.collapsed {
+  max-height: 0;
+  padding: 0 14px;
+  opacity: 0;
+}
+
+.app-debug .debug-section-content.expanded {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* Performance monitoring styles */
+.app-debug .performance-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.app-debug .performance-metric {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 6px;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.app-debug .performance-metric-label {
+  font-size: 10px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.app-debug .performance-metric-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+/* Memory usage visualization */
+.app-debug .memory-bar {
+  width: 100%;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 6px 0;
+}
+
+.app-debug .memory-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #ef4444 100%);
+  transition: width 0.3s ease;
+}
+
+/* Session list styling */
+.app-debug .session-list {
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.app-debug .session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.app-debug .session-item:last-child {
+  border-bottom: none;
+}
+
+.app-debug .session-username {
+  font-weight: 500;
+  color: #111827;
+}
+
+.app-debug .session-date {
+  color: #6b7280;
+  font-size: 10px;
+}

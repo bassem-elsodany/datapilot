@@ -1,0 +1,510 @@
+/* ========================================
+   RESULTS VIEW - HORIZONTAL SCROLLING SUPPORT
+   ======================================== */
+
+.results-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.results-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  flex-shrink: 0;
+}
+
+.results-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.results-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.record-count {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3b82f6;
+  background: #eff6ff;
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid #bfdbfe;
+}
+
+.more-records {
+  font-size: 12px;
+  color: #f59e0b;
+  background: #fef3c7;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid #fbbf24;
+}
+
+.edit-mode-indicator {
+  font-size: 12px;
+  color: #059669;
+  background: #d1fae5;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid #10b981;
+}
+
+/* ========================================
+   TABLE CONTAINER WITH HORIZONTAL SCROLLING
+   ======================================== */
+
+.results-table-container {
+  flex: 1;
+  overflow: auto; /* Enable both horizontal and vertical scrolling */
+  position: relative;
+  background: #ffffff;
+  min-height: 0; /* Important for flex child to shrink */
+}
+
+/* ========================================
+   TABLE STYLING WITH HORIZONTAL SCROLLING
+   ======================================== */
+
+.results-table {
+  width: 100%;
+  min-width: 100%; /* Ensure table takes full width */
+  border-collapse: collapse;
+  background: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro Text', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Table header */
+.results-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  position: -webkit-sticky; /* Safari support */
+  position: sticky;
+  /* Ensure header background is solid */
+  background-color: #667eea;
+  background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Add shadow for better visibility when scrolling */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.results-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  min-width: 120px; /* Minimum column width */
+  position: relative;
+  /* Enhanced sticky positioning */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  position: -webkit-sticky; /* Safari support */
+  position: sticky;
+  /* Ensure header cell background is solid */
+  background-color: #667eea;
+  background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Add shadow for better visibility when scrolling */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.results-table th:last-child {
+  border-right: none;
+}
+
+/* Checkbox column styling */
+.checkbox-column {
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
+  text-align: center;
+  padding: 8px !important;
+}
+
+.checkbox-column input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Data column styling */
+.data-column {
+  min-width: 120px;
+  max-width: none;
+  width: auto;
+}
+
+/* Table body */
+.results-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.results-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.results-table tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+.results-table tbody tr:nth-child(even):hover {
+  background-color: #f1f5f9;
+}
+
+/* Table cells */
+.results-table td {
+  padding: 12px 16px;
+  border-right: 1px solid #f1f5f9;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 120px; /* Minimum cell width */
+  max-width: none;
+  position: relative;
+}
+
+.results-table td:last-child {
+  border-right: none;
+}
+
+/* ========================================
+   CELL CONTENT STYLING
+   ======================================== */
+
+.cell-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 20px;
+  position: relative;
+}
+
+.cell-content.editable {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cell-content.editable:hover {
+  background-color: #f0f9ff;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.edit-indicator {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  font-size: 12px;
+  margin-left: 8px;
+  color: #6b7280;
+}
+
+.cell-content.editable:hover .edit-indicator {
+  opacity: 1;
+}
+
+/* ========================================
+   EDIT INPUT STYLING
+   ======================================== */
+
+.cell-edit-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #3b82f6;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #ffffff;
+  color: #374151;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transition: all 0.2s ease;
+}
+
+.cell-edit-input:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2);
+}
+
+.cell-edit-input:disabled {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+.results-table-container::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.results-table-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+.results-table-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
+  transition: background 0.2s ease;
+}
+
+.results-table-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+}
+
+.results-table-container::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+
+/* Firefox scrollbar styling */
+.results-table-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* ========================================
+   NO RESULTS STYLING
+   ======================================== */
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.no-results-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.no-results h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.no-results p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* ========================================
+   RESULTS FOOTER
+   ======================================== */
+
+.results-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.results-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.results-pagination span {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn-secondary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.btn-secondary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.edit-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.edit-help {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.updating-indicator {
+  font-size: 12px;
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+  .results-header {
+    padding: 12px 16px;
+  }
+  
+  .results-header h3 {
+    font-size: 16px;
+  }
+  
+  .results-stats {
+    gap: 8px;
+  }
+  
+  .record-count,
+  .more-records,
+  .edit-mode-indicator {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+  
+  .results-table th,
+  .results-table td {
+    padding: 8px 12px;
+    font-size: 13px;
+    min-width: 100px;
+  }
+  
+  .results-table th {
+    font-size: 12px;
+  }
+  
+  .results-footer {
+    padding: 12px 16px;
+  }
+  
+  .results-pagination {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .results-table th,
+  .results-table td {
+    padding: 6px 8px;
+    font-size: 12px;
+    min-width: 80px;
+  }
+  
+  .results-table th {
+    font-size: 11px;
+  }
+  
+  .checkbox-column {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    padding: 6px !important;
+  }
+  
+  .checkbox-column input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY IMPROVEMENTS
+   ======================================== */
+
+.results-table th:focus,
+.results-table td:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+}
+
+.cell-content.editable:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .results-table th {
+    background: #000000;
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+  
+  .results-table tbody tr:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .cell-content.editable:hover {
+    background-color: #e0e0e0;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .results-table tbody tr,
+  .cell-content,
+  .btn,
+  .cell-edit-input {
+    transition: none;
+  }
+}

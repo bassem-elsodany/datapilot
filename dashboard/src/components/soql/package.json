@@ -1,0 +1,7 @@
+{
+  "name": "@query-editor/soqlparser",
+  "version": "1.0.0",
+  "description": "SOQL Query Parser and Analysis Package",
+  "main": "index.ts",
+  "types": "index.ts"
+}

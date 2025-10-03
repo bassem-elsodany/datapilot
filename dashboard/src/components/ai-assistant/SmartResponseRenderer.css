@@ -1,0 +1,251 @@
+/* SmartResponseRenderer Component Styles */
+
+/* Picklist Modal Styles - Custom Implementation */
+.ai-assistant-picklist-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: ai-assistant-picklist-modal-overlay-fade-in 0.3s ease-out;
+}
+
+@keyframes ai-assistant-picklist-modal-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ai-assistant-picklist-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 800px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: ai-assistant-picklist-modal-slide-in 0.4s ease-out;
+  transform-origin: center;
+}
+
+@keyframes ai-assistant-picklist-modal-slide-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.ai-assistant-picklist-modal-header {
+  background: #f8fafc;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ai-assistant-picklist-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ai-assistant-picklist-modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #64748b;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.ai-assistant-picklist-modal-close:hover {
+  background: #e2e8f0;
+  color: #374151;
+}
+
+.ai-assistant-picklist-modal-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Picklist table specific styles */
+.ai-assistant-picklist-values-table {
+  /* Ensure table doesn't overflow */
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ai-assistant-picklist-values-table .mantine-Table-th {
+  /* Header cells */
+  background-color: #f1f5f9;
+  color: #1e293b;
+  border-bottom: 2px solid #cbd5e1;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.ai-assistant-picklist-values-table .mantine-Table-td {
+  /* Data cells */
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+
+.ai-assistant-picklist-values-table .mantine-Table-tr:hover {
+  /* Row hover effect */
+  background-color: #f8fafc;
+}
+
+.ai-assistant-picklist-values-table .mantine-Code-root {
+  /* Code styling for values */
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ai-assistant-picklist-modal {
+    width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .ai-assistant-picklist-modal-content {
+    padding: 16px;
+  }
+}
+
+/* ========================================
+   STREAMING ANIMATIONS
+   ======================================== */
+
+/* Fade in from top animation */
+@keyframes streamFadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade in and scale animation */
+@keyframes streamFadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Slide in from left animation */
+@keyframes streamSlideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Table row streaming animation */
+@keyframes streamTableRow {
+  from {
+    opacity: 0;
+    transform: translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Apply streaming animation to main cards */
+.smart-response-streaming .mantine-Card-root {
+  animation: streamFadeInScale 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+/* Apply streaming animation to paper elements */
+.smart-response-streaming .mantine-Paper-root {
+  animation: streamFadeInDown 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+/* Stagger cards */
+.smart-response-streaming > *:nth-child(1) { animation-delay: 0.05s; }
+.smart-response-streaming > *:nth-child(2) { animation-delay: 0.15s; }
+.smart-response-streaming > *:nth-child(3) { animation-delay: 0.25s; }
+.smart-response-streaming > *:nth-child(4) { animation-delay: 0.35s; }
+.smart-response-streaming > *:nth-child(5) { animation-delay: 0.45s; }
+
+/* Streaming table rows */
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr {
+  animation: streamTableRow 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+/* Stagger table rows - show first 20 with delays, rest appear quickly */
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(1) { animation-delay: 0.05s; }
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(2) { animation-delay: 0.08s; }
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(3) { animation-delay: 0.11s; }
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(4) { animation-delay: 0.14s; }
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(5) { animation-delay: 0.17s; }
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(6) { animation-delay: 0.20s; }
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(7) { animation-delay: 0.23s; }
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(8) { animation-delay: 0.26s; }
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(9) { animation-delay: 0.29s; }
+.smart-response-streaming .mantine-Table-tbody .mantine-Table-tr:nth-child(10) { animation-delay: 0.32s; }
+
+/* Object cards in grid */
+.smart-response-streaming .mantine-Grid-col .mantine-Card-root {
+  animation: streamFadeInScale 0.35s ease-out;
+  animation-fill-mode: both;
+}
+
+.smart-response-streaming .mantine-Grid-col:nth-child(1) .mantine-Card-root { animation-delay: 0.05s; }
+.smart-response-streaming .mantine-Grid-col:nth-child(2) .mantine-Card-root { animation-delay: 0.10s; }
+.smart-response-streaming .mantine-Grid-col:nth-child(3) .mantine-Card-root { animation-delay: 0.15s; }
+.smart-response-streaming .mantine-Grid-col:nth-child(4) .mantine-Card-root { animation-delay: 0.20s; }
+.smart-response-streaming .mantine-Grid-col:nth-child(5) .mantine-Card-root { animation-delay: 0.25s; }
+.smart-response-streaming .mantine-Grid-col:nth-child(6) .mantine-Card-root { animation-delay: 0.30s; }
+
+/* Suggestion buttons */
+.smart-response-streaming .mantine-Button-root {
+  animation: streamSlideInLeft 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.smart-response-streaming .mantine-Button-root:nth-child(1) { animation-delay: 0.05s; }
+.smart-response-streaming .mantine-Button-root:nth-child(2) { animation-delay: 0.10s; }
+.smart-response-streaming .mantine-Button-root:nth-child(3) { animation-delay: 0.15s; }
+.smart-response-streaming .mantine-Button-root:nth-child(4) { animation-delay: 0.20s; }
+.smart-response-streaming .mantine-Button-root:nth-child(5) { animation-delay: 0.25s; }

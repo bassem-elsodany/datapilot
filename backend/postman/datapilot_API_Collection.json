@@ -1,0 +1,2970 @@
+{
+	"info": {
+		"name": "DataPilot API Collection",
+		"description": "Complete API collection for DataPilot backend endpoints with REST-compliant structure, LangGraph-based conversation management, and comprehensive Salesforce integration. Includes DataPilot AI Agent, SObject cache management, conversation analytics, and full CRUD operations for all resources.",
+		"version": "4.0.0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "masterKey",
+			"value": "adminadmin",
+			"type": "string"
+		},
+		{
+			"key": "connectionUuid",
+			"value": "681932fb-71d6-4a58-b2ba-16a1e529c3ed",
+			"type": "string"
+		},
+		{
+			"key": "authProviderUuid",
+			"value": "your-auth-provider-uuid-here",
+			"type": "string"
+		},
+		{
+			"key": "conversationUuid",
+			"value": "conv_123456789012",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "API Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Master Key",
+			"item": [
+				{
+					"name": "Get Master Key Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/master-key?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"master-key"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create/Validate Master Key",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"master_key\": \"your-master-key-here\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/master-key?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"master-key"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Master Key",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"new_master_key\": \"your-new-master-key-here\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/master-key?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"master-key"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Master Key",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/master-key?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"master-key"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Connections",
+			"item": [
+				{
+					"name": "Create Connection",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"master_key\": \"{{masterKey}}\",\n  \"display_name\": \"My Salesforce Connection\",\n  \"auth_provider_uuid\": \"{{authProviderUuid}}\",\n  \"connection_data\": {\n    \"username\": \"your-username\",\n    \"password\": \"your-password\",\n    \"environment\": \"production\",\n    \"consumer_key\": \"your-consumer-key\",\n    \"consumer_secret\": \"your-consumer-secret\",\n    \"security_token\": \"your-security-token\",\n    \"client_id\": \"your-client-id\",\n    \"client_secret\": \"your-client-secret\"\n  },\n  \"created_by\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/connections?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "List All Connections",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/connections?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Connection by UUID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Connection",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"display_name\": \"Updated Connection Name\",\n  \"master_key\": \"{{masterKey}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Connection",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete All Connections",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/connections?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Connection Saved Queries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}/saved-queries?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}",
+								"saved-queries"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Add SObject Favorite",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sobject_name\": \"Account\",\n  \"sobject_label\": \"Account\",\n  \"is_custom\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}/favorites?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}",
+								"favorites"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "List SObject Favorites",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}/favorites?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}",
+								"favorites"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete SObject Favorite",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}/favorites/favorite-id?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}",
+								"favorites",
+								"favorite-id"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Connect to Salesforce",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}/connect?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}",
+								"connect"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Connection Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}/status?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}",
+								"status"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Disconnect from Salesforce",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}/disconnect?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}",
+								"disconnect"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Connection User Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/connections/{{connectionUuid}}/user/info?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"connections",
+								"{{connectionUuid}}",
+								"user",
+								"info"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Salesforce",
+			"item": [
+				{
+					"name": "List SObjects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/sobjects/list?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"sobjects",
+								"list"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Describe SObject",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/sobjects/describe/Account?include_child_relationships=true&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"sobjects",
+								"describe",
+								"Account"
+							],
+							"query": [
+								{
+									"key": "include_child_relationships",
+									"value": "true"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Execute SOQL Query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": \"SELECT Id, Name FROM Account LIMIT 10\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/queries/execute?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"queries",
+								"execute"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Execute More SOQL Query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"next_records_url\": \"/services/data/v58.0/query/01g000000000000-2000\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/queries/execute-more?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"queries",
+								"execute-more"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/user/info?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"user",
+								"info"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get API Usage",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/usage/info?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"usage",
+								"info"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get API Config",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/config/info?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"config",
+								"info"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Record",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"Name\": \"Updated Account Name\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/sobjects/Account/records/record-id?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"sobjects",
+								"Account",
+								"records",
+								"record-id"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Salesforce Limits",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/limits?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"limits"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Apex Execution",
+			"item": [
+				{
+					"name": "Execute Anonymous Apex",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"apex_code\": \"System.debug('Hello World');\",\n  \"connection_uuid\": \"{{connectionUuid}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/apex/execute-anonymous?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"apex",
+								"execute-anonymous"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Execute Apex REST",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"endpoint\": \"/services/apexrest/MyEndpoint\",\n  \"method\": \"GET\",\n  \"data\": {},\n  \"connection_uuid\": \"{{connectionUuid}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/apex/execute-rest?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"apex",
+								"execute-rest"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Apex Limits",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/apex/limits?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"apex",
+								"limits"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Compile Packages",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"package_names\": [\"MyPackage\"],\n  \"connection_uuid\": \"{{connectionUuid}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/apex/compile-packages?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"apex",
+								"compile-packages"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Compile Triggers",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"trigger_names\": [\"MyTrigger\"],\n  \"connection_uuid\": \"{{connectionUuid}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/apex/compile-triggers?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"apex",
+								"compile-triggers"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Run Tests",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"test_classes\": [\"MyTestClass\"],\n  \"test_methods\": [\"testMethod1\"],\n  \"connection_uuid\": \"{{connectionUuid}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/apex/run-tests?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"apex",
+								"run-tests"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Compile and Test",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"apex_code\": \"public class MyClass { public void myMethod() { System.debug('Hello'); } }\",\n  \"test_classes\": [\"MyTestClass\"],\n  \"connection_uuid\": \"{{connectionUuid}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/apex/compile-and-test?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"apex",
+								"compile-and-test"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Compilation Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/salesforce/apex/compilation-status/compilation-id?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"salesforce",
+								"apex",
+								"compilation-status",
+								"compilation-id"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Saved Queries",
+			"item": [
+				{
+					"name": "Create Saved Query",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"connection_uuid\": \"{{connectionUuid}}\",\n  \"name\": \"My Saved Query\",\n  \"query_text\": \"SELECT Id, Name FROM Account LIMIT 10\",\n  \"description\": \"Query to get account names\",\n  \"tags\": \"accounts,test\",\n  \"is_favorite\": false,\n  \"created_by\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/saved-queries?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-queries"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Saved Queries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-queries?connection_uuid={{connectionUuid}}&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-queries"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Saved Query by UUID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-queries/query-uuid?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-queries",
+								"query-uuid"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Saved Query",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Query Name\",\n  \"description\": \"Updated description\",\n  \"is_favorite\": true,\n  \"updated_by\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/saved-queries/query-uuid?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-queries",
+								"query-uuid"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Saved Query",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-queries/query-uuid?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-queries",
+								"query-uuid"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Increment Execution Count",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-queries/query-uuid/increment-execution?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-queries",
+								"query-uuid",
+								"increment-execution"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Saved Apex",
+			"item": [
+				{
+					"name": "Get Debug Levels Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-apex/debug-levels?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-apex",
+								"debug-levels"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Code Types Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-apex/code-types?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-apex",
+								"code-types"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Saved Apex List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-apex?connection_uuid={{connectionUuid}}&limit=100&offset=0&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-apex"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "limit",
+									"value": "100"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Saved Apex",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"connection_uuid\": \"{{connectionUuid}}\",\n  \"name\": \"My Apex Code\",\n  \"apex_code\": \"System.debug('Hello World');\",\n  \"description\": \"Simple debug statement\",\n  \"tags\": \"debug,test\",\n  \"code_type\": \"anonymous\",\n  \"debug_levels\": {\n    \"ApexCode\": \"DEBUG\",\n    \"System\": \"DEBUG\"\n  },\n  \"created_by\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/saved-apex?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-apex"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Saved Apex by UUID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-apex/apex-uuid?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-apex",
+								"apex-uuid"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Saved Apex",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Apex Code\",\n  \"description\": \"Updated description\",\n  \"is_favorite\": true,\n  \"updated_by\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/saved-apex/apex-uuid?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-apex",
+								"apex-uuid"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Saved Apex",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-apex/apex-uuid?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-apex",
+								"apex-uuid"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Toggle Favorite",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/saved-apex/apex-uuid/toggle-favorite?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"saved-apex",
+								"apex-uuid",
+								"toggle-favorite"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Auth Providers",
+			"item": [
+				{
+					"name": "Get All Auth Providers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth-providers?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth-providers"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Auth Provider by UUID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth-providers/provider-uuid?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth-providers",
+								"provider-uuid"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Auth Provider",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"salesforce-oauth\",\n  \"name\": \"Salesforce OAuth2\",\n  \"type\": \"OAUTH2\",\n  \"description\": \"Salesforce OAuth2 authentication provider\",\n  \"is_active\": true,\n  \"config\": {\n    \"client_id\": \"your-client-id\",\n    \"client_secret\": \"your-client-secret\",\n    \"auth_url\": \"https://login.salesforce.com/services/oauth2/authorize\",\n    \"token_url\": \"https://login.salesforce.com/services/oauth2/token\"\n  },\n  \"metadata\": {\n    \"version\": \"1.0\"\n  },\n  \"created_by\": \"system\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth-providers?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth-providers"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Auth Provider",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Auth Provider\",\n  \"description\": \"Updated description\",\n  \"is_active\": false,\n  \"updated_by\": \"system\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth-providers/provider-uuid?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth-providers",
+								"provider-uuid"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Auth Provider",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth-providers/provider-uuid?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth-providers",
+								"provider-uuid"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Auth Providers by Type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth-providers/type/OAUTH2?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth-providers",
+								"type",
+								"OAUTH2"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Auth Provider Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth-providers/stats/overview?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth-providers",
+								"stats",
+								"overview"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "I18n",
+			"item": [
+				{
+					"name": "Get All Languages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/i18n/languages?is_active=true&fields=code,name&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"i18n",
+								"languages"
+							],
+							"query": [
+								{
+									"key": "is_active",
+									"value": "true"
+								},
+								{
+									"key": "fields",
+									"value": "code,name",
+									"description": "Comma-separated list of fields to return"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Available Pages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/i18n/translations/pages?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"i18n",
+								"translations",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Translation by Page",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/i18n/translations/en/app?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"i18n",
+								"translations",
+								"en",
+								"app"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Translation Key",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/i18n/translations/en/app/key/title?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"i18n",
+								"translations",
+								"en",
+								"app",
+								"key",
+								"title"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Translation Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/i18n/stats?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"i18n",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Reload Translations",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/i18n/translations/en/reload?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"i18n",
+								"translations",
+								"en",
+								"reload"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Language",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"es\",\n  \"name\": \"Spanish\",\n  \"is_active\": true,\n  \"is_default\": false,\n  \"created_by\": \"system\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/i18n/languages?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"i18n",
+								"languages"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Set Default Language",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/i18n/languages/language-uuid/default?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"i18n",
+								"languages",
+								"language-uuid",
+								"default"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Set Language Active Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/i18n/languages/language-uuid/active?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"i18n",
+								"languages",
+								"language-uuid",
+								"active"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "DataPilot AI Agent",
+			"item": [
+				{
+					"name": "Process AI Query (REST)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": \"Show me all accounts with revenue greater than $1M\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai-agents?connection_uuid={{connectionUuid}}&conversation_uuid={{conversationUuid}}&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ai-agents"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "conversation_uuid",
+									"value": "{{conversationUuid}}",
+									"description": "Optional - creates new if not provided"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Process AI Query (New Conversation)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": \"What are the top 10 opportunities by amount?\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai-agents?connection_uuid={{connectionUuid}}&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ai-agents"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Handle Interrupt Response",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"response\": \"Yes, please proceed with the query\",\n  \"interrupt_type\": \"user_confirmation\",\n  \"conversation_uuid\": \"{{conversationUuid}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai-agents/interrupt-response?connection_uuid={{connectionUuid}}&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ai-agents",
+								"interrupt-response"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Agent Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/ai-agents/health?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ai-agents",
+								"health"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Conversation State (LangGraph)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/ai-agents/conversations/{{conversationUuid}}?limit=10&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ai-agents",
+								"conversations",
+								"{{conversationUuid}}"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Limit number of messages"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Clear Conversation State (LangGraph)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/ai-agents/conversations/{{conversationUuid}}?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ai-agents",
+								"conversations",
+								"{{conversationUuid}}"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Process AI Query (REST) - Existing Conversation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": \"Show me all accounts with revenue greater than $1M\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai-agents/{{conversationUuid}}?connection_uuid={{connectionUuid}}&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ai-agents",
+								"{{conversationUuid}}"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "WebSocket DataPilot Agent",
+			"item": [
+				{
+					"name": "WebSocket Connection (New Conversation)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:8000/api/v1/ai-agents/ws?connection_uuid={{connectionUuid}}",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"ai-agents",
+								"ws"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}",
+									"description": "Connection UUID for Salesforce access"
+								}
+							]
+						},
+						"description": "WebSocket endpoint for real-time chat with DataPilot AI Agent. Creates new conversation automatically with LangGraph persistence."
+					}
+				},
+				{
+					"name": "WebSocket Connection (Existing Conversation)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:8000/api/v1/ai-agents/ws?connection_uuid={{connectionUuid}}&conversation_uuid={{conversationUuid}}",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"ai-agents",
+								"ws"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}",
+									"description": "Connection UUID for Salesforce access"
+								},
+								{
+									"key": "conversation_uuid",
+									"value": "{{conversationUuid}}",
+									"description": "Continue existing conversation with LangGraph state"
+								}
+							]
+						},
+						"description": "WebSocket endpoint for real-time chat with existing conversation context using LangGraph persistence."
+					}
+				},
+				{
+					"name": "WebSocket Message Examples",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:8000/api/v1/ai-agents/ws?connection_uuid={{connectionUuid}}",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"ai-agents",
+								"ws"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								}
+							]
+						},
+						"description": "Example WebSocket messages to send:\n\n1. User Message:\n{\n  \"type\": \"user_message\",\n  \"content\": \"Show me all accounts with revenue > $1M\",\n  \"user_id\": \"user_123\",\n  \"metadata\": {\n    \"stream_mode\": \"messages\"\n  }\n}\n\n2. Ping Message:\n{\n  \"type\": \"ping\",\n  \"content\": \"ping\",\n  \"user_id\": \"client\"\n}\n\n3. Get Chat History:\n{\n  \"type\": \"get_chat_history\",\n  \"content\": \"get_history\",\n  \"user_id\": \"client\"\n}\n\nNote: LangGraph automatically handles conversation state persistence and streaming responses."
+					}
+				}
+			]
+		},
+		{
+			"name": "Conversations",
+			"item": [
+				{
+					"name": "Get Conversation Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/conversations/stats?connection_uuid={{connectionUuid}}&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}",
+									"description": "Filter stats by connection UUID"
+								},
+								{
+									"key": "agent_name",
+									"value": "datapilot-agent",
+									"description": "Filter stats by agent name"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Conversation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"connection_uuid\": \"{{connectionUuid}}\",\n  \"agent_name\": \"datapilot-agent\",\n  \"title\": \"My Conversation\",\n  \"description\": \"Conversation about Salesforce data analysis\",\n  \"tags\": \"salesforce,analysis\",\n  \"initial_message\": \"Hello, I need help with Salesforce queries\",\n  \"created_by\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/conversations?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Conversations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/conversations?connection_uuid={{connectionUuid}}&agent_name=datapilot-agent&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "agent_name",
+									"value": "datapilot-agent",
+									"description": "Filter by agent name"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Conversation by UUID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/conversations/{{conversationUuid}}?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversationUuid}}"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Conversation",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Conversation Title\",\n  \"description\": \"Updated description\",\n  \"tags\": \"updated,tags\",\n  \"agent_name\": \"datapilot-agent\",\n  \"updated_by\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/conversations/{{conversationUuid}}?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversationUuid}}"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Conversation",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/conversations/{{conversationUuid}}?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversationUuid}}"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Add Message to Conversation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"user\",\n  \"content\": \"Show me all accounts with revenue > $1M\",\n  \"message_type\": \"text\",\n  \"metadata\": {\n    \"query_type\": \"soql\",\n    \"intent\": \"data_analysis\"\n  },\n  \"parent_message_id\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/conversations/{{conversationUuid}}/messages?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversationUuid}}",
+								"messages"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Conversation Messages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/conversations/{{conversationUuid}}/messages?limit=50&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversationUuid}}",
+								"messages"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Limit number of messages returned"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Conversation Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/conversations/{{conversationUuid}}/analytics?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversationUuid}}",
+								"analytics"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Conversation Summary",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"summary\": \"Conversation about analyzing Salesforce account data and revenue patterns\",\n  \"key_topics\": [\"account analysis\", \"revenue queries\", \"SOQL optimization\"],\n  \"queries_executed\": 5,\n  \"insights_generated\": [\"Revenue distribution analysis\", \"Account segmentation insights\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/conversations/{{conversationUuid}}/summary?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"conversations",
+								"{{conversationUuid}}",
+								"summary"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "SObject Cache Management",
+			"item": [
+				{
+					"name": "Get SObject List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sobjects?connection_uuid={{connectionUuid}}&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sobjects"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get SObject Metadata",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sobjects/Account?connection_uuid={{connectionUuid}}&include_child_relationships=true&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sobjects",
+								"Account"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "include_child_relationships",
+									"value": "true"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Flush SObject Cache",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/sobjects?connection_uuid={{connectionUuid}}&lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"sobjects"
+							],
+							"query": [
+								{
+									"key": "connection_uuid",
+									"value": "{{connectionUuid}}"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Cache Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/statistics?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"statistics"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Cache Health",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/health?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Clear Expired Cache",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/expired?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"expired"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Cache Health",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Master-Key",
+								"value": "{{masterKey}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/health?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Settings",
+			"item": [
+				{
+					"name": "Get Setting by Config Key",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/settings/DATABASE_URL?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"settings",
+								"DATABASE_URL"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get API Version Setting",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/settings/API_VERSION?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"settings",
+								"API_VERSION"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Environment Setting",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/settings/ENVIRONMENT?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"settings",
+								"ENVIRONMENT"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Debug Setting",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/settings/DEBUG?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"settings",
+								"DEBUG"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Log Level Setting",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/settings/LOG_LEVEL?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"settings",
+								"LOG_LEVEL"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get MongoDB URL Setting",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/settings/MONGODB_URL?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"settings",
+								"MONGODB_URL"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Server Host Setting",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/settings/SERVER_HOST?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"settings",
+								"SERVER_HOST"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Server Port Setting",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/settings/SERVER_PORT?lang=en",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"settings",
+								"SERVER_PORT"
+							],
+							"query": [
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Logging",
+			"item": [
+				{
+					"name": "Create Log Entry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"level\": 20,\n  \"levelName\": \"INFO\",\n  \"message\": \"Frontend log message\",\n  \"context\": \"user-interface\",\n  \"data\": {\n    \"component\": \"query-builder\",\n    \"action\": \"query-executed\"\n  },\n  \"timestamp\": \"2024-01-15T10:30:00Z\",\n  \"userId\": \"user-123\",\n  \"sessionId\": \"session-456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logging",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"logging"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Debug Log Entry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"level\": 10,\n  \"levelName\": \"DEBUG\",\n  \"message\": \"Debug information\",\n  \"context\": \"api-request\",\n  \"data\": {\n    \"endpoint\": \"/salesforce/queries/execute\",\n    \"method\": \"POST\",\n    \"response_time\": 150\n  },\n  \"timestamp\": \"2024-01-15T10:30:00Z\",\n  \"userId\": \"user-123\",\n  \"sessionId\": \"session-456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logging",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"logging"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Error Log Entry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"level\": 40,\n  \"levelName\": \"ERROR\",\n  \"message\": \"Database connection failed\",\n  \"context\": \"database\",\n  \"data\": {\n    \"error_code\": \"DB_CONNECTION_ERROR\",\n    \"retry_count\": 3,\n    \"last_attempt\": \"2024-01-15T10:30:00Z\"\n  },\n  \"timestamp\": \"2024-01-15T10:30:00Z\",\n  \"userId\": \"system\",\n  \"sessionId\": \"session-456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logging",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"logging"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,459 @@
+/* ========================================
+   LOGIN PANEL - FANCY STYLISH CSS
+   ======================================== */
+
+.login-panel {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+
+
+.login-panel .container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 20px 20px 20px;
+}
+
+/* ========================================
+   MODERN APP HEADER SECTION
+   ======================================== */
+
+.app-header-section {
+  text-align: center;
+  padding: 0 20px;
+  margin-top: -20px;
+}
+
+/* App Logo Section with animations */
+.app-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+}
+
+/* Logo icon styling */
+.logo-icon svg {
+  display: block;
+  width: 48px;
+  height: 48px;
+}
+
+
+
+.animated-logo {
+  /* Logo animations removed */
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
+}
+
+@keyframes logoGlow {
+  0% { box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3); }
+  100% { box-shadow: 0 8px 32px rgba(59, 130, 246, 0.6); }
+}
+
+.logo-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%);
+  border-radius: 12px;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.logo-icon svg {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+@keyframes iconSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.app-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.app-title {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  text-align: left;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  position: relative;
+  animation: titleSlideIn 1s ease-out;
+}
+
+.animated-title {
+  animation: titleSlideIn 1s ease-out, titleGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes titleGlow {
+  0% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+  100% { filter: drop-shadow(0 0 15px rgba(255,255,255,0.6)); }
+}
+
+.app-title::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  border-radius: 1px;
+  animation: underlineGrow 1.5s ease-out 0.5s both;
+}
+
+@keyframes underlineGrow {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.app-subtitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  text-align: left;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  animation: subtitleFadeIn 1s ease-out 0.3s both;
+}
+
+.animated-subtitle {
+  animation: subtitleFadeIn 1s ease-out 0.3s both, subtitlePulse 4s ease-in-out infinite;
+}
+
+@keyframes subtitleFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes subtitlePulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* App Description Section */
+.app-description {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.description-text {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #475569;
+  margin: 0 0 20px 0;
+  font-weight: 400;
+  animation: descriptionSlideUp 1s ease-out 0.6s both;
+}
+
+.animated-description {
+  animation: descriptionSlideUp 1s ease-out 0.6s both;
+}
+
+@keyframes descriptionSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading Section */
+.loading-section {
+  margin: 30px 0;
+  animation: loadingFadeIn 1s ease-out 0.9s both;
+}
+
+.loading-progress-container {
+  max-width: 400px;
+  margin: 0 auto 20px auto;
+}
+
+.loading-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(102, 126, 234, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.loading-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  border-radius: 3px;
+  transition: width 0.8s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.loading-text {
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+/* Animated loading dots */
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(102, 126, 234, 0.6);
+  border-radius: 50%;
+  animation: dotBounce 1.4s ease-in-out infinite both;
+}
+
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+.dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes dotBounce {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Feature tags with enhanced styling */
+.feature-tags {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  animation: tagsSlideIn 1s ease-out 1.2s both;
+}
+
+.feature-tag {
+  background: rgba(102, 126, 234, 0.1);
+  color: #3b82f6;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Feature tag animation delays removed */
+
+@keyframes tagFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+.feature-tag:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+}
+
+@keyframes tagsSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loadingFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-panel .content-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: contentFadeIn 1s ease-out 1.5s both;
+}
+
+@keyframes contentFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .login-panel .container {
+    padding: 40px 16px 16px 16px;
+  }
+  
+  .app-header-section {
+    padding: 10px 10px;
+  }
+
+  .app-logo {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+  
+  .logo-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .app-title {
+    font-size: 28px;
+  }
+  
+  .app-subtitle {
+    font-size: 13px;
+  }
+  
+  .description-text {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .feature-tags {
+    gap: 8px;
+  }
+  
+  .feature-tag {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-logo {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .app-brand {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .app-title {
+    text-align: center;
+  }
+  
+  .app-subtitle {
+    text-align: center;
+  }
+  
+  .description-text {
+    font-size: 15px;
+  }
+}

@@ -1,0 +1,122 @@
+/**
+ * Conversation Item Component Styles
+ * 
+ * Styles for individual conversation items in the conversation list.
+ */
+
+.conversation-item {
+  transition: all 0.2s ease;
+  border: 1px solid var(--mantine-color-gray-3);
+  background: var(--mantine-color-white);
+}
+
+/* Alternating background colors for better navigation */
+.conversation-item.even {
+  background: var(--mantine-color-gray-0);
+}
+
+.conversation-item.odd {
+  background: var(--mantine-color-white);
+}
+
+.conversation-item:hover {
+  border-color: var(--mantine-color-blue-4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.conversation-item.selected {
+  border-color: var(--mantine-color-blue-6);
+  background: var(--mantine-color-blue-0);
+  box-shadow: 0 2px 12px rgba(34, 139, 34, 0.15);
+  position: relative;
+}
+
+.conversation-item.selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--mantine-color-blue-6);
+  border-radius: 0 2px 2px 0;
+}
+
+.conversation-item .mantine-Paper-root {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Agent icon styling */
+.conversation-item .agent-icon {
+  color: var(--mantine-color-blue-6);
+}
+
+.conversation-item .agent-icon.salesforce {
+  color: var(--mantine-color-green-6);
+}
+
+.conversation-item .agent-icon.custom {
+  color: var(--mantine-color-orange-6);
+}
+
+/* Badge styling */
+.conversation-item .mantine-Badge-root {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Action buttons */
+.conversation-item .mantine-ActionIcon-root {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.conversation-item:hover .mantine-ActionIcon-root {
+  opacity: 1;
+}
+
+.conversation-item .mantine-ActionIcon-root:hover {
+  transform: scale(1.1);
+}
+
+/* Text truncation */
+.conversation-item .mantine-Text-root[data-line-clamp] {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Additional visual indicators for better navigation */
+.conversation-item.even:hover {
+  background: var(--mantine-color-gray-1);
+}
+
+.conversation-item.odd:hover {
+  background: var(--mantine-color-gray-0);
+}
+
+/* Subtle border differences for even/odd items */
+.conversation-item.even {
+  border-left: 3px solid transparent;
+}
+
+.conversation-item.odd {
+  border-left: 3px solid var(--mantine-color-gray-2);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .conversation-item {
+    padding: 0.75rem;
+  }
+  
+  .conversation-item .mantine-Group-root {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

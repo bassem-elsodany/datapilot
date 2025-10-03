@@ -1,0 +1,1340 @@
+/* SchemaTree Component Styles - Mantine-based */
+
+
+
+
+
+
+/* Custom tree node highlighting for search results */
+.schema-tree-page-highlight {
+  background-color: var(--mantine-color-blue-0) !important;
+  border: 1px solid var(--mantine-color-blue-3) !important;
+}
+
+/* Custom field type badges */
+.schema-tree-page-field-type-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Custom picklist modal styling */
+.schema-tree-page-picklist-modal-content {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.schema-tree-page-picklist-value-item {
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.schema-tree-page-picklist-value-item:hover {
+  border-left-color: var(--mantine-color-blue-5);
+}
+
+.schema-tree-page-picklist-value-item.inactive {
+  opacity: 0.6;
+}
+
+.schema-tree-page-picklist-value-item.default {
+  border-left-color: var(--mantine-color-green-5);
+}
+
+/* Enhanced tree node animations with smooth motion */
+.schema-tree-page-tree-node-enter {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  max-height: 0;
+  overflow: hidden;
+}
+
+.schema-tree-page-tree-node-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  max-height: 1000px;
+  transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.schema-tree-page-tree-node-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  max-height: 1000px;
+}
+
+.schema-tree-page-tree-node-exit-active {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95);
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              max-height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Custom scrollbar for tree content */
+.schema-tree-page-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--mantine-color-gray-4) transparent;
+}
+
+.schema-tree-page-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.schema-tree-page-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.schema-tree-page-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--mantine-color-gray-4);
+  border-radius: 3px;
+}
+
+.schema-tree-page-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--mantine-color-gray-5);
+}
+
+/* Drag and drop styles */
+.schema-tree-page-node-content[draggable="true"] {
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.schema-tree-page-node-content[draggable="true"]:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+.schema-tree-page-node-content[draggable="true"]:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: 4px;
+}
+
+/* Custom loading states */
+.schema-tree-page-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Loading spinner animation */
+.schema-tree-page-loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Custom field display enhancements */
+.schema-tree-page-field-display-container {
+  position: relative;
+}
+
+.schema-tree-page-field-display-container:hover {
+  background-color: var(--mantine-color-gray-0);
+  border-radius: var(--mantine-radius-sm);
+}
+
+/* Custom tree node spacing */
+.schema-tree-page-tree-node-spacing {
+  margin-left: var(--mantine-spacing-xs);
+}
+
+/* Custom icon colors for different field types */
+.schema-tree-page-field-icon-string {
+  color: var(--mantine-color-blue-6);
+}
+
+.schema-tree-page-field-icon-number {
+  color: var(--mantine-color-green-6);
+}
+
+.schema-tree-page-field-icon-date {
+  color: var(--mantine-color-orange-6);
+}
+
+.schema-tree-page-field-icon-boolean {
+  color: var(--mantine-color-purple-6);
+}
+
+.schema-tree-page-field-icon-picklist {
+  color: var(--mantine-color-cyan-6);
+}
+
+.schema-tree-page-field-icon-reference {
+  color: var(--mantine-color-red-6);
+}
+
+/* Custom badge styling for field constraints */
+.schema-tree-page-constraint-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Custom tooltip styling */
+.schema-tree-page-tooltip {
+  max-width: 300px;
+  font-size: 0.875rem;
+}
+
+/* Custom modal styling for picklist values */
+.schema-tree-page-picklist-modal {
+  max-width: 600px;
+}
+
+.schema-tree-page-picklist-modal-header {
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+  padding-bottom: var(--mantine-spacing-sm);
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+/* Custom export modal styling */
+.schema-tree-page-export-modal-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--mantine-spacing-sm);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .schema-tree-page-container {
+    padding: var(--mantine-spacing-sm);
+  }
+  
+  .schema-tree-page-tree-node-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .schema-tree-page-field-display-container {
+    width: 100%;
+  }
+}
+
+/* Container and layout styles */
+.schema-tree-page-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--mantine-color-white);
+}
+
+.schema-tree-page-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: -15px;
+}
+
+.schema-tree-page-tree-container {
+  min-height: 500px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  padding-top: 0px !important;
+  margin-top: -20px !important;
+}
+
+/* Scroll area styling */
+.schema-tree-page-scroll {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+
+.schema-tree-page-scroll .mantine-ScrollArea-viewport {
+  padding: 0;
+  height: 100%;
+}
+
+.schema-tree-page-scroll .mantine-ScrollArea-content {
+  padding: 0;
+  min-height: 100%;
+}
+
+/* Mantine Tree Component Overrides */
+.schema-tree-page-container .mantine-Tree-root {
+  font-family: inherit;
+}
+
+.schema-tree-page-container .mantine-Tree-node {
+  padding: 4px 0;
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background-color: transparent;
+  transform-origin: center;
+}
+
+.schema-tree-page-container .mantine-Tree-node:hover {
+  background-color: var(--mantine-color-blue-0);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  outline: none;
+  border: none;
+}
+
+.schema-tree-page-container .mantine-Tree-node[data-selected="true"] {
+  background-color: var(--mantine-color-blue-0);
+  color: var(--mantine-color-blue-7);
+}
+
+.schema-tree-page-container .mantine-Tree-node-content {
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background-color: transparent;
+  transform-origin: center;
+}
+
+.schema-tree-page-container .mantine-Tree-node-content:hover {
+  background-color: var(--mantine-color-blue-0);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  outline: none;
+  border: none;
+}
+
+.schema-tree-page-container .mantine-Tree-node-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mantine-color-gray-7);
+  flex: 1;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: left center;
+}
+
+.schema-tree-page-container .mantine-Tree-node[data-selected="true"] .mantine-Tree-node-label {
+  color: var(--mantine-color-blue-7);
+  font-weight: 600;
+}
+
+.schema-tree-page-container .mantine-Tree-node-icon {
+  color: var(--mantine-color-gray-5);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center;
+}
+
+.schema-tree-page-container .mantine-Tree-node:hover .mantine-Tree-node-icon {
+  color: var(--mantine-color-blue-5);
+}
+
+.schema-tree-page-container .mantine-Tree-node[data-selected="true"] .mantine-Tree-node-icon {
+  color: var(--mantine-color-blue-6);
+}
+
+.schema-tree-page-container .mantine-Tree-node:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.schema-tree-page-container .mantine-Tree-node-content:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+
+
+.schema-tree-page-container .mantine-Tree-node-children {
+  margin-left: 20px;
+  border-left: 1px solid var(--mantine-color-gray-2);
+  padding-left: 12px;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: top;
+  overflow: hidden;
+}
+
+/* Custom styling for SObject vs Field nodes */
+.schema-tree-page-container .mantine-Tree-node[data-type="sobject"] .mantine-Tree-node-label {
+  font-weight: 600;
+  color: var(--mantine-color-gray-8);
+}
+
+.schema-tree-page-container .mantine-Tree-node[data-type="field"] .mantine-Tree-node-label {
+  font-weight: 400;
+  color: var(--mantine-color-gray-7);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 13px;
+}
+
+.schema-tree-page-container .mantine-Tree-node[data-type="field"] .mantine-Tree-node-content {
+  padding: 4px 8px;
+  min-height: 28px;
+}
+
+/* Custom Tree Implementation */
+.schema-tree-page-custom-tree {
+  padding: 8px 0;
+  width: 100%;
+  min-height: 200px;
+  border-radius: 4px;
+  background: var(--mantine-color-white);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Focus styles for tree nodes */
+.schema-tree-page-node-content:focus-visible {
+  background-color: var(--mantine-color-blue-1);
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  outline: 2px solid var(--mantine-color-blue-5);
+  outline-offset: 2px;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.schema-tree-page-container .mantine-Tree-node-content:focus-visible {
+  background-color: var(--mantine-color-blue-1);
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  outline: 2px solid var(--mantine-color-blue-5);
+  outline-offset: 2px;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Global overrides to prevent unwanted box effects on tree nodes */
+.schema-tree-page-container *:focus:not(:focus-visible) {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.schema-tree-page-container *:hover {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.schema-tree-page-node {
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.schema-tree-page-node-content {
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  min-height: 32px;
+  width: 100%;
+  box-sizing: border-box;
+  user-select: none;
+  position: relative;
+  padding: 6px 8px;
+  background-color: transparent;
+  align-items: flex-start;
+  transform-origin: center;
+}
+
+.schema-tree-page-node-content:hover {
+  background-color: var(--mantine-color-blue-0);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  outline: none;
+  border: none;
+}
+
+.schema-tree-page-node-content:active {
+  background-color: var(--mantine-color-blue-1);
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  transition: all 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  outline: none;
+  border: none;
+}
+
+.schema-tree-page-node-content:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.schema-tree-page-node-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mantine-color-gray-5);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center;
+}
+
+.schema-tree-page-node-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mantine-color-gray-7);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.3;
+  max-width: 100%;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: left center;
+}
+
+.schema-tree-page-custom-badge {
+  flex-shrink: 0;
+  margin-left: 4px;
+  font-size: 10px;
+  padding: 2px 6px;
+  height: 18px;
+  line-height: 14px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center;
+}
+
+.schema-tree-page-node-children {
+  border-left: 1px solid var(--mantine-color-gray-2);
+  margin-left: 16px;
+  padding-left: 12px;
+  width: calc(100% - 28px);
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: top;
+  overflow: hidden;
+}
+
+.schema-tree-page-node-children::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--mantine-color-gray-2);
+}
+
+/* SObject vs Field styling */
+.schema-tree-page-sobject .schema-tree-page-node-label {
+  font-weight: 450;
+  color: var(--mantine-color-dark-7);
+  font-size: 14px;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.0;
+}
+
+.schema-tree-page-field .schema-tree-page-node-label {
+  font-weight: 500;
+  color: var(--mantine-color-dark-6);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 13px;
+}
+
+.schema-tree-page-field .schema-tree-page-node-content {
+  padding: 4px 8px;
+  min-height: 28px;
+}
+
+/* Enhanced styling for wrapped text */
+.schema-tree-page-node-label {
+  padding: 2px 0;
+}
+
+.schema-tree-page-sobject .schema-tree-page-node-label {
+  padding: 1px 0;
+}
+
+/* Modern Icon colors for different types */
+.schema-tree-page-sobject .schema-tree-page-node-icon {
+  color: var(--mantine-color-indigo-6);
+}
+
+.schema-tree-page-field .schema-tree-page-node-icon {
+  color: var(--mantine-color-gray-6);
+}
+
+/* Modern field type colors - Direct targeting of icon elements */
+.schema-tree-page-node-icon[data-field-type="string"],
+.schema-tree-page-node-icon[data-field-type="textarea"] {
+  color: var(--mantine-color-emerald-6) !important;
+}
+
+/* Field label colors - Apply colors to the field names */
+#root .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="string"] .schema-tree-page-node-label,
+#root .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="textarea"] .schema-tree-page-node-label {
+  color: var(--mantine-color-emerald-6) !important;
+  font-weight: 600 !important;
+}
+
+/* Override ALL Mantine text color classes */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="string"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="string"] .schema-tree-page-node-label *,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="textarea"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="textarea"] .schema-tree-page-node-label * {
+  color: #059669 !important;
+  font-weight: 600 !important;
+}
+
+.schema-tree-page-node-icon[data-field-type="number"],
+.schema-tree-page-node-icon[data-field-type="int"],
+.schema-tree-page-node-icon[data-field-type="double"],
+.schema-tree-page-node-icon[data-field-type="currency"] {
+  color: var(--mantine-color-blue-6) !important;
+}
+
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="number"] .schema-tree-page-node-label,
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="int"] .schema-tree-page-node-label,
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="double"] .schema-tree-page-node-label,
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="currency"] .schema-tree-page-node-label {
+  color: var(--mantine-color-blue-6) !important;
+  font-weight: 600 !important;
+}
+
+.schema-tree-page-node-icon[data-field-type="date"],
+.schema-tree-page-node-icon[data-field-type="datetime"] {
+  color: var(--mantine-color-violet-6) !important;
+}
+
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="date"] .schema-tree-page-node-label,
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="datetime"] .schema-tree-page-node-label {
+  color: var(--mantine-color-violet-6) !important;
+  font-weight: 600 !important;
+}
+
+.schema-tree-page-node-icon[data-field-type="boolean"] {
+  color: var(--mantine-color-rose-6) !important;
+}
+
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="boolean"] .schema-tree-page-node-label {
+  color: var(--mantine-color-rose-6) !important;
+  font-weight: 600 !important;
+}
+
+.schema-tree-page-node-icon[data-field-type="picklist"],
+.schema-tree-page-node-icon[data-field-type="multipicklist"] {
+  color: var(--mantine-color-fuchsia-6) !important;
+}
+
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="picklist"] .schema-tree-page-node-label,
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="multipicklist"] .schema-tree-page-node-label {
+  color: var(--mantine-color-fuchsia-6) !important;
+  font-weight: 600 !important;
+}
+
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="picklist"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="picklist"] .schema-tree-page-node-label *,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="multipicklist"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="multipicklist"] .schema-tree-page-node-label * {
+  color: #c026d3 !important;
+  font-weight: 600 !important;
+}
+
+/* Reference fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="reference"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="reference"] .schema-tree-page-node-label * {
+  color: #ea580c !important;
+  font-weight: 600 !important;
+}
+
+/* Boolean fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="boolean"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="boolean"] .schema-tree-page-node-label * {
+  color: #e11d48 !important;
+  font-weight: 600 !important;
+}
+
+/* Double fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="double"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="double"] .schema-tree-page-node-label * {
+  color: #2563eb !important;
+  font-weight: 600 !important;
+}
+
+/* Phone fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="phone"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="phone"] .schema-tree-page-node-label * {
+  color: #0ea5e9 !important;
+  font-weight: 600 !important;
+}
+
+/* Int fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="int"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="int"] .schema-tree-page-node-label * {
+  color: #1d4ed8 !important;
+  font-weight: 600 !important;
+}
+
+/* Currency fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="currency"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="currency"] .schema-tree-page-node-label * {
+  color: #16a34a !important;
+  font-weight: 600 !important;
+}
+
+/* URL fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="url"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="url"] .schema-tree-page-node-label * {
+  color: #84cc16 !important;
+  font-weight: 600 !important;
+}
+
+/* Additional Salesforce field types */
+
+/* Number fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="number"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="number"] .schema-tree-page-node-label * {
+  color: #2563eb !important;
+  font-weight: 600 !important;
+}
+
+/* Date fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="date"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="date"] .schema-tree-page-node-label * {
+  color: #7c3aed !important;
+  font-weight: 600 !important;
+}
+
+/* DateTime fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="datetime"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="datetime"] .schema-tree-page-node-label * {
+  color: #7c3aed !important;
+  font-weight: 600 !important;
+}
+
+/* Time fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="time"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="time"] .schema-tree-page-node-label * {
+  color: #7c3aed !important;
+  font-weight: 600 !important;
+}
+
+/* Email fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="email"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="email"] .schema-tree-page-node-label * {
+  color: #0891b2 !important;
+  font-weight: 600 !important;
+}
+
+/* Encrypted fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="encryptedstring"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="encryptedstring"] .schema-tree-page-node-label * {
+  color: #059669 !important;
+  font-weight: 600 !important;
+}
+
+/* Location fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="location"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="location"] .schema-tree-page-node-label * {
+  color: #16a34a !important;
+  font-weight: 600 !important;
+}
+
+/* Address fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="address"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="address"] .schema-tree-page-node-label * {
+  color: #16a34a !important;
+  font-weight: 600 !important;
+}
+
+/* Base64 fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="base64"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="base64"] .schema-tree-page-node-label * {
+  color: #059669 !important;
+  font-weight: 600 !important;
+}
+
+/* DataCategoryGroupReference fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="datacategorygroupreference"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="datacategorygroupreference"] .schema-tree-page-node-label * {
+  color: #ea580c !important;
+  font-weight: 600 !important;
+}
+
+/* JunctionIdList fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="junctionidlist"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="junctionidlist"] .schema-tree-page-node-label * {
+  color: #dc2626 !important;
+  font-weight: 600 !important;
+}
+
+/* Multipicklist fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="multipicklist"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="multipicklist"] .schema-tree-page-node-label * {
+  color: #c026d3 !important;
+  font-weight: 600 !important;
+}
+
+/* Percent fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="percent"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="percent"] .schema-tree-page-node-label * {
+  color: #2563eb !important;
+  font-weight: 600 !important;
+}
+
+/* Textarea fields */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="textarea"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="textarea"] .schema-tree-page-node-label * {
+  color: #059669 !important;
+  font-weight: 600 !important;
+}
+
+/* Any other field types - fallback */
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field .schema-tree-page-node-label * {
+  color: #6b7280 !important;
+  font-weight: 600 !important;
+}
+
+.schema-tree-page-node-icon[data-field-type="email"] {
+  color: var(--mantine-color-cyan-6) !important;
+}
+
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="email"] .schema-tree-page-node-label {
+  color: var(--mantine-color-cyan-6) !important;
+  font-weight: 600 !important;
+}
+
+.schema-tree-page-node-icon[data-field-type="phone"] {
+  color: var(--mantine-color-sky-6) !important;
+}
+
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="phone"] .schema-tree-page-node-label {
+  color: var(--mantine-color-sky-6) !important;
+  font-weight: 600 !important;
+}
+
+.schema-tree-page-node-icon[data-field-type="url"] {
+  color: var(--mantine-color-lime-6) !important;
+}
+
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="url"] .schema-tree-page-node-label {
+  color: var(--mantine-color-lime-6) !important;
+  font-weight: 600 !important;
+}
+
+.schema-tree-page-node-icon[data-field-type="reference"] {
+  color: var(--mantine-color-orange-6) !important;
+}
+
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="reference"] .schema-tree-page-node-label {
+  color: var(--mantine-color-orange-6) !important;
+  font-weight: 600 !important;
+}
+
+.schema-tree-page-node-icon[data-field-type="id"] {
+  color: var(--mantine-color-red-6) !important;
+}
+
+.schema-tree-page-node-content.schema-tree-page-field[data-field-type="id"] .schema-tree-page-node-label {
+  color: var(--mantine-color-red-6) !important;
+  font-weight: 600 !important;
+}
+
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="id"] .schema-tree-page-node-label,
+#root .mantine-AppShell-main .schema-tree-page-container .schema-tree-page-scroll .schema-tree-page-node-content.schema-tree-page-field[data-field-type="id"] .schema-tree-page-node-label * {
+  color: #dc2626 !important;
+  font-weight: 600 !important;
+}
+
+/* Hover effects */
+.schema-tree-page-node-content:hover .schema-tree-page-node-icon {
+  color: var(--mantine-color-blue-5);
+}
+
+.schema-tree-page-node-content:hover .schema-tree-page-node-label {
+  color: var(--mantine-color-dark-8);
+}
+
+/* Modern hover effects for different types */
+.schema-tree-page-sobject:hover .schema-tree-page-node-icon {
+  color: var(--mantine-color-indigo-5);
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="string"],
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="textarea"] {
+  color: var(--mantine-color-emerald-5) !important;
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="number"],
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="int"],
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="double"],
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="currency"] {
+  color: var(--mantine-color-blue-5) !important;
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="date"],
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="datetime"] {
+  color: var(--mantine-color-violet-5) !important;
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="boolean"] {
+  color: var(--mantine-color-rose-5) !important;
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="picklist"],
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="multipicklist"] {
+  color: var(--mantine-color-fuchsia-5) !important;
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="email"] {
+  color: var(--mantine-color-cyan-5) !important;
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="phone"] {
+  color: var(--mantine-color-sky-5) !important;
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="url"] {
+  color: var(--mantine-color-lime-5) !important;
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="reference"] {
+  color: var(--mantine-color-orange-5) !important;
+}
+
+.schema-tree-page-field:hover .schema-tree-page-node-icon[data-field-type="id"] {
+  color: var(--mantine-color-red-5) !important;
+}
+
+/* Selected state */
+.schema-tree-page-node-content.selected {
+  background-color: var(--mantine-color-indigo-0);
+  border: 1px solid var(--mantine-color-indigo-3);
+  border-radius: 6px;
+}
+
+.schema-tree-page-node-content.selected .schema-tree-page-node-label {
+  color: var(--mantine-color-indigo-7);
+  font-weight: 600;
+}
+
+.schema-tree-page-node-content.selected .schema-tree-page-node-icon {
+  color: var(--mantine-color-indigo-6);
+}
+
+/* Modern selected state for different types */
+.schema-tree-page-sobject.selected .schema-tree-page-node-icon {
+  color: var(--mantine-color-indigo-6);
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="string"],
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="textarea"] {
+  color: var(--mantine-color-emerald-6) !important;
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="number"],
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="int"],
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="double"],
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="currency"] {
+  color: var(--mantine-color-blue-6) !important;
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="date"],
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="datetime"] {
+  color: var(--mantine-color-violet-6) !important;
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="boolean"] {
+  color: var(--mantine-color-rose-6) !important;
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="picklist"],
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="multipicklist"] {
+  color: var(--mantine-color-fuchsia-6) !important;
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="email"] {
+  color: var(--mantine-color-cyan-6) !important;
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="phone"] {
+  color: var(--mantine-color-sky-6) !important;
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="url"] {
+  color: var(--mantine-color-lime-6) !important;
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="reference"] {
+  color: var(--mantine-color-orange-6) !important;
+}
+
+.schema-tree-page-field.selected .schema-tree-page-node-icon[data-field-type="id"] {
+  color: var(--mantine-color-red-6) !important;
+}
+
+/* Search highlight */
+.schema-tree-page-node-content.highlighted {
+  background-color: var(--mantine-color-yellow-0);
+  border: 1px solid var(--mantine-color-yellow-3);
+}
+
+.schema-tree-page-node-content.highlighted .schema-tree-page-node-label {
+  color: var(--mantine-color-yellow-8);
+  font-weight: 600;
+}
+
+.schema-tree-page-node-content.highlighted .schema-tree-page-node-icon {
+  color: var(--mantine-color-yellow-6);
+}
+
+/* Controls Layout - Two Row Design */
+.schema-tree-page-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  margin-top: -20px;
+}
+
+.schema-tree-page-search-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+  margin-top: 15px;
+}
+
+.schema-tree-page-buttons-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  margin-bottom: 8px;
+}
+
+/* Custom Filter Buttons */
+.schema-tree-page-filter-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.schema-tree-page-filter-btn {
+  height: 24px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: 4px;
+  background: var(--mantine-color-white);
+  color: var(--mantine-color-gray-7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: auto;
+  line-height: 1;
+}
+
+.schema-tree-page-filter-btn:hover {
+  background: var(--mantine-color-gray-0);
+  border-color: var(--mantine-color-gray-4);
+}
+
+.schema-tree-page-filter-btn.active {
+  background: var(--mantine-color-blue-6);
+  border-color: var(--mantine-color-blue-6);
+  color: var(--mantine-color-white);
+}
+
+.schema-tree-page-filter-btn.active:hover {
+  background: var(--mantine-color-blue-7);
+  border-color: var(--mantine-color-blue-7);
+}
+
+/* Search group now spans full width in its own row */
+.schema-tree-page-search-row .schema-tree-page-search-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 8px;
+  min-width: 0; /* Allow flex items to shrink */
+}
+
+/* Custom Search Group */
+.schema-tree-page-search-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-width: 0; /* Allow flex items to shrink */
+}
+
+.schema-tree-page-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 200px; /* Set minimum width instead of 0 */
+  max-width: 300px; /* Reduced max-width to leave space for cache status */
+  height: 24px;
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: 4px;
+  background: var(--mantine-color-white);
+  transition: border-color 0.2s ease;
+}
+
+.schema-tree-page-search-input-wrapper:focus-within {
+  border-color: var(--mantine-color-blue-6);
+  outline: none;
+}
+
+.schema-tree-page-search-icon {
+  position: absolute;
+  left: 6px;
+  color: var(--mantine-color-gray-5);
+  pointer-events: none;
+}
+
+.schema-tree-page-search-input-field {
+  flex: 1;
+  height: 100%;
+  padding: 4px 8px 4px 28px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  color: var(--mantine-color-gray-8);
+  outline: none;
+}
+
+.schema-tree-page-search-input-field::placeholder {
+  color: var(--mantine-color-gray-5);
+}
+
+.schema-tree-page-clear-search {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: var(--mantine-color-gray-5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.schema-tree-page-clear-search:hover {
+  background: var(--mantine-color-gray-1);
+  color: var(--mantine-color-gray-7);
+}
+
+.schema-tree-page-buttons-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.schema-tree-page-refresh-btn {
+  flex: 1;
+  height: 24px;
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: 4px;
+  background: var(--mantine-color-white);
+  color: var(--mantine-color-gray-6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0 4px;
+}
+
+.schema-tree-page-refresh-btn span {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.schema-tree-page-refresh-btn:hover {
+  background: var(--mantine-color-gray-0);
+  border-color: var(--mantine-color-gray-4);
+  color: var(--mantine-color-gray-7);
+}
+
+.schema-tree-page-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: refreshSpin 1s linear infinite;
+}
+
+@keyframes refreshSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Custom Reload Tree Button */
+.schema-tree-page-reload-btn {
+  flex: 1;
+  height: 24px;
+  border: 1px solid var(--mantine-color-blue-3);
+  border-radius: 4px;
+  background: var(--mantine-color-blue-0);
+  color: var(--mantine-color-blue-7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0 4px;
+}
+
+.schema-tree-page-reload-btn span {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.schema-tree-page-reload-btn:hover {
+  background: var(--mantine-color-blue-1);
+  border-color: var(--mantine-color-blue-4);
+  color: var(--mantine-color-blue-8);
+}
+
+.schema-tree-page-reload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--mantine-color-gray-1);
+  border-color: var(--mantine-color-gray-3);
+  color: var(--mantine-color-gray-5);
+}
+
+.reload-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: refreshSpin 1s linear infinite;
+}
+
+/* Responsive adjustments for controls */
+@media (max-width: 768px) {
+  .schema-tree-page-controls {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  
+  .schema-tree-page-controls-center {
+    max-width: none;
+    margin: 0;
+  }
+  
+  .schema-tree-page-controls-left {
+    justify-content: center;
+  }
+}
+
+/* Dark mode support removed - app uses light mode only */
+
+/* Tree level indentation */
+.schema-tree-page-node-content[style*="padding-left: 8px"] {
+  padding-left: 8px !important;
+}
+
+.schema-tree-page-node-content[style*="padding-left: 24px"] {
+  padding-left: 24px !important;
+}
+
+.schema-tree-page-node-content[style*="padding-left: 40px"] {
+  padding-left: 40px !important;
+}
+
+.schema-tree-page-node-content[style*="padding-left: 56px"] {
+  padding-left: 56px !important;
+}
+
+.schema-tree-page-node-content[style*="padding-left: 72px"] {
+  padding-left: 72px !important;
+}
+
+
+
+/* Debug styles for tree nodes */
+.schema-tree-page-node:hover {
+  border-color: var(--mantine-color-blue-2);
+}
+
+
+
+.schema-tree-page-node-icon svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.schema-tree-page-node-icon .tabler-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* Cache Status Indicator */
+.schema-tree-page-cache-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: var(--mantine-color-gray-1);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--mantine-color-gray-6);
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.schema-tree-page-cache-status:hover {
+  background-color: var(--mantine-color-gray-2);
+}
+
+.schema-tree-page-cache-count {
+  font-weight: 600;
+  color: var(--mantine-color-blue-6);
+}
+
+.schema-tree-page-cache-separator {
+  color: var(--mantine-color-gray-5);
+  font-weight: 400;
+}
+
+

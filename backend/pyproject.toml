@@ -1,0 +1,85 @@
+[project]
+name = "datapilot-backend"
+version = "1.0.0"
+description = "DataPilot Backend API"
+authors = [
+    {name = "DataPilot Team"}
+]
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.20.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.10.0",
+    "psycopg2-binary>=2.9.0",
+    "simple-salesforce>=1.12.0",
+    "requests>=2.25.0",
+    "cryptography>=3.4.8",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-multipart>=0.0.5",
+    "python-dotenv>=0.19.0",
+    "aiofiles>=0.8.0",
+    "loguru>=0.7.3",
+    "langgraph>=0.6.6",
+    "langgraph-cli[inmem]>=0.4.0",
+    "langchain>=0.3.27",
+    "langchain-openai>=0.3.32",
+    "langchain-core>=0.3.75",
+    "litellm>=1.76.1",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.20.0",
+    "black>=22.0.0",
+    "langserve>=0.3.1",
+    "langgraph-api>=0.4.7",
+    "langfuse[langchain]>=3.0",
+    "langchain-community>=0.3.29",
+    "pytest-cov>=6.2.1",
+    "motor>=3.7.1",
+    "pymongo>=4.14.1",
+    "httpx>=0.28.1",
+    "langchain-groq>=0.3.7",
+    "psycopg[binary,pool]>=3.2.10",
+    "langgraph-checkpoint-mongodb>=0.2.1",
+]
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.20.0",
+    "black>=22.0.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.20.0",
+    "black>=22.0.0",
+]
+
+[tool.ruff]
+src = ["."]
+timeout = 30
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "I", "N", "UP", "YTT", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "EM", "EXE", "FA", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "TD", "FIX", "ERA", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "AIR", "PERF", "FURB", "LOG", "RUF"]
+ignore = ["E501", "W503", "S101", "PLR0913", "PLR0912", "PLR0915", "C901", "PLR2004"]
+
+[tool.ruff.lint.per-file-ignores]
+"app/ai_agent/workflow/nodes/context_enrichment.py" = ["PLR0913", "PLR0912", "PLR0915", "C901", "PLR2004", "S101"]
+
+[tool.pylsp-mypy]
+enabled = true
+live_mode = true
+strict = true
