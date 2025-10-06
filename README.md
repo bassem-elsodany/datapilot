@@ -62,6 +62,8 @@
 
 ![Schema Explorer Demo](imgs/schema-explorer/schema-tree-demo.gif)
 
+![Schema Canvas Demo](imgs/schema-explorer/schema-canvas-demo.gif)
+
 - **Hierarchical Tree Navigation**: Expandable tree view of Salesforce objects and fields
 - **Visual Canvas Interface**: Interactive drag-and-drop schema visualization
 - **Smart Relationship Mapping**: Visual relationship intelligence and navigation
