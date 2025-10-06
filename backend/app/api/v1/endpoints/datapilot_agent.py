@@ -326,12 +326,41 @@ async def agent(
     except HTTPException:
         raise
     except Exception as e:
-        ErrorService.handle_generic_exception(
-            exception=e,
-            operation="processing AI query",
-            request=http_request,
-            locale=lang
-        )
+        # Check for specific API key errors
+        error_message = str(e)
+        if "invalid_api_key" in error_message or "Incorrect API key provided" in error_message:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "AI Configuration Error",
+                    "message": "Your LLM API key is invalid or not configured properly.",
+                    "solution": "Check your LLM_PROVIDER setting (openai, groq, ollama), get a valid API key from your provider, then update LLM_API_KEY in your environment configuration and restart the application.",
+                    "note": "AI features are optional. You can still use Schema Explorer, Query Editor, and Saved Queries without AI."
+                }
+            )
+        elif "rate_limit" in error_message.lower():
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "error": "Rate Limit Exceeded",
+                    "message": "You've exceeded your LLM provider's rate limit. Please wait a moment and try again."
+                }
+            )
+        elif "insufficient_quota" in error_message.lower():
+            raise HTTPException(
+                status_code=402,
+                detail={
+                    "error": "Insufficient Quota",
+                    "message": "Your LLM provider account has insufficient credits. Please add credits to your account and try again."
+                }
+            )
+        else:
+            ErrorService.handle_generic_exception(
+                exception=e,
+                operation="processing AI query",
+                request=http_request,
+                locale=lang
+            )
 
 # ============================================================================
 # WEBSOCKET ENDPOINTS
@@ -387,6 +416,7 @@ async def stream_agent(websocket: WebSocket, graph: Annotated[CompiledStateGraph
                     # Track structured response for saving
                     final_structured_response = None
                     ai_response_content = ""
+                    has_error = False
                     
                     # Stream the response directly
                     async for update in get_streaming_response(
@@ -399,6 +429,12 @@ async def stream_agent(websocket: WebSocket, graph: Annotated[CompiledStateGraph
                         # Send update directly without wrapping
                         await websocket.send_text(json.dumps(update))
                         
+                        # Check if this is an error message
+                        if update.get("type") == "error_message":
+                            has_error = True
+                            logger.error(f"WebSocket: Error received from stream: {update.get('content', 'Unknown error')}")
+                            break  # Stop processing if we get an error
+                        
                         # Capture final structured response
                         if update.get("type") == "stream_update" and update.get("node") == "llm_structured_response":
                             final_structured_response = update.get("content")
@@ -407,52 +443,70 @@ async def stream_agent(websocket: WebSocket, graph: Annotated[CompiledStateGraph
                         if update.get("type") == "stream_update" and isinstance(update.get("content"), str):
                             ai_response_content += update.get("content", "")
                     
-                    logger.debug(f"WebSocket: Streaming completed successfully")
+                    if not has_error:
+                        logger.debug(f"WebSocket: Streaming completed successfully")
+                    else:
+                        logger.debug(f"WebSocket: Streaming completed with error")
                     
-                    # Save messages to conversation AFTER streaming is complete
-                    try:
-                        from app.services.conversation_service import ConversationService
-                        from app.models.conversation import ConversationMessageCreate
-                        
-                        conversation_service = ConversationService()
-                        
-                        # Save user message
-                        user_message_data = ConversationMessageCreate(
-                            role="user",
-                            content=user_query,
-                            message_type="text",
-                            parent_message_id=None,
-                            metadata={"connection_uuid": connection_uuid}
-                        )
-                        conversation_service.add_message_to_conversation(conversation_uuid, user_message_data)
-                        logger.debug(f"Saved user message to conversation: {conversation_uuid}")
-                        
-                        # Save AI response
-                        response_content = ai_response_content or "Response streamed successfully"
-                        
-                        ai_message = ConversationMessageCreate(
-                            role="assistant",
-                            content=response_content,
-                            message_type="ai_response",
-                            parent_message_id=None,
-                            metadata={
-                                "connection_uuid": connection_uuid,
-                                "structured_response": final_structured_response,
-                                "response_type": final_structured_response.get("response_type") if final_structured_response else None,
-                                "confidence": final_structured_response.get("confidence") if final_structured_response else None,
-                                "confidence_label": final_structured_response.get("confidence_label") if final_structured_response else None
-                            }
-                        )
-                        conversation_service.add_message_to_conversation(conversation_uuid, ai_message)
-                        logger.debug(f"Saved AI response to conversation: {conversation_uuid}")
-                    except Exception as e:
-                        logger.warning(f"Failed to save conversation messages: {str(e)}")
+                    # Save messages to conversation AFTER streaming is complete (only if no error)
+                    if not has_error:
+                        try:
+                            from app.services.conversation_service import ConversationService
+                            from app.models.conversation import ConversationMessageCreate
+                            
+                            conversation_service = ConversationService()
+                            
+                            # Save user message
+                            user_message_data = ConversationMessageCreate(
+                                role="user",
+                                content=user_query,
+                                message_type="text",
+                                parent_message_id=None,
+                                metadata={"connection_uuid": connection_uuid}
+                            )
+                            conversation_service.add_message_to_conversation(conversation_uuid, user_message_data)
+                            logger.debug(f"Saved user message to conversation: {conversation_uuid}")
+                            
+                            # Save AI response
+                            response_content = ai_response_content or "Response streamed successfully"
+                            
+                            ai_message = ConversationMessageCreate(
+                                role="assistant",
+                                content=response_content,
+                                message_type="ai_response",
+                                parent_message_id=None,
+                                metadata={
+                                    "connection_uuid": connection_uuid,
+                                    "structured_response": final_structured_response,
+                                    "response_type": final_structured_response.get("response_type") if final_structured_response else None,
+                                    "confidence": final_structured_response.get("confidence") if final_structured_response else None,
+                                    "confidence_label": final_structured_response.get("confidence_label") if final_structured_response else None
+                                }
+                            )
+                            conversation_service.add_message_to_conversation(conversation_uuid, ai_message)
+                            logger.debug(f"Saved AI response to conversation: {conversation_uuid}")
+                        except Exception as e:
+                            logger.warning(f"Failed to save conversation messages: {str(e)}")
+                    else:
+                        logger.debug(f"Skipping conversation save due to error")
                     
                 except Exception as e:
                     logger.error(f"WebSocket: Streaming failed: {str(e)}")
+                    
+                    # Check for specific API key errors
+                    error_message = str(e)
+                    if "AI Configuration Error" in error_message or "invalid_api_key" in error_message or "Incorrect API key provided" in error_message:
+                        user_friendly_message = "**AI Configuration Error**\n\nYour LLM API key is invalid or not configured properly.\n\n**To fix this:**\n1. Check your `LLM_PROVIDER` setting (openai, groq, ollama)\n2. Get a valid API key from your LLM provider\n3. Update the `LLM_API_KEY` in your environment configuration\n4. Restart the application\n\n**Note:** AI features are optional. You can still use Schema Explorer, Query Editor, and Saved Queries without AI."
+                    elif "Rate Limit Exceeded" in error_message or "rate_limit" in error_message.lower():
+                        user_friendly_message = "**Rate Limit Exceeded**\n\nYou've exceeded your LLM provider's rate limit. Please wait a moment and try again."
+                    elif "Insufficient Quota" in error_message or "insufficient_quota" in error_message.lower():
+                        user_friendly_message = "**Insufficient Quota**\n\nYour LLM provider account has insufficient credits. Please add credits to your account and try again."
+                    else:
+                        user_friendly_message = f"**Error occurred:** {str(e)}"
+                    
                     await websocket.send_text(json.dumps({
                         "type": "error", 
-                        "content": f"Error: {str(e)}"
+                        "content": user_friendly_message
                     }))
             
             elif message_data.get("type") == "ping":

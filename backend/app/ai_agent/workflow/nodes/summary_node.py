@@ -170,9 +170,19 @@ async def summary_node(state: WorkflowState) -> Dict[str, Any]:
         
     except Exception as e:
         logger.error(f"Error in summary node: {e}")
-        # Return fallback summary on error
-        user_input = state.get("request", {}).get("user_input", "")
-        fallback_summary = f"User asked: {user_input}" if user_input else "Conversation summary error"
+        
+        # Check for specific API key errors
+        error_message = str(e)
+        if "invalid_api_key" in error_message or "Incorrect API key provided" in error_message:
+            fallback_summary = "AI Configuration Error: Invalid LLM API key. Please check your LLM_API_KEY configuration."
+        elif "rate_limit" in error_message.lower():
+            fallback_summary = "Rate limit exceeded. Please wait and try again."
+        elif "insufficient_quota" in error_message.lower():
+            fallback_summary = "Insufficient LLM provider quota. Please add credits to your account."
+        else:
+            # Return fallback summary on error
+            user_input = state.get("request", {}).get("user_input", "")
+            fallback_summary = f"User asked: {user_input}" if user_input else "Conversation summary error"
         
         return {
             "conversation": {

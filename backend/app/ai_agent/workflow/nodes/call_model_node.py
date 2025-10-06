@@ -107,9 +107,14 @@ def call_model_node(state: WorkflowState, config: RunnableConfig) -> Dict[str, A
         
     except Exception as e:
         logger.error(f"Error in call model node: {e}")
-        # Return error message
-        error_message = AIMessage(content=f"I encountered an error: {str(e)}")
-        return {
-            "messages": [error_message],
-            "remaining_steps": max(0, state.get("remaining_steps", 0) - 1)
-        }
+        
+        # Check for specific API key errors and re-raise them so they get caught by the streaming function
+        error_message = str(e)
+        if "invalid_api_key" in error_message or "Incorrect API key provided" in error_message:
+            raise RuntimeError("AI Configuration Error: Your LLM API key is invalid or not configured properly. Check your LLM_PROVIDER setting and LLM_API_KEY configuration.") from e
+        elif "rate_limit" in error_message.lower():
+            raise RuntimeError("Rate Limit Exceeded: You've exceeded your LLM provider's rate limit. Please wait a moment and try again.") from e
+        elif "insufficient_quota" in error_message.lower():
+            raise RuntimeError("Insufficient Quota: Your LLM provider account has insufficient credits. Please add credits to your account and try again.") from e
+        else:
+            raise RuntimeError(f"Error occurred: {str(e)}") from e

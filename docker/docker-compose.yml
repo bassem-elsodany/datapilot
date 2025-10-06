@@ -34,7 +34,7 @@ services:
     container_name: backend
     restart: unless-stopped
     env_file:
-      - env/backend.env
+      - environment-configs/backend.env
     environment:
       - PYTHONPATH=/app
     ports:
@@ -61,7 +61,7 @@ services:
     container_name: dashboard
     restart: unless-stopped
     env_file:
-      - env/dashboard.env
+      - environment-configs/dashboard.env
     ports:
       - "3001:80"
     depends_on:

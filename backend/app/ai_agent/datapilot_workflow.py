@@ -634,4 +634,37 @@ async def get_streaming_response(
         }
             
     except Exception as e:
-        raise RuntimeError(f"Error running DataPilot streaming workflow: {str(e)}") from e
+        # Check for specific API key errors and yield error messages instead of raising
+        error_message = str(e)
+        if "invalid_api_key" in error_message or "Incorrect API key provided" in error_message:
+            yield {
+                "type": "error_message",
+                "content": "**AI Configuration Error**\n\nYour LLM API key is invalid or not configured properly.\n\n**To fix this:**\n1. Check your `LLM_PROVIDER` setting (openai, groq, ollama)\n2. Get a valid API key from your LLM provider\n3. Update the `LLM_API_KEY` in your environment configuration\n4. Restart the application\n\n**Note:** AI features are optional. You can still use Schema Explorer, Query Editor, and Saved Queries without AI.",
+                "node": "error",
+                "timestamp": datetime.now().isoformat(),
+                "metadata": {"error_type": "api_key_error"}
+            }
+        elif "rate_limit" in error_message.lower():
+            yield {
+                "type": "error_message",
+                "content": "**Rate Limit Exceeded**\n\nYou've exceeded your LLM provider's rate limit. Please wait a moment and try again.",
+                "node": "error",
+                "timestamp": datetime.now().isoformat(),
+                "metadata": {"error_type": "rate_limit"}
+            }
+        elif "insufficient_quota" in error_message.lower():
+            yield {
+                "type": "error_message",
+                "content": "**Insufficient Quota**\n\nYour LLM provider account has insufficient credits. Please add credits to your account and try again.",
+                "node": "error",
+                "timestamp": datetime.now().isoformat(),
+                "metadata": {"error_type": "quota_error"}
+            }
+        else:
+            yield {
+                "type": "error_message",
+                "content": f"**Error occurred:** {str(e)}",
+                "node": "error",
+                "timestamp": datetime.now().isoformat(),
+                "metadata": {"error_type": "generic"}
+            }

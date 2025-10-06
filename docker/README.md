@@ -74,7 +74,7 @@ chmod +x start.sh
 
 ```bash
 # Edit backend configuration
-nano env/backend.env
+nano environment-configs/backend.env
 
 # OPTIONAL: AI Agent Configuration (skip if you don't want AI features)
 LLM_PROVIDER=openai                    # openai, groq, ollama
@@ -89,7 +89,7 @@ LOG_LEVEL=INFO
 
 ```bash
 # Edit frontend configuration  
-nano env/dashboard.env
+nano environment-configs/dashboard.env
 
 # REQUIRED: Set backend API URL
 VITE_API_BASE_URL=http://localhost:8001
@@ -153,8 +153,8 @@ ports:
 
 ### **📝 Step 2: Update Frontend Configuration**
 ```bash
-# Edit env/dashboard.env
-nano env/dashboard.env
+# Edit environment-configs/dashboard.env
+nano environment-configs/dashboard.env
 
 # Update API URL to match new backend port:
 VITE_API_BASE_URL=http://localhost:8002
@@ -162,8 +162,8 @@ VITE_API_BASE_URL=http://localhost:8002
 
 ### **📝 Step 3: Update Backend Configuration**
 ```bash
-# Edit env/backend.env
-nano env/backend.env
+# Edit environment-configs/backend.env
+nano environment-configs/backend.env
 
 # Update MongoDB connection:
 MONGO_HOST=mongodb
@@ -232,7 +232,7 @@ LLM_TIMEOUT_SECONDS=120                # For complex queries
 
 ## 🔧 **CONFIGURATION**
 
-### **🔑 Backend Settings** (`env/backend.env`)
+### **🔑 Backend Settings** (`environment-configs/backend.env`)
 ```bash
 # AI Configuration (OPTIONAL - skip if you don't want AI features)
 LLM_PROVIDER=openai                    # openai, groq, ollama
@@ -251,7 +251,7 @@ LOG_LEVEL=INFO                        # DEBUG, INFO, WARNING, ERROR
 DEBUG=false
 ```
 
-### **🌐 Frontend Settings** (`env/dashboard.env`)
+### **🌐 Frontend Settings** (`environment-configs/dashboard.env`)
 ```bash
 # API Connection (REQUIRED)
 VITE_API_BASE_URL=http://localhost:8001
