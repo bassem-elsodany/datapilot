@@ -422,16 +422,36 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
   }, [isLoading]);
 
 
-  // Handle pagination
+  // Handle sorting + pagination
   useEffect(() => {
     if (records.length > 0) {
+      // Sort records if sortStatus is set
+      let working = [...records];
+      if (sortStatus && sortStatus.columnAccessor) {
+        const accessor = String(sortStatus.columnAccessor);
+        working.sort((a, b) => {
+          const av = getFieldValue(a, accessor);
+          const bv = getFieldValue(b, accessor);
+          // Try numeric compare first
+          const an = Number(av);
+          const bn = Number(bv);
+          const bothNumeric = !isNaN(an) && !isNaN(bn);
+          if (bothNumeric) {
+            return an - bn;
+          }
+          // Fallback to string compare
+          return String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' });
+        });
+        if (sortStatus.direction === 'desc') working.reverse();
+      }
+
       const from = (page - 1) * pageSize;
       const to = from + pageSize;
-      setPaginatedRecords(records.slice(from, to));
+      setPaginatedRecords(working.slice(from, to));
     } else {
       setPaginatedRecords([]);
     }
-  }, [records, page, pageSize]);
+  }, [records, page, pageSize, sortStatus]);
 
   // Handle page size change
   const handlePageSizeChange = (newPageSize: number) => {
@@ -1923,6 +1943,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
       title: column,
       ellipsis: false, // Disable ellipsis to allow text wrapping
       textAlign: 'left' as const,
+      sortable: true,
       render: (record: Record<string, unknown>) => {
         try {
           // Handle regular data rows
@@ -2577,6 +2598,8 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                       records={paginatedRecords}
                       columns={effectiveColumns}
                                         idAccessor={(record) => getRecordId(record)}
+                          sortStatus={sortStatus || undefined}
+                          onSortStatusChange={setSortStatus as any}
                       minHeight={400}
                       maxHeight={availableHeight}
                       style={{
