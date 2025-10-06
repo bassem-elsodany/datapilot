@@ -153,15 +153,15 @@ export class ApiService {
           (typeof errorDetail === 'string' && (
             errorDetail.includes('No active Salesforce connection') ||
             errorDetail.includes('Master key not set') ||
-            errorDetail.includes('connection') ||
             errorDetail.includes('authentication')
           )) ||
           errorMessage.includes('No active Salesforce connection') ||
           errorMessage.includes('Master key not set') ||
-          errorMessage.includes('Invalid saved query data') ||
           errorMessage.includes('saved_query.error.invalid_connection') ||
-          errorMessage.includes('connection') ||
-          errorMessage.includes('authentication');
+          errorMessage.includes('authentication') ||
+          // Check for specific connection-related field errors
+          (errorDetail?.field_errors?.connection && 
+           !errorDetail.field_errors.connection.includes('saved_query.error.duplicate_name'));
           
         if (isConnectionError) {
           const now = Date.now();

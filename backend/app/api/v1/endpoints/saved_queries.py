@@ -172,11 +172,11 @@ def create_saved_query(
         return SavedQueryResponse(**saved_query_data)
         
     except ValueError as e:
-
-        
+        # Translate backend validation key to user-facing message before raising
+        translated_field_error = translate_message(str(e), lang, "saved_queries")
         ErrorService.raise_validation_error(
             message="saved_queries.errors.invalid_data",
-            field_errors={"query": str(e)},
+            field_errors={"query": translated_field_error},
             request=http_request,
             locale=lang
         )
@@ -210,11 +210,11 @@ def get_all_saved_queries(
         )
         
     except ValueError as e:
-
-        
+        # Translate backend validation key to user-facing message before raising
+        translated_field_error = translate_message(str(e), lang, "saved_queries")
         ErrorService.raise_validation_error(
             message="saved_queries.errors.invalid_filter",
-            field_errors={"filter": str(e)},
+            field_errors={"filter": translated_field_error},
             request=http_request,
             locale=lang
         )
@@ -256,10 +256,11 @@ def get_saved_query(
     except HTTPException:
         raise
     except ValueError as e:
-
+        # Translate backend validation key to user-facing message before raising
+        translated_field_error = translate_message(str(e), lang, "saved_queries")
         ErrorService.raise_validation_error(
             message="saved_queries.errors.invalid_identifier",
-            field_errors={"saved_queries_uuid": str(e)},
+            field_errors={"saved_queries_uuid": translated_field_error},
             request=http_request,
             locale=lang
         )
@@ -297,11 +298,11 @@ def update_saved_query(
         return SavedQueryResponse(**saved_query_data)
         
     except ValueError as e:
-
-        
+        # Translate backend validation key to user-facing message before raising
+        translated_field_error = translate_message(str(e), lang, "saved_queries")
         ErrorService.raise_validation_error(
             message="saved_queries.errors.invalid_update_data",
-            field_errors={"query": str(e)},
+            field_errors={"query": translated_field_error},
             request=http_request,
             locale=lang
         )
@@ -343,10 +344,11 @@ def delete_saved_query(
     except HTTPException:
         raise
     except ValueError as e:
-
+        # Translate backend validation key to user-facing message before raising
+        translated_field_error = translate_message(str(e), lang, "saved_queries")
         ErrorService.raise_validation_error(
             message="saved_queries.errors.invalid_identifier_for_deletion",
-            field_errors={"saved_queries_uuid": str(e)},
+            field_errors={"saved_queries_uuid": translated_field_error},
             request=http_request,
             locale=lang
         )

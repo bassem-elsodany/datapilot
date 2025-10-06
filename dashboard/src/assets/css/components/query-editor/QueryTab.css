@@ -912,16 +912,65 @@
   color: inherit !important;
 }
 
-/* Fix: Hide Monaco Editor canvas elements that draw selection arrows */
-.monaco-editor-container .monaco-editor canvas {
-  display: none !important;
+/* Fix: Hide Monaco Editor canvas elements that draw selection arrows - but allow find widget */
+/* Removed rule that hid Monaco canvases; it breaks rendering and Find widget */
+
+/* Fix: Hide pseudo-elements that might contain selection arrows - but allow find widget */
+/* Removed global ::before/::after hiding; it interferes with Monaco layout/positioning */
+
+/* Monaco Editor Find Widget Fixes */
+.monaco-editor-container .monaco-editor .find-widget {
+  z-index: 1000 !important;
+  position: absolute !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
-/* Fix: Hide pseudo-elements that might contain selection arrows */
-.monaco-editor-container .monaco-editor *::before,
-.monaco-editor-container .monaco-editor *::after {
-  display: none !important;
-  content: none !important;
+/* Do not force all find-widget descendants to display:block; keep Monaco defaults */
+
+.monaco-editor-container .monaco-editor .find-widget .monaco-button {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.monaco-editor-container .monaco-editor .find-widget .monaco-findInput {
+  /* Keep visible; do not override display to avoid breaking layout */
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Do not force all descendants of .monaco-findInput to display:block; let Monaco manage it */
+
+/* Specific fixes for find widget buttons */
+.monaco-editor-container .monaco-editor .find-widget .monaco-button[title*="Previous"] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.monaco-editor-container .monaco-editor .find-widget .monaco-button[title*="Next"] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.monaco-editor-container .monaco-editor .find-widget .monaco-button[title*="Close"] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure find widget count display is visible */
+.monaco-editor-container .monaco-editor .find-widget .matchesCount {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Fix tooltip visibility issues */
@@ -1038,6 +1087,5 @@
 }
 
 /* Dark theme support removed - app uses light mode only */
-
 
 

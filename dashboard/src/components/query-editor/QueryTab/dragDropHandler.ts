@@ -102,6 +102,9 @@ export const insertFieldIntoAST = async (
   connectionUuid?: string | null
 ): Promise<string> => {
   
+  // Store the original query to ensure we return it exactly if no changes are made
+  const originalQuery = query;
+  
   try {
     // Parse the current query to get AST
     const ast = await parseSoql(query, connectionUuid);
@@ -115,7 +118,7 @@ export const insertFieldIntoAST = async (
         icon: React.createElement(IconAlertTriangle, { size: 16 }),
       });
       
-      return query; // Return original query if parsing fails
+      return originalQuery; // Return original query if parsing fails
     }
     
     // Debug: Log the original AST structure
@@ -201,7 +204,7 @@ export const insertFieldIntoAST = async (
                 autoClose: 3000,
               });
               
-              return query;
+              return originalQuery; // Return original query unchanged
             }
           }
         }
@@ -263,7 +266,7 @@ export const insertFieldIntoAST = async (
         icon: React.createElement(IconAlertTriangle, { size: 16 }),
       });
       
-      return query; // Return original query if SObject not found
+      return originalQuery; // Return original query if SObject not found
     }
     
     // Check if field already exists
@@ -280,7 +283,7 @@ export const insertFieldIntoAST = async (
         autoClose: 3000,
       });
       
-      return query; // Return original query if field already exists
+      return originalQuery; // Return original query if field already exists
     }
     
     // Add the field to the target SObject
@@ -325,7 +328,7 @@ export const insertFieldIntoAST = async (
       icon: React.createElement(IconAlertTriangle, { size: 16 }),
     });
     
-    return query; // Return original query on error
+    return originalQuery; // Return original query on error
   }
 };
 
@@ -523,9 +526,16 @@ export const handleFieldDrop = async (dragData: { fieldName: string; sobjectName
   // Try AST-based field insertion first
   try {
     const updatedQuery = await insertFieldIntoAST(dragData, currentQuery, connectionUuid);
+    
+    // Only update the query if it actually changed (field was added)
+    // If field already exists, insertFieldIntoAST returns the original query unchanged
     if (updatedQuery !== currentQuery) {
-      // AST-based insertion was successful
+      // AST-based insertion was successful - field was added
       handleQueryChange(updatedQuery);
+      return;
+    } else {
+      // Field already exists or no changes made - don't update the query
+      // The notification was already shown by insertFieldIntoAST
       return;
     }
   } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Button, Paper, Modal, TextInput, Group, ActionIcon, Menu, Tooltip, Text, Badge } from '@mantine/core';
-import { IconPlayerPlay, IconDatabase, IconDeviceFloppy, IconCode, IconCheck, IconTrash, IconFileImport, IconArrowBack, IconArrowForward, IconBookmark, IconGitBranch, IconChevronDown, IconChevronUp, IconDownload, IconFileExport } from '@tabler/icons-react';
+import { Button, Paper, Modal, TextInput, Group, ActionIcon, Menu, Tooltip, Text, Badge, Switch } from '@mantine/core';
+import { IconPlayerPlay, IconDatabase, IconDeviceFloppy, IconCode, IconCheck, IconTrash, IconFileImport, IconArrowBack, IconArrowForward, IconBookmark, IconGitBranch, IconChevronDown, IconChevronUp, IconDownload, IconFileExport, IconSettings } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import Editor from '@monaco-editor/react';
 import { useTranslation } from '../../services/I18nService';
@@ -79,6 +79,7 @@ interface QueryTabProps {
   maxRecordsWarning?: string | null;
   maxRecordsReached?: string | null;
   maxRecordsLimit?: number;
+  loadedQueryUuid?: string | null;
 }
 
 export const QueryTab: React.FC<QueryTabProps> = ({
@@ -94,7 +95,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
   onQueryMore,
   maxRecordsWarning,
   maxRecordsReached,
-  maxRecordsLimit = 1000
+  maxRecordsLimit = 1000,
+  loadedQueryUuid
 }) => {
   const { tSync } = useTranslation();
   
@@ -176,6 +178,29 @@ export const QueryTab: React.FC<QueryTabProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [savedQueries, setSavedQueries] = useState<SavedQuery[]>([]);
   const [isLoadingSavedQueries, setIsLoadingSavedQueries] = useState(false);
+  const [currentSavedQueryUuid, setCurrentSavedQueryUuid] = useState<string | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  
+  // Save modal state
+  const [saveOperationMode, setSaveOperationMode] = useState<'create' | 'update'>('create');
+  const [selectedQueryForUpdate, setSelectedQueryForUpdate] = useState<string | null>(null);
+  const [isSaveModalClosing, setIsSaveModalClosing] = useState(false);
+  
+  // Auto-save toggle state
+  const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(false);
+
+  // Update currentSavedQueryUuid when loadedQueryUuid prop changes
+  useEffect(() => {
+    setCurrentSavedQueryUuid(loadedQueryUuid || null);
+  }, [loadedQueryUuid]);
+
+  // Reset auto-save state when connection changes
+  useEffect(() => {
+    setCurrentSavedQueryUuid(null);
+    logger.debug('Connection changed, resetting auto-save state', 'QueryTab', { 
+      newConnectionUuid: currentConnectionUuid 
+    });
+  }, [currentConnectionUuid]);
 
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
@@ -552,12 +577,70 @@ export const QueryTab: React.FC<QueryTabProps> = ({
     onQueryChange(value);
   };
 
-  const handleExecute = () => {
+  const handleExecute = async () => {
+    // Auto-save if enabled, we have a loaded saved query, and the query has changed
+    if (isAutoSaveEnabled && currentSavedQueryUuid && query.trim()) {
+      const currentQuery = savedQueries.find(q => q.saved_queries_uuid === currentSavedQueryUuid);
+      if (currentQuery && currentQuery.query_text !== query.trim()) {
+        await autoSaveQuery();
+      }
+    }
+    
     onExecuteQuery();
   };
 
   const handleClearQuery = () => {
     handleQueryChange('');
+    setCurrentSavedQueryUuid(null); // Clear saved query tracking when clearing
+  };
+
+  const autoSaveQuery = async () => {
+    if (!currentSavedQueryUuid || !currentConnectionUuid) {
+      logger.debug('Auto-save skipped: missing query UUID or connection UUID', 'QueryTab', {
+        hasQueryUuid: !!currentSavedQueryUuid,
+        hasConnectionUuid: !!currentConnectionUuid
+      });
+      return;
+    }
+
+    // Additional safety check: ensure the saved query belongs to the current connection
+    const currentQuery = savedQueries.find(q => q.saved_queries_uuid === currentSavedQueryUuid);
+    if (!currentQuery) {
+      logger.warn('Auto-save skipped: saved query not found in current connection', 'QueryTab', {
+        queryUuid: currentSavedQueryUuid,
+        connectionUuid: currentConnectionUuid
+      });
+      setCurrentSavedQueryUuid(null); // Reset state if query not found
+      return;
+    }
+
+    try {
+      setIsAutoSaving(true);
+      
+      await apiService.updateSavedQuery(currentSavedQueryUuid, {
+        query_text: query.trim(),
+        updated_by: 'user'
+      });
+      
+      // Update the local saved queries list to reflect the change
+      setSavedQueries(prev => prev.map(q => 
+        q.saved_queries_uuid === currentSavedQueryUuid 
+          ? { ...q, query_text: query.trim(), updated_at: new Date().toISOString() }
+          : q
+      ));
+      
+      logger.debug('Query auto-saved successfully', 'QueryTab', { 
+        queryUuid: currentSavedQueryUuid,
+        connectionUuid: currentConnectionUuid,
+        queryLength: query.trim().length 
+      });
+      
+    } catch (error) {
+      logger.error('Failed to auto-save query', 'QueryTab', null, error as Error);
+      // Don't show error notification for auto-save failures to avoid interrupting user workflow
+    } finally {
+      setIsAutoSaving(false);
+    }
   };
 
   // Convert AST to Graph data
@@ -673,11 +756,15 @@ export const QueryTab: React.FC<QueryTabProps> = ({
   };
 
   const handleQuickLoadQuery = (queryUuid: string | null) => {
-    if (!queryUuid) return;
+    if (!queryUuid) {
+      setCurrentSavedQueryUuid(null);
+      return;
+    }
     
     const selectedQuery = savedQueries.find(q => q.saved_queries_uuid === queryUuid);
     if (selectedQuery) {
       handleQueryChange(selectedQuery.query_text);
+      setCurrentSavedQueryUuid(queryUuid);
       notifications.show({
         title: tSync('saved_queries.success.loaded', 'Query Loaded'),
         message: tSync('saved_queries.success.loaded_message', { name: selectedQuery.name }) || `"${selectedQuery.name}" loaded successfully`,
@@ -742,27 +829,59 @@ export const QueryTab: React.FC<QueryTabProps> = ({
       return;
     }
 
+    // For update mode, ensure a query is selected
+    if (saveOperationMode === 'update' && !selectedQueryForUpdate) {
+      notifications.show({
+        title: tSync('query.editor.save.error.title', 'Save Failed'),
+        message: tSync('query.editor.save.error.no_query_selected', 'Please select a query to update'),
+        color: 'red',
+        autoClose: 3000,
+      });
+      return;
+    }
+
     try {
       setIsSaving(true);
       
-      // Save the query using REST API
-      await apiService.createSavedQuery({
-        connection_uuid: currentConnectionUuid!,
-        name: saveQueryName.trim(),
-        query_text: query.trim(),
-        description: '',
-        tags: '',
-        is_favorite: false,
-        created_by: 'user'
-      });
+      if (saveOperationMode === 'create') {
+        // Create new query
+        await apiService.createSavedQuery({
+          connection_uuid: currentConnectionUuid!,
+          name: saveQueryName.trim(),
+          query_text: query.trim(),
+          description: '',
+          tags: '',
+          is_favorite: false,
+          created_by: 'user'
+        });
+      } else {
+        // Update existing query
+        await apiService.updateSavedQuery(selectedQueryForUpdate!, {
+          name: saveQueryName.trim(),
+          query_text: query.trim(),
+          description: '',
+          tags: '',
+          is_favorite: false,
+          updated_by: 'user'
+        });
+      }
       
       // Reset form and close modal
       setSaveQueryName('');
       setShowSaveModal(false);
+      setSaveOperationMode('create');
+      setSelectedQueryForUpdate(null);
+      
+      // Reload saved queries to reflect changes
+      await loadSavedQueries();
       
       // Show success notification
-      const title = tSync('query.editor.save.success.title', 'Query Saved');
-      const message = tSync('query.editor.save.success.message', { name: saveQueryName.trim() }) || `"${saveQueryName.trim()}" has been saved successfully`;
+      const title = saveOperationMode === 'create' 
+        ? tSync('query.editor.save.success.title', 'Query Saved')
+        : tSync('query.editor.update.success.title', 'Query Updated');
+      const message = saveOperationMode === 'create'
+        ? tSync('query.editor.save.success.message', { name: saveQueryName.trim() }) || `"${saveQueryName.trim()}" has been saved successfully`
+        : tSync('query.editor.update.success.message', { name: saveQueryName.trim() }) || `"${saveQueryName.trim()}" has been updated successfully`;
       
       notifications.show({
         title: title,
@@ -775,10 +894,29 @@ export const QueryTab: React.FC<QueryTabProps> = ({
     } catch (error) {
       logger.error('Failed to save query', 'QueryTab', null, error as Error);
       
+      // Check for specific error types and show appropriate messages
+      let errorMessage = saveOperationMode === 'create'
+        ? tSync('query.editor.save.error.message', 'Failed to save the query. Please try again.')
+        : tSync('query.editor.update.error.message', 'Failed to update the query. Please try again.');
+      
+      if (error instanceof Error) {
+        if (error.message.includes('saved_query.error.duplicate_name')) {
+          errorMessage = tSync('saved_query.error.duplicate_name', 'Query with this name already exists');
+        } else if (error.message.includes('saved_query.error.invalid_name')) {
+          errorMessage = tSync('saved_query.error.invalid_name', 'Invalid query name');
+        } else if (error.message.includes('saved_query.error.invalid_query_text')) {
+          errorMessage = tSync('saved_query.error.invalid_query_text', 'Query text is required');
+        } else if (error.message.includes('saved_query.error.invalid_connection')) {
+          errorMessage = tSync('saved_query.error.invalid_connection', 'Invalid or missing connection');
+        }
+      }
+      
       // Show error notification
       notifications.show({
-        title: tSync('query.editor.save.error.title', 'Save Failed'),
-        message: tSync('query.editor.save.error.message', 'Failed to save the query. Please try again.'),
+        title: saveOperationMode === 'create' 
+          ? tSync('query.editor.save.error.title', 'Save Failed')
+          : tSync('query.editor.update.error.title', 'Update Failed'),
+        message: errorMessage,
         color: 'red',
         autoClose: 3000,
       });
@@ -793,7 +931,19 @@ export const QueryTab: React.FC<QueryTabProps> = ({
       ? `${query.substring(0, 30)}...` 
       : query || tSync('query.editor.untitled', 'Untitled Query');
     setSaveQueryName(defaultName);
+    setSaveOperationMode('create');
+    setSelectedQueryForUpdate(null);
     setShowSaveModal(true);
+  };
+
+  const handleQuerySelectionChange = (queryUuid: string | null) => {
+    setSelectedQueryForUpdate(queryUuid);
+    if (queryUuid) {
+      const selectedQuery = savedQueries.find(q => q.saved_queries_uuid === queryUuid);
+      if (selectedQuery) {
+        setSaveQueryName(selectedQuery.name);
+      }
+    }
   };
 
   return (
@@ -929,6 +1079,58 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
               {/* Right Side - Execution and Management Actions */}
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: 'auto' }}>
+                {/* Auto-save Toggle */}
+                {currentConnectionUuid && currentSavedQueryUuid && (
+                  <Tooltip 
+                    label={
+                      isAutoSaveEnabled 
+                        ? tSync('query.editor.autoSave.toggle.enabled', 'Auto-save enabled - queries will be saved after execution')
+                        : tSync('query.editor.autoSave.toggle.disabled', 'Auto-save disabled - click to enable')
+                    }
+                    position="bottom"
+                  >
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '6px',
+                      padding: '4px 8px',
+                      backgroundColor: isAutoSaveEnabled ? '#f0fdf4' : '#f8fafc',
+                      border: `1px solid ${isAutoSaveEnabled ? '#bbf7d0' : '#e2e8f0'}`,
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}>
+                      <IconDeviceFloppy 
+                        size={12} 
+                        style={{ 
+                          color: isAutoSaveEnabled ? '#16a34a' : '#64748b'
+                        }} 
+                      />
+                      <Switch
+                        size="xs"
+                        checked={isAutoSaveEnabled}
+                        onChange={(event) => setIsAutoSaveEnabled(event.currentTarget.checked)}
+                        styles={{
+                          track: {
+                            backgroundColor: isAutoSaveEnabled ? '#16a34a' : '#d1d5db',
+                            border: 'none'
+                          }
+                        }}
+                      />
+                      <Text 
+                        size="xs" 
+                        style={{ 
+                          color: isAutoSaveEnabled ? '#16a34a' : '#64748b',
+                          fontWeight: 500,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {tSync('query.editor.autoSave.toggle.label', 'Auto-save')}
+                      </Text>
+                    </div>
+                  </Tooltip>
+                )}
+
                 {/* Quick Load Saved Queries */}
                 {currentConnectionUuid && (
                   <div style={{ position: 'relative', minWidth: '180px' }}>
@@ -982,13 +1184,32 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
                 {/* Execution Actions Group */}
                 <Group gap="4px" style={{ padding: '2px', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                  {/* Auto-save indicator */}
+                  {isAutoSaving && (
+                    <Tooltip label={tSync('query.editor.autoSaving', 'Auto-saving...')}>
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        padding: '2px 6px',
+                        backgroundColor: '#fef3c7',
+                        borderRadius: '4px',
+                        border: '1px solid #f59e0b',
+                        fontSize: '10px',
+                        color: '#92400e'
+                      }}>
+                        <IconDeviceFloppy size={10} style={{ marginRight: '4px' }} />
+                        {tSync('query.editor.autoSaving', 'Auto-saving...')}
+                      </div>
+                    </Tooltip>
+                  )}
+                  
                   <Button
                     size="xs"
                   variant="filled"
                   color="blue"
                   onClick={handleExecute}
-                  disabled={!query.trim() || isQuerying}
-                  loading={isQuerying}
+                  disabled={!query.trim() || isQuerying || isAutoSaving}
+                  loading={isQuerying || isAutoSaving}
                     leftSection={<IconPlayerPlay size={12} />}
                   style={{ 
                       padding: '4px 8px', 
@@ -1151,18 +1372,41 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
       {/* Save Query Modal */}
       {showSaveModal && (
-        <div className="save-query-modal-overlay" onClick={() => {
-          setShowSaveModal(false);
-          setSaveQueryName('');
-        }}>
-          <div className="save-query-modal" onClick={(e) => e.stopPropagation()}>
+        <div 
+          className={`save-query-modal-overlay${isSaveModalClosing ? ' closing' : ''}`}
+          onClick={() => {
+            setIsSaveModalClosing(true);
+            setTimeout(() => {
+              setShowSaveModal(false);
+              setSaveQueryName('');
+              setSaveOperationMode('create');
+              setSelectedQueryForUpdate(null);
+              setIsSaveModalClosing(false);
+            }, 350);
+          }}
+        >
+          <div 
+            className={`save-query-modal${isSaveModalClosing ? ' closing' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="save-query-modal-header">
-              <h3>{tSync('query.editor.saveModal.title')}</h3>
+              <h3>
+                {saveOperationMode === 'create' 
+                  ? tSync('query.editor.saveModal.title', 'Save Query')
+                  : tSync('query.editor.updateModal.title', 'Update Query')
+                }
+              </h3>
               <button 
                 className="save-query-modal-close"
                 onClick={() => {
-                  setShowSaveModal(false);
-                  setSaveQueryName('');
+                  setIsSaveModalClosing(true);
+                  setTimeout(() => {
+                    setShowSaveModal(false);
+                    setSaveQueryName('');
+                    setSaveOperationMode('create');
+                    setSelectedQueryForUpdate(null);
+                    setIsSaveModalClosing(false);
+                  }, 350);
                 }}
               >
                 ×
@@ -1170,34 +1414,138 @@ export const QueryTab: React.FC<QueryTabProps> = ({
             </div>
             
             <div className="save-query-modal-content">
+              {/* Operation Mode Selection */}
               <div className="save-query-modal-input-group">
-                <label>{tSync('query.editor.saveModal.name.label')}</label>
+                <label>{tSync('query.editor.saveModal.operation.label', 'Operation')}</label>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="operation"
+                      value="create"
+                      checked={saveOperationMode === 'create'}
+                      onChange={(e) => {
+                        setSaveOperationMode(e.target.value as 'create' | 'update');
+                        if (e.target.value === 'create') {
+                          setSelectedQueryForUpdate(null);
+                          // Reset to default name for create mode
+                          const defaultName = query.length > 30 
+                            ? `${query.substring(0, 30)}...` 
+                            : query || tSync('query.editor.untitled', 'Untitled Query');
+                          setSaveQueryName(defaultName);
+                        }
+                      }}
+                    />
+                    <span>{tSync('query.editor.saveModal.operation.create', 'Create New Query')}</span>
+                  </label>
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="operation"
+                      value="update"
+                      checked={saveOperationMode === 'update'}
+                      onChange={(e) => {
+                        setSaveOperationMode(e.target.value as 'create' | 'update');
+                        if (e.target.value === 'create') {
+                          setSelectedQueryForUpdate(null);
+                          // Reset to default name for create mode
+                          const defaultName = query.length > 30 
+                            ? `${query.substring(0, 30)}...` 
+                            : query || tSync('query.editor.untitled', 'Untitled Query');
+                          setSaveQueryName(defaultName);
+                        }
+                      }}
+                    />
+                    <span>{tSync('query.editor.saveModal.operation.update', 'Update Existing Query')}</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Query Selection for Update Mode */}
+              {saveOperationMode === 'update' && (
+                <div className="save-query-modal-input-group">
+                  <label>{tSync('query.editor.saveModal.selectQuery.label', 'Select Query to Update')}</label>
+                  <select
+                    value={selectedQueryForUpdate || ''}
+                    onChange={(e) => handleQuerySelectionChange(e.target.value || null)}
+                    disabled={isLoadingSavedQueries}
+                    className="save-query-modal-select"
+                  >
+                    <option value="">
+                      {tSync('query.editor.saveModal.selectQuery.placeholder', 'Choose a saved query...')}
+                    </option>
+                    {savedQueries.map(query => (
+                      <option key={query.saved_queries_uuid} value={query.saved_queries_uuid}>
+                        {query.name}
+                      </option>
+                    ))}
+                  </select>
+                  {isLoadingSavedQueries && (
+                    <small>{tSync('query.editor.saveModal.loading', 'Loading saved queries...')}</small>
+                  )}
+                </div>
+              )}
+
+              {/* Query Name Input */}
+              <div className="save-query-modal-input-group">
+                <label>
+                  {saveOperationMode === 'create' 
+                    ? tSync('query.editor.saveModal.name.label', 'Query Name')
+                    : tSync('query.editor.updateModal.name.label', 'New Query Name')
+                  }
+                </label>
                 <input
                   type="text"
-                  placeholder={tSync('query.editor.saveModal.name.placeholder')}
+                  placeholder={
+                    saveOperationMode === 'create' 
+                      ? tSync('query.editor.saveModal.name.placeholder', 'Enter query name...')
+                      : tSync('query.editor.updateModal.name.placeholder', 'Enter new name...')
+                  }
                   value={saveQueryName}
                   onChange={(e) => setSaveQueryName(e.target.value)}
                   required
+                  disabled={saveOperationMode === 'update' && !selectedQueryForUpdate}
                 />
-                <small>{tSync('query.editor.saveModal.name.description')}</small>
+                <small>
+                  {saveOperationMode === 'create' 
+                    ? tSync('query.editor.saveModal.name.description', 'Choose a descriptive name for your query')
+                    : tSync('query.editor.updateModal.name.description', 'Enter the new name for the selected query')
+                  }
+                </small>
               </div>
               
               <div className="save-query-modal-actions">
                 <button 
                   className="save-query-modal-button cancel"
                   onClick={() => {
-                    setShowSaveModal(false);
-                    setSaveQueryName('');
+                    setIsSaveModalClosing(true);
+                    setTimeout(() => {
+                      setShowSaveModal(false);
+                      setSaveQueryName('');
+                      setSaveOperationMode('create');
+                      setSelectedQueryForUpdate(null);
+                      setIsSaveModalClosing(false);
+                    }, 350);
                   }}
                 >
-                  {tSync('common.cancel')}
+                  {tSync('common.cancel', 'Cancel')}
                 </button>
                 <button 
                   className="save-query-modal-button save"
                   onClick={handleSaveQuery}
-                  disabled={!saveQueryName.trim() || isSaving}
+                  disabled={
+                    !saveQueryName.trim() || 
+                    isSaving || 
+                    (saveOperationMode === 'update' && !selectedQueryForUpdate)
+                  }
                 >
-                  {isSaving ? 'Saving...' : tSync('query.editor.saveModal.save')}
+                  {isSaving 
+                    ? (saveOperationMode === 'create' ? 'Saving...' : 'Updating...')
+                    : (saveOperationMode === 'create' 
+                        ? tSync('query.editor.saveModal.save', 'Save Query')
+                        : tSync('query.editor.updateModal.update', 'Update Query')
+                      )
+                  }
                 </button>
               </div>
             </div>

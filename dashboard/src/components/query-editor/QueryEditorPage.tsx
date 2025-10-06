@@ -31,6 +31,15 @@ export const QueryEditorPage: React.FC<QueryEditorPageProps> = ({
 }) => {
   const { tSync } = useTranslation();
   const [activeTab, setActiveTab] = useState<string>('schema');
+  const [loadedQueryUuid, setLoadedQueryUuid] = useState<string | null>(null);
+
+  // Reset loaded query UUID when connection changes
+  useEffect(() => {
+    setLoadedQueryUuid(null);
+    logger.debug('Connection changed, resetting loaded query UUID', 'QueryEditorPage', { 
+      newConnectionUuid: currentConnectionUuid 
+    });
+  }, [currentConnectionUuid]);
 
   // Handle graph-to-query conversion
   useEffect(() => {
@@ -89,6 +98,7 @@ export const QueryEditorPage: React.FC<QueryEditorPageProps> = ({
             maxRecordsWarning={maxRecordsWarning}
             maxRecordsReached={maxRecordsReached}
             maxRecordsLimit={maxRecordsLimit}
+            loadedQueryUuid={loadedQueryUuid}
           />
         );
           case 'schema':
@@ -102,7 +112,12 @@ export const QueryEditorPage: React.FC<QueryEditorPageProps> = ({
         return (
           <SavedQueriesTab 
             connectionUuid={currentConnectionUuid}
-            onLoadQuery={onQueryChange}
+            onLoadQuery={(query, queryUuid) => {
+              onQueryChange(query);
+              setLoadedQueryUuid(queryUuid || null);
+              // Switch to query tab when loading a saved query
+              setActiveTab('query');
+            }}
           />
         );
       default:
@@ -121,6 +136,7 @@ export const QueryEditorPage: React.FC<QueryEditorPageProps> = ({
             maxRecordsWarning={maxRecordsWarning}
             maxRecordsReached={maxRecordsReached}
             maxRecordsLimit={maxRecordsLimit}
+            loadedQueryUuid={loadedQueryUuid}
           />
         );
     }

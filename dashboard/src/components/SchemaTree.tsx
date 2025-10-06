@@ -93,6 +93,22 @@ export const SchemaTree: React.FC<SchemaTreeProps> = ({ isConnected, onSObjectCo
   const [favorites, setFavorites] = useState<SObjectFavorite[]>([]);
   const [favoritesService] = useState(() => new FavoritesService(ApiService.getInstance()));
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+  const [nodeSearchQueries, setNodeSearchQueries] = useState<{ [nodeId: string]: string }>({});
+
+  // Filter fields based on node search query
+  const filterFieldsForNode = (fields: TreeNode[], nodeId: string): TreeNode[] => {
+    const searchQuery = nodeSearchQueries[nodeId];
+    if (!searchQuery || searchQuery.trim() === '') {
+      return fields;
+    }
+    
+    const query = searchQuery.toLowerCase().trim();
+    return fields.filter(field => 
+      field.name.toLowerCase().includes(query) ||
+      field.label?.toLowerCase().includes(query) ||
+      field.fieldType?.toLowerCase().includes(query)
+    );
+  };
 
   // Utility function to format long SObject names with smart wrapping
   const formatSObjectName = (name: string): string => {
@@ -1096,7 +1112,59 @@ export const SchemaTree: React.FC<SchemaTreeProps> = ({ isConnected, onSObjectCo
         
         {isExpanded && hasChildren && (
           <div className="schema-tree-page-node-children">
-            {node.children!.map(child => renderCustomTreeNode(child, level + 1))}
+            {/* Search input for SObject nodes */}
+            {isSObject && (
+              <div 
+                className="schema-tree-page-node-search"
+                style={{ 
+                  paddingLeft: `${(level + 1) * 16 + 8}px`,
+                  paddingTop: '4px',
+                  paddingBottom: '4px',
+                  marginBottom: '4px'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <TextInput
+                  placeholder={tSync('schema.searchFields', 'Search fields...')}
+                  value={nodeSearchQueries[node.id] || ''}
+                  onChange={(e) => {
+                    setNodeSearchQueries(prev => ({
+                      ...prev,
+                      [node.id]: e.target.value
+                    }));
+                  }}
+                  size="xs"
+                  leftSection={<IconSearch size={12} />}
+                  rightSection={
+                    nodeSearchQueries[node.id] ? (
+                      <ActionIcon
+                        size="xs"
+                        variant="subtle"
+                        onClick={() => {
+                          setNodeSearchQueries(prev => ({
+                            ...prev,
+                            [node.id]: ''
+                          }));
+                        }}
+                      >
+                        <IconX size={10} />
+                      </ActionIcon>
+                    ) : null
+                  }
+                  styles={{
+                    input: {
+                      fontSize: '11px',
+                      height: '24px',
+                      minHeight: '24px',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      backgroundColor: '#f8fafc'
+                    }
+                  }}
+                />
+              </div>
+            )}
+            {filterFieldsForNode(node.children!, node.id).map(child => renderCustomTreeNode(child, level + 1))}
           </div>
         )}
       </div>

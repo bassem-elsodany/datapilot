@@ -11,6 +11,43 @@
   border: 1px solid var(--mantine-color-blue-3) !important;
 }
 
+/* Node search input styling */
+.schema-tree-page-node-search {
+  position: relative;
+  z-index: 10;
+}
+
+.schema-tree-page-node-search .mantine-TextInput-root {
+  max-width: 200px;
+}
+
+.schema-tree-page-node-search .mantine-TextInput-input {
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.schema-tree-page-node-search .mantine-TextInput-input:focus {
+  border-color: #3b82f6;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.schema-tree-page-node-search .mantine-TextInput-input::placeholder {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.schema-tree-page-node-search .mantine-ActionIcon-root {
+  color: #94a3b8;
+  transition: color 0.2s ease;
+}
+
+.schema-tree-page-node-search .mantine-ActionIcon-root:hover {
+  color: #64748b;
+  background-color: #f1f5f9;
+}
+
 /* Custom field type badges */
 .schema-tree-page-field-type-badge {
   font-size: 0.75rem;
