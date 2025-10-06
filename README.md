@@ -2,7 +2,7 @@
 <div align="center">
   <img src="imgs/logo/logo-large.png" alt="DataPilot Logo" width="550">
   
-<img src="https://img.shields.io/badge/🤖-AI%20POWERED%20QUERIES-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Queries"> <img src="https://img.shields.io/badge/⚡-REAL--TIME%20STREAMING-00D4AA?style=for-the-badge&logo=lightning&logoColor=white" alt="Real-time Streaming"> <img src="https://img.shields.io/badge/📊-VISUAL%20SCHEMA-4ECDC4?style=for-the-badge&logo=chart&logoColor=white" alt="Visual Schema">
+<img src="https://img.shields.io/badge/🤖-AI%20POWERED%20QUERIES-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Queries"> <img src="https://img.shields.io/badge/📊-VISUAL%20SCHEMA-4ECDC4?style=for-the-badge&logo=chart&logoColor=white" alt="Visual Schema"> <img src="https://img.shields.io/badge/⚡-SMART%20SOQL%20EDITOR-00D4AA?style=for-the-badge&logo=lightning&logoColor=white" alt="Smart SOQL Editor">
 
 </div>
 
