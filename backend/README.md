@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://img.shields.io/badge/🤖-AI%20POWERED%20BACKEND-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Backend"> <img src="https://img.shields.io/badge/⚡-FASTAPI%20PERFORMANCE-00D4AA?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI Performance"> <img src="https://img.shields.io/badge/🧠-LANGGRAPH%20AI-4ECDC4?style=for-the-badge&logo=brain&logoColor=white" alt="LangGraph AI"> <img src="https://img.shields.io/badge/🔒-ENTERPRISE%20SECURITY-9B59B6?style=for-the-badge&logo=shield&logoColor=white" alt="Enterprise Security">
+<img src="https://img.shields.io/badge/🤖-AI%20POWERED%20BACKEND-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Backend"> <img src="https://img.shields.io/badge/⚡-FASTAPI%20PERFORMANCE-00D4AA?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI Performance"> <img src="https://img.shields.io/badge/🧠-LANGGRAPH%20AI-4ECDC4?style=for-the-badge&logo=brain&logoColor=white" alt="LangGraph AI">
 
 ---
 

@@ -23,7 +23,7 @@
 
 ## Overview
 
-DataPilot's Enterprise Security & Connection Management system provides military-grade encryption and comprehensive connection lifecycle management. The system uses SHA-256 hashing with salt for master key security, AES-256 encryption for connection credentials, and MongoDB for secure data persistence. This unified system ensures that all sensitive data is protected while managing multiple Salesforce connections with advanced security controls.
+DataPilot's Enterprise Security & Connection Management system provides encryption and comprehensive connection lifecycle management. The system uses SHA-256 hashing with salt for master key security, AES-256 encryption for connection credentials, and MongoDB for secure data persistence. This unified system ensures that all sensitive data is protected while managing multiple Salesforce connections with advanced security controls.
 
 ## Demo Video
 
@@ -39,7 +39,7 @@ DataPilot's Enterprise Security & Connection Management system provides military
 - **Zero-Knowledge Architecture**: Server never stores plaintext master keys
 
 ### Connection Management
-- **AES-256 Encryption**: Military-grade encryption for all connection credentials
+- **AES-256 Encryption**: Encryption for all connection credentials
 - **Credential Storage**: Secure storage of username, password, security tokens, and OAuth credentials
 - **Connection Lifecycle**: Complete CRUD operations for connection management
 - **Multi-Environment Support**: Production and sandbox environment support
@@ -90,10 +90,8 @@ The Master Key system provides secure key creation, validation, and lifecycle ma
 
 #### Key Management Features
 - **Single Active Key**: Only one master key can be active at a time
-- **Key Validation**: Real-time validation against stored hash
 - **Key Reset**: Complete key reset with data cleanup (connections become unrecoverable)
 - **Key Deletion**: Hard delete master key and all related data (cascade delete)
-- **Session Security**: Master key never persisted across browser reloads
 
 #### UI Components (MasterKeyManager.tsx)
 - **Key Input Field**: Real-time strength validation and feedback
