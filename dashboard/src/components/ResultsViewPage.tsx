@@ -1931,9 +1931,13 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
   const baseColumns = useMemo(() => {
     logger.debug('🔍 Creating baseColumns for useDataTableColumns', 'ResultsViewPage', {
       orderedColumns,
-      orderedColumnsLength: orderedColumns.length,
+      orderedColumnsLength: orderedColumns?.length || 0,
       orderedColumnsContent: orderedColumns
     });
+    
+    if (!orderedColumns || !Array.isArray(orderedColumns) || orderedColumns.length === 0) {
+      return [];
+    }
     
     const columnCount = orderedColumns.length;
     const optimalWidth = getOptimalColumnWidth(columnCount);
@@ -2100,7 +2104,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
   }, [orderedColumns, props, hasDetailData, isDetailFieldExpanded, toggleDetailField, getFieldDisplayValue, getCellStyle, getOptimalColumnWidth]);
 
   // Simple column configuration - ID fixed, others based on header length
-  const effectiveColumns = baseColumns.map(col => {
+  const effectiveColumns = (baseColumns || []).map(col => {
     if (col.accessor === 'Id' || col.accessor === 'id') {
       return {
         ...col,
@@ -2595,8 +2599,8 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                       verticalAlign="top"
                       highlightOnHover
                       withTableBorder={false}
-                      records={paginatedRecords}
-                      columns={effectiveColumns}
+                      records={paginatedRecords || []}
+                      columns={effectiveColumns || []}
                                         idAccessor={(record) => getRecordId(record)}
                           sortStatus={sortStatus || undefined}
                           onSortStatusChange={setSortStatus as any}
