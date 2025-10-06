@@ -31,6 +31,7 @@
 
 > **DataPilot's flagship AI feature - Advanced natural language processing for Salesforce queries**
 
+#### **AI Assistant in Action**
 ![AI-Powered Query Assistant Demo](imgs/ai-assistant/demo.gif)
 
 - **Custom ReAct Agent**: LangGraph-based agent for Salesforce operations
@@ -60,8 +61,10 @@
 ### **2. [Interactive Schema Explorer](docs/02-interactive-schema-explorer.md)**
 **VISUAL SCHEMA EXPLORATION FOR SALESFORCE METADATA**
 
+#### **Tree Navigation Interface**
 ![Schema Explorer Demo](imgs/schema-explorer/schema-tree-demo.gif)
 
+#### **Canvas Visualization Interface**
 ![Schema Canvas Demo](imgs/schema-explorer/schema-canvas-demo.gif)
 
 - **Hierarchical Tree Navigation**: Expandable tree view of Salesforce objects and fields
@@ -75,6 +78,7 @@
 ### **3. [Advanced SOQL Query Editor](docs/03-advanced-soql-query-editor.md)**
 **INTELLIGENT SOQL DEVELOPMENT ENVIRONMENT**
 
+#### **SOQL Editor Features**
 ![Advanced SOQL Query Editor Demo](imgs/soql-editor/advanced-soql-query-editor-demo.gif)
 
 - **6-Level Context-Aware Autocomplete**: SObject, field, relationship, keyword, function, nesting
