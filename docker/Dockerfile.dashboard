@@ -12,10 +12,6 @@ COPY dashboard/package*.json ./
 
 # Install all dependencies (including dev dependencies for build)
 RUN npm install
-# Fix esbuild version conflicts by forcing a specific version
-RUN rm -rf node_modules/.cache/esbuild
-RUN rm -rf node_modules/esbuild
-RUN npm install esbuild@0.25.9 --force
 
 # Copy source code
 COPY dashboard/ ./
