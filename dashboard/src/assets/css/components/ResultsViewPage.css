@@ -545,6 +545,25 @@ div.results-view-page-header-controls-compact div.mantine-Group-root button.resu
   min-width: 0 !important;
 }
 
+/* Remove circular background from column drag handle icon in DataTable header */
+.results-view-page-datatable-compact thead .mantine-ActionIcon-root {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.results-view-page-datatable-compact thead .mantine-ActionIcon-root:hover {
+  background-color: transparent !important;
+}
+
+.results-view-page-datatable-compact thead .mantine-ActionIcon-root svg {
+  color: inherit !important;
+}
+
 /* Expandable content container - enable horizontal scrolling */
 .results-view-page-expandable-content {
   overflow-x: auto !important;

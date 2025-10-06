@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Paper, Title, Text, Button, Group, ActionIcon, Badge, Modal, TextInput, Textarea, Stack, ScrollArea } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconDownload, IconEdit, IconEye, IconGripVertical, IconChevronDown, IconChevronRight, IconExternalLink } from '@tabler/icons-react';
+import { IconDownload, IconEdit, IconEye, IconGripVertical, IconChevronDown, IconChevronRight, IconExternalLink, IconColumns } from '@tabler/icons-react';
 import { DataTable, DataTableSortStatus, useDataTableColumns } from 'mantine-datatable';
 import { useTranslation } from '../services/I18nService';
 import { logger } from '../services/Logger';
@@ -88,12 +88,17 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [selectedRecords, setSelectedRecords] = useState<any[]>([]);
-  const [sortStatus, setSortStatus] = useState<DataTableSortStatus | null>(null);
+  const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({ columnAccessor: 'Id', direction: 'asc' });
   const [records, setRecords] = useState<any[]>([]);
   const [paginatedRecords, setPaginatedRecords] = useState<any[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
   
   // Pagination options
   const pageSizeOptions = [10, 25, 50, 100];
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   // New state for hierarchical data - supports up to 4 levels of nesting
   // Level 1: Master records
@@ -205,18 +210,85 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
     return Math.max(mainPanelWidth - padding, 400); // Minimum 400px width
   };
 
-  const getOptimalColumnWidth = (columnCount: number): number => {
+  const getOptimalColumnWidth = (columnCount: number, columnName?: string): number => {
     if (columnCount === 0) return 200;
+    
+    // Set specific widths for common column types
+    if (columnName) {
+      const lowerName = columnName.toLowerCase();
+      
+      // ID columns - always wide enough to show full IDs
+      if (lowerName === 'id' || lowerName.endsWith('id')) {
+        return 180;
+      }
+      
+      // Name columns - wider for readability
+      if (lowerName === 'name' || lowerName.endsWith('name')) {
+        return 200;
+      }
+      
+      // Email columns - standard email width
+      if (lowerName.includes('email')) {
+        return 220;
+      }
+      
+      // Date columns - standard date width
+      if (lowerName.includes('date') || lowerName.includes('time')) {
+        return 150;
+      }
+      
+      // Status/Type columns - shorter
+      if (lowerName.includes('status') || lowerName.includes('type')) {
+        return 120;
+      }
+      
+      // Phone columns
+      if (lowerName.includes('phone')) {
+        return 140;
+      }
+    }
     
     const tableWidth = getOptimalTableWidth();
     
     // Calculate width per column based on table width
     const widthPerColumn = tableWidth / columnCount;
-    const minWidth = 100;
-    const maxWidth = 250;
     
-    return Math.max(minWidth, Math.min(maxWidth, widthPerColumn));
+    // Improved width calculation with better min/max values
+    const minWidth = 120; // Increased from 100
+    const maxWidth = 300; // Increased from 250
+    
+    // For many columns, ensure minimum usable width
+    if (columnCount > 10) {
+      return Math.max(minWidth, Math.min(200, widthPerColumn));
+    } else if (columnCount > 5) {
+      return Math.max(minWidth, Math.min(250, widthPerColumn));
+    } else {
+      return Math.max(minWidth, Math.min(maxWidth, widthPerColumn));
+    }
   };
+
+  // Memoized wrapper to keep a stable function identity for width calculation
+  const computeOptimalColumnWidth = useCallback(
+    (columnCount: number, columnName?: string) => {
+      // Prefer wider defaults to avoid squeezing
+      const name = (columnName || '').toLowerCase();
+      if (name === 'id' || name.endsWith('id')) return 220;
+      if (name === 'name' || name.endsWith('name')) return 240;
+      if (name.includes('email')) return 240;
+      if (name.includes('phone')) return 180;
+      if (name.includes('date') || name.includes('time')) return 170;
+      if (name.includes('status') || name.includes('type')) return 150;
+      if (name.includes('description') || name.includes('body') || name.includes('content')) return 260;
+
+      const base = getOptimalColumnWidth(columnCount, columnName);
+      // Increase the floor and slightly raise the cap
+      const min = 160;
+      const max = 300;
+      const manyColsFloor = columnCount > 12 ? 180 : columnCount > 8 ? 170 : min;
+      return Math.max(manyColsFloor, Math.min(max, base));
+    },
+    [mainPanelWidth]
+  );
 
   // Helper function to get detail fields for a record (query format only)
   const getRecordDetailFields = (record: any): string[] => {
@@ -250,6 +322,9 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
   // Helper function to convert detail columns to DataTable format
   const getDetailColumnsForTable = (detailRecord: DetailRecord): any[] => {
     const columns = getDetailColumns(detailRecord.records, detailRecord.parentField);
+    if (!columns || columns.length === 0) {
+      return [];
+    }
     const columnCount = columns.length;
     
     
@@ -422,7 +497,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
   }, [isLoading]);
 
 
-  // Handle sorting + pagination
+  // Handle sorting + pagination (v8 pattern)
   useEffect(() => {
     if (records.length > 0) {
       // Sort records if sortStatus is set
@@ -1341,8 +1416,8 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
       // Log detailed export information
       logger.debug('Starting export with records', 'ResultsViewPage', {
         totalRecordsToExport: recordsToExport.length,
-        firstRecordId: recordsToExport[0]?.Id || tSync('results.noId', 'No ID'),
-        lastRecordId: recordsToExport[recordsToExport.length - 1]?.Id || tSync('results.noId', 'No ID'),
+        firstRecordId: recordsToExport[0] ? getRecordId(recordsToExport[0]) : tSync('results.noId', 'No ID'),
+        lastRecordId: recordsToExport[recordsToExport.length - 1] ? getRecordId(recordsToExport[recordsToExport.length - 1]) : tSync('results.noId', 'No ID'),
         format: format,
         resultMetadata: result?.metadata
       });
@@ -1940,15 +2015,28 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
     }
     
     const columnCount = orderedColumns.length;
-    const optimalWidth = getOptimalColumnWidth(columnCount);
-    
-    return orderedColumns.map((column, index) => ({
-      accessor: column,
-      title: column,
-      ellipsis: false, // Disable ellipsis to allow text wrapping
-      textAlign: 'left' as const,
-      sortable: true,
-      render: (record: Record<string, unknown>) => {
+    return orderedColumns.map((column, index) => {
+      const columnWidth = computeOptimalColumnWidth(columnCount, column);
+      const isIdCol = column.toLowerCase() === 'id' || column.toLowerCase().endsWith('id');
+      const hardMin = isIdCol ? 300 : 250;
+      
+      return {
+        accessor: column,
+        title: (
+          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={column}>
+            {column}
+          </div>
+        ),
+        width: Math.max(hardMin, columnWidth),
+        minWidth: Math.max(hardMin, columnWidth),
+        ellipsis: true, // Enable ellipsis to prevent text wrapping in headers
+        textAlign: 'left' as const,
+        sortable: true,
+        resizable: true,
+        // Enable drag-and-drop reordering and toggling for most columns
+        draggable: column.toLowerCase() !== 'id',
+        toggleable: column.toLowerCase() !== 'id',
+        render: (record: Record<string, unknown>) => {
         try {
           // Handle regular data rows
           const value = getFieldDisplayValue(record, column);
@@ -2062,30 +2150,11 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
               <div 
                 style={{
                   ...cellStyle,
-                  cursor: 'pointer',
+                  cursor: 'default',
                   position: 'relative'
                 }}
-                onDoubleClick={() => handleInlineEdit(String(recordId), column, value)}
-                title={`Double-click to edit (${getFieldTypeSync(column, record)})`}
               >
                 <span>{stringValue}</span>
-                <div 
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    width: '4px',
-                    height: '100%',
-                    backgroundColor: 'transparent',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#e3f2fd';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                />
               </div>
             );
           }
@@ -2100,28 +2169,53 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
           return String(record?.[column] || '');
         }
       },
-    }));
-  }, [orderedColumns, props, hasDetailData, isDetailFieldExpanded, toggleDetailField, getFieldDisplayValue, getCellStyle, getOptimalColumnWidth]);
+      };
+    });
+  }, [orderedColumns, props, hasDetailData, isDetailFieldExpanded, toggleDetailField, getFieldDisplayValue, getCellStyle, computeOptimalColumnWidth]);
 
-  // Simple column configuration - ID fixed, others based on header length
-  const effectiveColumns = (baseColumns || []).map(col => {
-    if (col.accessor === 'Id' || col.accessor === 'id') {
-      return {
-        ...col,
-        width: 200, // Fixed width for ID column
-        resizable: true
-      };
-    } else {
-      // Calculate width based on header length + 10
-      const headerLength = col.title.length;
-      const calculatedWidth = Math.max(100, headerLength * 8 + 10); // 8px per character + 10px padding
-      return {
-        ...col,
-        width: calculatedWidth,
-        resizable: true
-      };
-    }
+  // Column resizing per Mantine DataTable v8: use the provided hook and a storage key
+  const columnsKey = 'results-view-main';
+  const { effectiveColumns, resetColumnsWidth } = useDataTableColumns<Record<string, unknown>>({
+    key: columnsKey,
+    columns: isMounted ? baseColumns : [],
   });
+
+  // Compute total minimum width required by columns to avoid squeezing
+  const totalMinWidthMainTable = useMemo(() => {
+    try {
+      if (!Array.isArray(effectiveColumns) || effectiveColumns.length === 0) return getOptimalTableWidth();
+      const sum = (effectiveColumns || []).reduce((acc: number, col: any) => {
+        const w = typeof col?.width === 'number' ? col.width : undefined;
+        const mw = typeof col?.minWidth === 'number' ? col.minWidth : 150;
+        return acc + (w || mw || 150);
+      }, 0);
+      // Ensure at least the container optimal width
+      return Math.max(getOptimalTableWidth(), sum);
+    } catch {
+      return getOptimalTableWidth();
+    }
+  }, [effectiveColumns, getOptimalTableWidth]);
+
+  // Handle resetting column widths to optimal defaults
+  const handleResetColumnWidths = () => {
+    try {
+      resetColumnsWidth();
+      notifications.show({
+        title: tSync('results.columnWidthsReset', 'Column Widths Reset'),
+        message: tSync('results.columnWidthsResetMessage', 'Column widths have been reset to optimal defaults'),
+        color: 'green',
+        autoClose: 3000,
+      });
+    } catch (error) {
+      logger.error('Failed to reset column widths', 'ResultsViewPage', error);
+      notifications.show({
+        title: tSync('results.columnWidthsResetError', 'Reset Failed'),
+        message: tSync('results.columnWidthsResetErrorMessage', 'Failed to reset column widths'),
+        color: 'red',
+        autoClose: 5000,
+      });
+    }
+  };
   
 
   // Debug: Log the effective columns to see if resizing is properly configured
@@ -2141,18 +2235,30 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
     const detailColumns = getDetailColumns(detailRecord.records, detailRecord.parentField);
     
     // Create enhanced columns that support nested detail expansion
+    if (!detailColumns || detailColumns.length === 0) {
+      return <div>No columns available</div>;
+    }
+    
     const columnCount = detailColumns.length;
     const detailTableWidth = getOptimalTableWidth();
     const columnWidth = Math.max(200, detailTableWidth / columnCount); // Wider columns for detail tables
     
-    const enhancedColumns = detailColumns.map((column, index) => ({
-      accessor: column,
-      title: column,
-      width: column === 'Id' || column === 'id' ? 200 : (index === detailColumns.length - 1 ? undefined : columnWidth), // Fixed 200px width for ID column
-      minWidth: column === 'Id' || column === 'id' ? 200 : 200, // Fixed 200px min width for ID column
-      ellipsis: true,
-      sortable: true,
-      resizable: column !== 'Id' && column !== 'id', // Only allow resizing for non-ID columns
+    const enhancedColumns = (detailColumns || []).map((column, index) => {
+      const colWidth = getOptimalColumnWidth(detailColumns.length, column);
+      const minWidth = column.toLowerCase() === 'id' ? 150 : 120;
+      
+      return {
+        accessor: column,
+        title: (
+          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={column}>
+            {column}
+          </div>
+        ),
+        width: colWidth,
+        minWidth: minWidth,
+        ellipsis: true,
+        sortable: true,
+        resizable: true, // Allow resizing for all columns
       render: (record: Record<string, unknown>) => {
         try {
           const value = getFieldValue(record, column);
@@ -2353,7 +2459,8 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
           return String(record?.[column] || '');
         }
       },
-    }));
+      };
+    });
     
     return (
       <div className="results-view-page-detail-grid" style={{ marginLeft: `${level * 20}px` }}>
@@ -2364,7 +2471,8 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
           </Text>
         </div>
         <div className="results-view-page-detail-table-container">
-          <DataTable
+            {Array.isArray(enhancedColumns) && enhancedColumns.length > 0 ? (
+              <DataTable
             className="results-view-page-detail-datatable-compact results-view-page-datatable-with-spanning-rows"
             pinFirstColumn
             highlightOnHover
@@ -2416,7 +2524,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
               
               return result;
             })}
-            columns={enhancedColumns.map((column, index) => ({
+            columns={(enhancedColumns || []).map((column, index) => ({
               ...column,
               render: (record: Record<string, unknown>) => {
                 try {
@@ -2512,7 +2620,10 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
               width: '2000px', // Force wide table to trigger horizontal scroll
               tableLayout: 'fixed'
             }}
-          />
+            />
+            ) : (
+              <div style={{ padding: '8px', color: '#666' }}>No columns available</div>
+            )}
         </div>
         
         {/* Render nested details if level < 4 */}
@@ -2573,7 +2684,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                 {tSync('results.loading', 'Loading...')}
               </div>
             )}
-            {(paginatedRecords && paginatedRecords.length > 0 && effectiveColumns && effectiveColumns.length > 0) && !isAnyDetailOpen ? (
+            {(Array.isArray(paginatedRecords) && paginatedRecords.length > 0 && Array.isArray(effectiveColumns) && effectiveColumns.length > 0) && !isAnyDetailOpen ? (
               (() => {
                     try {
                       logger.debug('🔍 About to render DataTable', 'ResultsViewPage', {
@@ -2587,8 +2698,8 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                       });
                       
                       return (
-                        <DataTable
-                      key={`datatable-${queryExecutionKey}-${isLoading ? 'loading' : 'loaded'}-${records.length}`}
+                        <DataTable withTableBorder={false}
+                      key={`datatable-${queryExecutionKey}`}
                       className="results-view-page-datatable-compact"
                       horizontalSpacing="xs"
                       verticalSpacing="xs"
@@ -2598,22 +2709,23 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                       borderRadius="md"
                       verticalAlign="top"
                       highlightOnHover
-                      withTableBorder={false}
+                          storeColumnsKey={columnsKey}
                       records={paginatedRecords || []}
                       columns={effectiveColumns || []}
                                         idAccessor={(record) => getRecordId(record)}
                           sortStatus={sortStatus || undefined}
                           onSortStatusChange={setSortStatus as any}
-                      minHeight={400}
-                      maxHeight={availableHeight}
+                          height={availableHeight}
+                          scrollAreaProps={{ type: 'auto', offsetScrollbars: true, scrollbarSize: 10 }}
                       style={{
                         border: isLoading ? '2px solid #4dabf7' : '2px solid #e2e8f0',
                         backgroundColor: isLoading ? '#f8f9ff' : 'white',
                         borderRadius: '12px',
                         padding: '16px',
                         boxShadow: isLoading ? '0 4px 16px rgba(77, 171, 247, 0.2)' : '0 4px 16px rgba(0, 0, 0, 0.1)',
-                        position: 'relative'
+                                position: 'relative'
                       }}
+
                       rowExpansion={{
                         allowMultiple: true,
                         expandable: (record) => {
@@ -2738,7 +2850,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                                         pinFirstColumn
                                         highlightOnHover
                                         records={detailRecord.records}
-                                        columns={getDetailColumnsForTable(detailRecord)}
+                                        columns={getDetailColumnsForTable(detailRecord) || []}
                                         idAccessor={(record) => getRecordId(record)}
                                         minHeight={100}
                                         verticalAlign="top"
@@ -2880,7 +2992,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                                                           pinFirstColumn
                                                           highlightOnHover
                                                           records={nestedDetailRecord.records}
-                                                          columns={getDetailColumnsForTable(nestedDetailRecord)}
+                                                          columns={getDetailColumnsForTable(nestedDetailRecord) || []}
                                                           idAccessor={(record) => {
                                                                   // Get ID - backend always provides Id as first field
                                                                   const recordId = getRecordId(record);
@@ -3036,7 +3148,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                                                                             pinFirstColumn
                                                                             highlightOnHover
                                                                             records={nestedDetailRecord.records}
-                                                                            columns={getDetailColumnsForTable(nestedDetailRecord)}
+                                                                            columns={getDetailColumnsForTable(nestedDetailRecord) || []}
                                                                             idAccessor={(record) => {
                                                                   // Get ID - backend always provides Id as first field
                                                                   const recordId = getRecordId(record);
@@ -3115,7 +3227,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                         },
                         table: {
                           fontSize: '12px',
-                          minWidth: '100%',
+                          minWidth: `${totalMinWidthMainTable}px`,
                           width: '100%',
                           tableLayout: 'auto',
                         },
@@ -3127,7 +3239,7 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                           fontSize: '11px',
                         },
                       }}
-                        />
+                    />
                       );
                     } catch (error) {
                       logger.error(' Error rendering DataTable', 'ResultsViewPage', error as Error);
@@ -3188,6 +3300,15 @@ export const ResultsViewPage: React.FC<ResultsViewPageProps> = ({
                     }}
                   >
                     {tSync('results.backToMasterTable', 'Back to Master Table')}
+                  </Button>
+                  <Button
+                    variant="light"
+                    size="sm"
+                    leftSection={<IconColumns size={16} />}
+                    onClick={handleResetColumnWidths}
+                    title={tSync('results.resetColumnWidthsTooltip', 'Reset column widths to optimal defaults')}
+                  >
+                    {tSync('results.resetColumns', 'Reset Columns')}
                   </Button>
                   <Text size="sm" c="dimmed">
                     {tSync('results.detailFieldsExpanded', '{count} detail field{plural} expanded', { 

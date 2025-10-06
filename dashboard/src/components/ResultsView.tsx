@@ -172,12 +172,10 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
     return (
       <div 
-        className={`cell-content ${isEditable ? 'editable' : ''}`}
-        onDoubleClick={() => handleCellDoubleClick(recordIndex, fieldName, value)}
-                    title={isEditable ? tSync('results.doubleClickToEditTitle') : ''}
+        className={`cell-content`}
+        title={''}
       >
         {formatCellValue(value)}
-        {isEditable && <span className="edit-indicator">✏️</span>}
       </div>
     );
   };

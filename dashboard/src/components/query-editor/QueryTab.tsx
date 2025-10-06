@@ -131,16 +131,6 @@ export const QueryTab: React.FC<QueryTabProps> = ({
     const minHeight = 100; // Minimum results height
     const maxHeight = availableHeight - 150; // Leave minimum space for query editor
     
-    console.log('Drag Debug:', {
-      clientY: e.clientY,
-      viewportHeight,
-      newHeight,
-      minHeight,
-      maxHeight,
-      availableHeight,
-      queryEditorMinHeight: availableHeight - newHeight
-    });
-    
     if (newHeight >= minHeight && newHeight <= maxHeight) {
       setResultsHeight(newHeight);
     }

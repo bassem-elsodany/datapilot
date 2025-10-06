@@ -131,8 +131,8 @@ export class NotificationService {
    * Show API error notification with automatic error parsing
    */
   public apiError(error: any, context?: string): void {
-    let title = i18nService.tSync('error.notifications.apiError.title') || 'API Error';
-    let message = i18nService.tSync('error.notifications.apiError.generic') || 'An error occurred while communicating with the server';
+    let title = i18nService.tSync('error.notifications.apiError.title', 'API Error');
+    let message = i18nService.tSync('error.notifications.apiError.generic', 'An error occurred while communicating with the server');
 
     // Parse different types of API errors
     if (error?.response?.data?.detail) {
@@ -166,24 +166,24 @@ export class NotificationService {
         if (detail.error_code) {
           switch (detail.error_code) {
             case 'authentication_error':
-              title = i18nService.tSync('error.notifications.apiError.authentication') || 'Authentication Error';
+              title = i18nService.tSync('error.notifications.apiError.authentication', 'Authentication Error');
               break;
             case 'validation_error':
-              title = i18nService.tSync('error.notifications.apiError.validation') || 'Validation Error';
+              title = i18nService.tSync('error.notifications.apiError.validation', 'Validation Error');
               break;
             case 'internal_server_error':
-              title = i18nService.tSync('error.notifications.apiError.server') || 'Server Error';
+              title = i18nService.tSync('error.notifications.apiError.server', 'Server Error');
               break;
             case 'connection_error':
-              title = i18nService.tSync('error.notifications.apiError.connection') || 'Connection Error';
+              title = i18nService.tSync('error.notifications.apiError.connection', 'Connection Error');
               break;
           }
         }
       } else if (typeof detail === 'string') {
-        message = i18nService.tSync(detail) || detail;
+        message = i18nService.tSync(detail, detail);
       }
     } else if (error?.response?.data?.message) {
-      message = i18nService.tSync(error.response.data.message) || error.response.data.message;
+      message = i18nService.tSync(error.response.data.message, error.response.data.message);
     } else if (error?.message) {
       message = error.message;
     } else if (typeof error === 'string') {
