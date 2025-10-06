@@ -153,41 +153,20 @@ graph LR
 
 ## **ROADMAP**
 
-### **🚀 Upcoming Features**
+### **🚀 Planned Features**
 
 #### **Apex Development Tools**
-- **Apex Code Management**: Complete Apex development environment
-- **Code Generation**: AI-powered Apex code generation from natural language
-- **Apex Testing**: Automated test generation and execution
-- **Code Analysis**: Static analysis and optimization suggestions
-- **Version Control**: Apex code versioning and deployment management
+- **Apex Code Management**: Basic Apex development environment
+- **Apex Testing**: Simple test execution capabilities
 
 #### **Enhanced Authentication**
 - **Salesforce Web-based Authentication**: Native Salesforce OAuth integration
 - **Multi-tenant Support**: Support for multiple Salesforce orgs
-- **SSO Integration**: Single Sign-On with enterprise identity providers
-- **Role-based Access Control**: Granular permissions and user management
-- **Session Management**: Advanced session handling and security
 
 #### **Data Modification Capabilities**
-- **Data Update Operations**: Insert, update, delete operations through natural language
-- **Bulk Data Operations**: Large-scale data manipulation with progress tracking
-- **Data Validation**: Intelligent data validation and error handling
-- **Transaction Management**: ACID-compliant data operations
-- **Audit Trail**: Complete audit logging for all data modifications
-
-#### **Advanced Features**
-- **Real-time Data Sync**: Live data synchronization across systems
-- **Advanced Analytics**: Built-in reporting and analytics dashboard
-- **API Gateway**: RESTful API for external integrations
-- **Mobile Support**: Responsive design for mobile devices
-- **Enterprise Features**: Advanced security, compliance, and governance
-
-### **🎯 Long-term Vision**
-- **Multi-platform Support**: Extend beyond Salesforce to other CRM platforms
-- **AI Model Training**: Custom AI models trained on your organization's data
-- **Advanced Workflows**: Complex business process automation
-- **Community Marketplace**: Plugin ecosystem for custom extensions
+- **Data Update Operations**: Basic insert, update, delete operations through UI
+- **AI-Powered Data Updates**: Natural language data modification through AI agent
+- **Data Validation**: Simple data validation and error handling
 
 ---
 
