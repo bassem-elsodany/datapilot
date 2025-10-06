@@ -1,0 +1,33 @@
+<svg viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo Icon -->
+  <g transform="translate(25, 25)">
+    <polygon
+      points="23.45 38.5 46.9 24.95 46.9 11.35 11.25 31.9 13.2 34.3 21.3 38.7 23.45 38.5"
+      fill="#4285f4"
+    />
+    <path
+      d="M46.9,86.8,11.25,66.25V53.3l35.65,20.6Zm0,8.85L11.25,75v13l35.65,20.6Zm0-43.55L23.45,38.5,11.25,31.9v12.5L46.9,65"
+      fill="#aecbfa"
+      fillRule="evenodd"
+    />
+    <path
+      d="M46.9,108.65l35-20V75.5l-35,20m0-21.75,35-20h10.4v11.65H83.9l-37,21.45Zm0-8.85L83.9,43.5h12.2v6.8l12.55-12.55-12.55-12.5V31.85H83.4l-6.15,3.6-5.3,3.05L56.75,46.35l-10,5.75Z"
+      fill="#669df6"
+      fillRule="evenodd"
+    />
+    <polygon
+      points="46.9 24.95 62.7 34.1 74.5 27.3 46.9 11.35 46.9 24.95"
+      fill="#669df6"
+      fillRule="evenodd"
+    />
+  </g>
+  
+  <!-- App Name -->
+  <text x="150" y="75" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#3b82f6">Data Pilot</text>
+  
+  <!-- Line Separator -->
+  <line x1="150" y1="85" x2="550" y2="85" stroke="#64748b" stroke-width="2"/>
+  
+  <!-- Slogan -->
+  <text x="150" y="110" font-family="Arial, sans-serif" font-size="20" fill="#64748b">Your AI pilot for Salesforce data navigation</text>
+</svg>
