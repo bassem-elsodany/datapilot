@@ -257,8 +257,8 @@ def create_database_indexes(db):
         _create_index_safe(db.master_keys, "created_at")
         
         # SObject favorites collection indexes
-        _create_index_safe(db.sobject_favorites, [("user_id", 1), ("sobject_name", 1)], unique=True)
-        _create_index_safe(db.sobject_favorites, "user_id")
+        _create_index_safe(db.sobject_favorites, [("connection_uuid", 1), ("sobject_name", 1)], unique=True)
+        _create_index_safe(db.sobject_favorites, "connection_uuid")
         _create_index_safe(db.sobject_favorites, "sobject_name")
         
         # SObject list cache collection indexes
