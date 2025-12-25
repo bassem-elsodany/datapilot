@@ -40,7 +40,7 @@
       },
       "editor.rulers": [120]
     },
-    
+
     // TypeScript/JavaScript settings
     "typescript.tsdk": "${workspaceFolder:Dashboard}/node_modules/typescript/lib",
     "typescript.enablePromptUseWorkspaceTsdk": true,
@@ -68,7 +68,7 @@
       "editor.defaultFormatter": "esbenp.prettier-vscode",
       "editor.formatOnSave": true
     },
-    
+
     // General editor settings
     "editor.tabSize": 2,
     "editor.insertSpaces": true,
@@ -96,21 +96,21 @@
       "**/*.egg-info": true,
       "**/logs": true
     },
-    
+
     // File associations
     "files.associations": {
       "*.env.example": "properties",
       "*.properties": "properties"
     },
-    
+
     // Terminal settings
     "terminal.integrated.cwd": "${workspaceFolder}",
     "terminal.integrated.defaultProfile.osx": "zsh",
-    
+
     // Git settings
     "git.ignoreLimitWarning": true,
     "git.autofetch": true,
-    
+
     // Language-specific settings
     "[markdown]": {
       "editor.wordWrap": "on",
@@ -135,25 +135,25 @@
       "ms-python.vscode-pylance",
       "ms-python.black-formatter",
       "charliermarsh.ruff",
-      
+
       // TypeScript/JavaScript
       "dbaeumer.vscode-eslint",
       "esbenp.prettier-vscode",
-      
+
       // Docker
       "ms-azuretools.vscode-docker",
-      
+
       // Git
       "eamodio.gitlens",
-      
+
       // General
       "ms-vscode.vscode-json",
       "redhat.vscode-yaml",
       "ms-vscode.makefile-tools",
-      
+
       // Markdown
       "yzhang.markdown-all-in-one",
-      
+
       // MongoDB
       "mongodb.mongodb-vscode"
     ]
