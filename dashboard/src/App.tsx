@@ -1547,7 +1547,7 @@ function MainApp({ userInfo, isConnected, onLogin, setUserInfo, setIsConnected, 
             bg="gray.0"
           >
             <AppShell.Header className="app-header">
-              {console.log('AppHeader props:', { isConnected, currentConnectionUuid, userInfo })}
+              {(() => { console.log('AppHeader props:', { isConnected, currentConnectionUuid, userInfo }); })()}
               <AppHeader
                 userInfo={userInfo}
                 isMasterKeyValidated={!!getMasterKey()}
