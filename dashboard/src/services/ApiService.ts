@@ -2002,10 +2002,10 @@ export class ApiService {
 
     try {
       const response = await this.client.post(
-        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/execute-anonymous`),
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/execute-anonymous?connection_uuid=${encodeURIComponent(connectionUuid)}`),
         {
-          connection_uuid: connectionUuid,
-          ...params
+          apex_code: params.apex_code,
+          debug_levels: params.debug_levels
         }
       );
       return response.data;
@@ -2047,10 +2047,10 @@ export class ApiService {
 
     try {
       const response = await this.client.post(
-        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/run-tests`),
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/run-tests?connection_uuid=${encodeURIComponent(connectionUuid)}`),
         {
-          connection_uuid: connectionUuid,
-          ...params
+          test_classes: params.test_classes,
+          test_methods: params.test_methods
         }
       );
       return response.data;
