@@ -498,6 +498,9 @@ def list_connections_lightweight(
                 locale=lang
             )
 
+        # Set master key in connection service for decryption (CRITICAL!)
+        connection_service.set_master_key(x_master_key)
+
         # Get all connections (metadata only, no decryption needed)
         all_connections = connection_service.get_all_connections()
 
