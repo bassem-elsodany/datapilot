@@ -884,10 +884,10 @@ class SalesforceService:
     def execute_anonymous_apex(self, apex_code: str, connection_uuid: str) -> Dict[str, Any]:
         """
         Execute anonymous Apex code using Salesforce Tooling API
-        
+
         Args:
             apex_code (str): The Apex code to execute
-            
+
         Returns:
             Dict containing execution results including:
             - success: Boolean indicating if execution was successful
@@ -901,14 +901,13 @@ class SalesforceService:
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
-            # Use simple_salesforce SDK's restful method with full Tooling API path
-            api_version = self._get_api_version()
-            result = self.connection.restful(
-                f'services/data/v{api_version}/tooling/executeAnonymous',
+            # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            result = self.connection.toolingexecute(
+                'executeAnonymous',
                 method='POST',
-                json={'anonymousBody': apex_code}
+                data={'anonymousBody': apex_code}
             )
             
             logger.debug("Executed anonymous Apex code")
@@ -1010,39 +1009,23 @@ class SalesforceService:
     def compile_packages(self, package_names: List[str], connection_uuid: str) -> Dict[str, Any]:
         """
         Compile Apex packages using Salesforce Tooling API
-        
+
         Args:
             package_names (List[str]): List of package names to compile
-            
+
         Returns:
             Dict containing compilation results
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
-            # Use Tooling API to compile packages - try multiple API versions for compatibility
-            api_versions = [f'v{self._get_api_version()}']
-            result = None
-            last_error = None
-
-            for api_version in api_versions:
-                try:
-                    result = self.connection.restful(
-                        f'services/data/{api_version}/tooling/compilePackages',
-                        method='POST',
-                        json={'packageNames': package_names}
-                    )
-                    if result:
-                        logger.debug(f"Packages compiled successfully with API version {api_version}")
-                        break
-                except Exception as version_error:
-                    last_error = version_error
-                    logger.debug(f"API version {api_version} failed: {str(version_error)}")
-                    continue
-
-            if not result:
-                raise last_error or ValueError("Failed to compile packages with any API version")
+            # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            result = self.connection.toolingexecute(
+                'compilePackages',
+                method='POST',
+                data={'packageNames': package_names}
+            )
 
             logger.debug(f"Compiled packages: {package_names}")
             logger.debug("Package compilation completed")
@@ -1061,39 +1044,23 @@ class SalesforceService:
     def compile_triggers(self, trigger_names: List[str], connection_uuid: str) -> Dict[str, Any]:
         """
         Compile Apex triggers using Salesforce Tooling API
-        
+
         Args:
             trigger_names (List[str]): List of trigger names to compile
-            
+
         Returns:
             Dict containing compilation results
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
-            # Use Tooling API to compile triggers - try multiple API versions for compatibility
-            api_versions = [f'v{self._get_api_version()}']
-            result = None
-            last_error = None
-
-            for api_version in api_versions:
-                try:
-                    result = self.connection.restful(
-                        f'services/data/{api_version}/tooling/compileTriggers',
-                        method='POST',
-                        json={'triggerNames': trigger_names}
-                    )
-                    if result:
-                        logger.debug(f"Triggers compiled successfully with API version {api_version}")
-                        break
-                except Exception as version_error:
-                    last_error = version_error
-                    logger.debug(f"API version {api_version} failed: {str(version_error)}")
-                    continue
-
-            if not result:
-                raise last_error or ValueError("Failed to compile triggers with any API version")
+            # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            result = self.connection.toolingexecute(
+                'compileTriggers',
+                method='POST',
+                data={'triggerNames': trigger_names}
+            )
 
             logger.debug(f"Compiled triggers: {trigger_names}")
             logger.debug(f"Trigger compilation completed")
@@ -1131,11 +1098,11 @@ class SalesforceService:
             if test_methods:
                 test_data['testMethods'] = test_methods
 
-            # Use simple_salesforce SDK's toolingexecute method
-            result = self.connection.restful(
-                f'services/data/v{self._get_api_version()}/tooling/runTests',
+            # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            result = self.connection.toolingexecute(
+                'runTests',
                 method='POST',
-                json=test_data
+                data=test_data
             )
 
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
@@ -1174,12 +1141,12 @@ class SalesforceService:
             }
             if test_classes:
                 test_data['testClasses'] = test_classes
-            
-            # Use simple_salesforce SDK's toolingexecute method
-            result = self.connection.restful(
-                f'services/data/v{self._get_api_version()}/tooling/compileAndTest',
+
+            # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            result = self.connection.toolingexecute(
+                'compileAndTest',
                 method='POST',
-                json=test_data
+                data=test_data
             )
 
             logger.debug(f"Compiled and tested Apex code")
@@ -1209,9 +1176,9 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's toolingexecute method
-            result = self.connection.restful(
-                f'services/data/v{self._get_api_version()}/tooling/compilationStatus/{compilation_id}',
+            # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            result = self.connection.toolingexecute(
+                f'compilationStatus/{compilation_id}',
                 method='GET'
             )
 
@@ -1245,8 +1212,8 @@ class SalesforceService:
         try:
             # Query ApexClass using Tooling API via SDK
             query = "SELECT Id, Name, Body, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexClass ORDER BY Name"
-            result = self.connection.restful(
-                f'services/data/v{self._get_api_version()}/tooling/query?q={query}',
+            result = self.connection.toolingexecute(
+                f'query?q={query}',
                 method='GET'
             )
 
@@ -1279,8 +1246,8 @@ class SalesforceService:
         try:
             # Query ApexTrigger using Tooling API via SDK
             query = "SELECT Id, Name, Body, TableEnumOrId, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexTrigger ORDER BY Name"
-            result = self.connection.restful(
-                f'services/data/v{self._get_api_version()}/tooling/query?q={query}',
+            result = self.connection.toolingexecute(
+                f'query?q={query}',
                 method='GET'
             )
 
