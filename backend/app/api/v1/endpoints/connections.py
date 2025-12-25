@@ -537,16 +537,8 @@ def list_connections_lightweight(
                     if full_conn and "connectionData" in full_conn:
                         conn_data = full_conn["connectionData"]
                         username = conn_data.get("username", "Unknown")
-
-                        # Extract environment - it might be stored as a full domain URL
-                        raw_environment = conn_data.get("environment", "production")
-                        if isinstance(raw_environment, str):
-                            if "test.salesforce.com" in raw_environment.lower() or "sandbox" in raw_environment.lower():
-                                environment = "sandbox"
-                            else:
-                                environment = "production"
-                        else:
-                            environment = "production"
+                        environment = conn_data.get("environment", "production")
+                        logger.debug(f"Got environment={environment} for connection {conn['connectionUuid']}")
                     else:
                         logger.warning(f"Could not find connectionData in full_conn for {conn['connectionUuid']}, full_conn keys: {full_conn.keys() if full_conn else 'NONE'}")
                 except Exception as decrypt_error:
