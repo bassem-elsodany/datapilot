@@ -115,6 +115,7 @@ from datetime import datetime
 from app.services.i18n_service import I18nService
 from app.services.sobject_cache_service import get_sobject_cache_service
 from app.services.salesforce_tree_transformer import transform_query_result
+from app.core.config import settings
 
 
 class SalesforceService:
@@ -156,7 +157,11 @@ class SalesforceService:
     @property
     def i18n_service(self):
         return self._i18n_service
-    
+
+    def _get_api_version(self) -> str:
+        """Get the Salesforce API version from settings"""
+        return settings.SALESFORCE_API_VERSION
+
     @classmethod
     def get_instance(cls):
         """Get the singleton instance of SalesforceService"""
@@ -900,7 +905,7 @@ class SalesforceService:
         try:
             # Use the Tooling API to execute anonymous Apex
             # Try multiple API versions in case v64.0 is not available
-            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            api_versions = [f'v{self._get_api_version()}']
             result = None
             last_error = None
 
@@ -1033,7 +1038,7 @@ class SalesforceService:
         
         try:
             # Use Tooling API to compile packages - try multiple API versions for compatibility
-            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            api_versions = [f'v{self._get_api_version()}']
             result = None
             last_error = None
 
@@ -1084,7 +1089,7 @@ class SalesforceService:
         
         try:
             # Use Tooling API to compile triggers - try multiple API versions for compatibility
-            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            api_versions = [f'v{self._get_api_version()}']
             result = None
             last_error = None
 
@@ -1143,7 +1148,7 @@ class SalesforceService:
                 test_data['testMethods'] = test_methods
 
             # Use Tooling API to run tests - try multiple API versions for compatibility
-            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            api_versions = [f'v{self._get_api_version()}']
             result = None
             last_error = None
 
@@ -1203,7 +1208,7 @@ class SalesforceService:
                 test_data['testClasses'] = test_classes
             
             # Use Tooling API to compile and test - try multiple API versions for compatibility
-            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            api_versions = [f'v{self._get_api_version()}']
             result = None
             last_error = None
 
@@ -1253,7 +1258,7 @@ class SalesforceService:
 
         try:
             # Use Tooling API to get compilation status - try multiple API versions for compatibility
-            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            api_versions = [f'v{self._get_api_version()}']
             result = None
             last_error = None
 
@@ -1305,7 +1310,7 @@ class SalesforceService:
             # Query ApexClass using Tooling API
             query = "SELECT Id, Name, Body, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexClass ORDER BY Name"
             result = self.connection.restful(
-                f'services/data/v64.0/tooling/query?q={query}',
+                f'services/data/{self._get_api_version()}/tooling/query?q={query}',
                 method='GET'
             )
 
@@ -1339,7 +1344,7 @@ class SalesforceService:
             # Query ApexTrigger using Tooling API
             query = "SELECT Id, Name, Body, TableEnumOrId, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexTrigger ORDER BY Name"
             result = self.connection.restful(
-                f'services/data/v64.0/tooling/query?q={query}',
+                f'services/data/{self._get_api_version()}/tooling/query?q={query}',
                 method='GET'
             )
 
