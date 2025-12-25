@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Group, Badge, Modal, Button, Stack, Text } from '@mantine/core';
+import { modals } from '@mantine/modals';
 import { IconLogout, IconLanguage, IconInfoCircle, IconMenu2, IconX, IconUser, IconWorld, IconHelp, IconMessage, IconDatabase, IconSettings } from '@tabler/icons-react';
 import { SalesforceUserInfo } from '../services/SalesforceService';
 import { useTranslation } from '../services/I18nService';
@@ -34,7 +35,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onDisconnect
 }) => {
   const { tSync, getCurrentLocale } = useTranslation();
-  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   
   // Get current language UUID based on current locale
   const getCurrentLanguageUuid = () => {
@@ -127,7 +127,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     setShowSettingsMenu(false);
   };
 
-  const handleSavedConnectionsClick = () => {
+  const handleSavedConnectionsClick = async () => {
     // Close settings menu first
     setShowSettingsMenu(false);
 
@@ -135,29 +135,40 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     console.log('handleSavedConnectionsClick:', { isConnected, currentConnectionUuid });
     if (isConnected && currentConnectionUuid) {
       console.log('Showing disconnect confirmation modal');
-      // Show modal after menu closes
-      setTimeout(() => {
-        setShowDisconnectConfirm(true);
-      }, 100);
+
+      // Use Mantine modals.openConfirmModal for reliable modal display
+      modals.openConfirmModal({
+        title: tSync('connections.disconnect.title', 'Close Connection'),
+        children: (
+          <Text size="sm">
+            {tSync(
+              'connections.disconnect.message',
+              'The current Salesforce connection will be closed. This will clear all decrypted credentials from memory. Do you want to continue?'
+            )}
+          </Text>
+        ),
+        labels: {
+          confirm: tSync('connections.disconnect.confirm', 'Close & Go Back'),
+          cancel: tSync('common.cancel', 'Cancel')
+        },
+        confirmProps: { color: 'red' },
+        onConfirm: async () => {
+          try {
+            if (onDisconnect) {
+              await onDisconnect();
+            }
+            onShowSavedConnections();
+          } catch (error) {
+            logger.error('Failed to disconnect', 'AppHeader', null, error as Error);
+          }
+        }
+      });
     } else {
       console.log('No active connection, navigating directly');
       onShowSavedConnections();
     }
   };
 
-  const handleConfirmDisconnect = async () => {
-    try {
-      setShowDisconnectConfirm(false);
-      // Call disconnect callback if provided
-      if (onDisconnect) {
-        await onDisconnect();
-      }
-      // Then navigate to saved connections
-      onShowSavedConnections();
-    } catch (error) {
-      logger.error('Failed to disconnect', 'AppHeader', null, error as Error);
-    }
-  };
 
   return (
     <div className="app-header">
@@ -323,39 +334,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </div>
       </div>
 
-      {/* Disconnect Confirmation Modal */}
-      {console.log('Modal state:', { showDisconnectConfirm })}
-      <Modal
-        opened={showDisconnectConfirm}
-        onClose={() => setShowDisconnectConfirm(false)}
-        title={tSync('connections.disconnect.title', 'Close Connection')}
-        centered
-        size="md"
-        zIndex={9999}
-      >
-        <Stack spacing="md">
-          <Text>
-            {tSync(
-              'connections.disconnect.message',
-              'The current Salesforce connection will be closed. This will clear all decrypted credentials from memory. Do you want to continue?'
-            )}
-          </Text>
-          <Group justify="flex-end" spacing="sm">
-            <Button
-              variant="default"
-              onClick={() => setShowDisconnectConfirm(false)}
-            >
-              {tSync('common.cancel', 'Cancel')}
-            </Button>
-            <Button
-              color="red"
-              onClick={handleConfirmDisconnect}
-            >
-              {tSync('connections.disconnect.confirm', 'Close & Go Back')}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
     </div>
   );
 };
