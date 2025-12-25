@@ -1559,6 +1559,15 @@ function MainApp({ userInfo, isConnected, onLogin, setUserInfo, setIsConnected, 
                 }}
                 onShowSavedConnections={handleShowSavedConnections}
                 isOnSavedConnectionsPage={showSavedConnections}
+                isConnected={isConnected}
+                currentConnectionUuid={currentConnectionUuid}
+                onDisconnect={async () => {
+                  // Disconnect from current connection and cleanup
+                  setIsConnected(false);
+                  setCurrentConnectionUuid(null);
+                  // Clear user info
+                  setUserInfo(null);
+                }}
               />
             </AppShell.Header>
 
