@@ -181,7 +181,7 @@ class UpdateSavedApexRequest(BaseModel):
 
 class SavedApexResponse(BaseModel):
     """Response model for saved Apex code"""
-    saved_apex_uuid: str
+    uuid: str
     connection_uuid: str
     name: str
     description: Optional[str]
@@ -374,7 +374,7 @@ def create_saved_apex(
             created_by=request.created_by
         )
         
-        logger.debug(f"Created saved Apex code: {result['saved_apex_uuid']}")
+        logger.debug(f"Created saved Apex code: {result['uuid']}")
         return result
         
     except ValueError as e:
@@ -470,7 +470,7 @@ def update_saved_apex(
         logger.debug(f"Updating saved Apex code: {apex_uuid}")
         
         result = saved_apex_service.update_saved_apex(
-            saved_apex_uuid=apex_uuid,
+            apex_uuid=apex_uuid,
             name=request.name,
             description=request.description,
             tags=request.tags,

@@ -230,7 +230,7 @@ def create_database_indexes(db):
         _create_index_safe(db.saved_queries, "created_at")
         
         # Saved Apex collection indexes
-        _create_index_safe(db.saved_apex, "saved_apex_uuid", unique=True)
+        _create_index_safe(db.saved_apex, "uuid", unique=True)
         _create_index_safe(db.saved_apex, "connection_uuid")
         _create_index_safe(db.saved_apex, "code_type")
         _create_index_safe(db.saved_apex, "is_favorite")
