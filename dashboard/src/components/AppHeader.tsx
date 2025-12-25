@@ -128,15 +128,20 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   const handleSavedConnectionsClick = () => {
+    // Close settings menu first
+    setShowSettingsMenu(false);
+
     // If currently connected, show confirmation dialog
     console.log('handleSavedConnectionsClick:', { isConnected, currentConnectionUuid });
     if (isConnected && currentConnectionUuid) {
       console.log('Showing disconnect confirmation modal');
-      setShowDisconnectConfirm(true);
+      // Show modal after menu closes
+      setTimeout(() => {
+        setShowDisconnectConfirm(true);
+      }, 100);
     } else {
       console.log('No active connection, navigating directly');
       onShowSavedConnections();
-      setShowSettingsMenu(false);
     }
   };
 
@@ -149,7 +154,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       }
       // Then navigate to saved connections
       onShowSavedConnections();
-      setShowSettingsMenu(false);
     } catch (error) {
       logger.error('Failed to disconnect', 'AppHeader', null, error as Error);
     }
