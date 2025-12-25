@@ -284,8 +284,6 @@ class ConnectionService:
                 
                 decrypted_data = self._decrypt_data(str(encrypted_credentials))
                 connection_data = json.loads(decrypted_data)
-                logger.debug(f"Decrypted connection_data keys: {connection_data.keys() if isinstance(connection_data, dict) else 'NOT A DICT'}")
-                logger.debug(f"Full decrypted data: {connection_data}")
             except Exception as decrypt_error:
                 logger.error(f"Failed to decrypt credentials for connection {connection_uuid}: {str(decrypt_error)}", extra={
                     "service": "ConnectionService",
