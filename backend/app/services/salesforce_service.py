@@ -903,11 +903,12 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
         
         try:
-            # Use simple_salesforce SDK's toolingexecute method for Tooling API
-            result = self.connection.toolingexecute(
-                'executeAnonymous',
+            # Use simple_salesforce SDK's restful method with full Tooling API path
+            api_version = self._get_api_version()
+            result = self.connection.restful(
+                f'services/data/v{api_version}/tooling/executeAnonymous',
                 method='POST',
-                data={'anonymousBody': apex_code}
+                json={'anonymousBody': apex_code}
             )
             
             logger.debug("Executed anonymous Apex code")
@@ -1131,10 +1132,10 @@ class SalesforceService:
                 test_data['testMethods'] = test_methods
 
             # Use simple_salesforce SDK's toolingexecute method
-            result = self.connection.toolingexecute(
-                'runTests',
+            result = self.connection.restful(
+                f'services/data/v{self._get_api_version()}/tooling/runTests',
                 method='POST',
-                data=test_data
+                json=test_data
             )
 
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
@@ -1175,10 +1176,10 @@ class SalesforceService:
                 test_data['testClasses'] = test_classes
             
             # Use simple_salesforce SDK's toolingexecute method
-            result = self.connection.toolingexecute(
-                'compileAndTest',
+            result = self.connection.restful(
+                f'services/data/v{self._get_api_version()}/tooling/compileAndTest',
                 method='POST',
-                data=test_data
+                json=test_data
             )
 
             logger.debug(f"Compiled and tested Apex code")
@@ -1209,8 +1210,8 @@ class SalesforceService:
 
         try:
             # Use simple_salesforce SDK's toolingexecute method
-            result = self.connection.toolingexecute(
-                f'compilationStatus/{compilation_id}',
+            result = self.connection.restful(
+                f'services/data/v{self._get_api_version()}/tooling/compilationStatus/{compilation_id}',
                 method='GET'
             )
 
@@ -1244,8 +1245,8 @@ class SalesforceService:
         try:
             # Query ApexClass using Tooling API via SDK
             query = "SELECT Id, Name, Body, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexClass ORDER BY Name"
-            result = self.connection.toolingexecute(
-                f'query?q={query}',
+            result = self.connection.restful(
+                f'services/data/v{self._get_api_version()}/tooling/query?q={query}',
                 method='GET'
             )
 
@@ -1278,8 +1279,8 @@ class SalesforceService:
         try:
             # Query ApexTrigger using Tooling API via SDK
             query = "SELECT Id, Name, Body, TableEnumOrId, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexTrigger ORDER BY Name"
-            result = self.connection.toolingexecute(
-                f'query?q={query}',
+            result = self.connection.restful(
+                f'services/data/v{self._get_api_version()}/tooling/query?q={query}',
                 method='GET'
             )
 
