@@ -536,13 +536,25 @@ def list_connections_lightweight(
                     full_conn = connection_service.get_connection_with_credentials(conn["connectionUuid"])
                     if full_conn and "connectionData" in full_conn:
                         conn_data = full_conn["connectionData"]
-                        logger.debug(f"Decrypted connectionData keys: {conn_data.keys() if isinstance(conn_data, dict) else 'NOT A DICT'}")
-                        logger.debug(f"ConnectionData contents: {conn_data}")
                         username = conn_data.get("username", "Unknown")
-                        environment = conn_data.get("environment", "production")
-                        logger.debug(f"Extracted username={username}, environment={environment}")
+
+                        # Extract environment - it might be stored as a full domain URL
+                        raw_environment = conn_data.get("environment", "production")
+                        if isinstance(raw_environment, str):
+                            if "test.salesforce.com" in raw_environment.lower() or "sandbox" in raw_environment.lower():
+                                environment = "sandbox"
+                            else:
+                                environment = "production"
+                        else:
+                            environment = "production"
+                    else:
+                        logger.warning(f"Could not find connectionData in full_conn for {conn['connectionUuid']}, full_conn keys: {full_conn.keys() if full_conn else 'NONE'}")
                 except Exception as decrypt_error:
-                    logger.warning(f"Could not decrypt connection {conn['connectionUuid']} for username: {str(decrypt_error)}")
+                    logger.warning(f"Could not decrypt connection {conn['connectionUuid']} for username/environment extraction: {str(decrypt_error)}", extra={
+                        "connectionUuid": conn['connectionUuid'],
+                        "error": str(decrypt_error),
+                        "traceback": True
+                    })
                     # Use display name as fallback
                     username = conn.get("displayName", "Unknown")
 
