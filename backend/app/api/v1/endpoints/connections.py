@@ -207,6 +207,7 @@ class ConnectionLightweight(BaseModel):
     connection_uuid: str
     display_name: str
     auth_provider_uuid: str
+    username: str
     environment: str
     last_used: str
     is_connection_active: bool
@@ -528,15 +529,18 @@ def list_connections_lightweight(
                 else:
                     formatted_last_used = safe_isoformat(last_used_date).split('T')[0]
 
-                # Extract environment from connection data if available
+                # Extract username and environment from connection data if available
+                username = "Unknown"
                 environment = "unknown"
                 if "connectionData" in conn:
+                    username = conn["connectionData"].get("username", "Unknown")
                     environment = conn["connectionData"].get("environment", "production")
 
                 connection_responses.append(ConnectionLightweight(
                     connection_uuid=conn["connectionUuid"],
                     display_name=conn["displayName"],
                     auth_provider_uuid=conn.get("authProviderUuid", "UNKNOWN"),
+                    username=username,
                     environment=environment,
                     last_used=formatted_last_used,
                     is_connection_active=conn.get("isConnectionActive", True),
