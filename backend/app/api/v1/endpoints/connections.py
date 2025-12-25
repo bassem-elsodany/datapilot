@@ -529,12 +529,18 @@ def list_connections_lightweight(
                 else:
                     formatted_last_used = safe_isoformat(last_used_date).split('T')[0]
 
-                # Extract username and environment from connection data if available
+                # Get full connection with decrypted credentials to extract username and environment
                 username = "Unknown"
-                environment = "unknown"
-                if "connectionData" in conn:
-                    username = conn["connectionData"].get("username", "Unknown")
-                    environment = conn["connectionData"].get("environment", "production")
+                environment = "production"
+                try:
+                    full_conn = connection_service.get_connection_with_credentials(conn["connectionUuid"])
+                    if full_conn and "connectionData" in full_conn:
+                        username = full_conn["connectionData"].get("username", "Unknown")
+                        environment = full_conn["connectionData"].get("environment", "production")
+                except Exception as decrypt_error:
+                    logger.warning(f"Could not decrypt connection {conn['connectionUuid']} for username: {str(decrypt_error)}")
+                    # Use display name as fallback
+                    username = conn.get("displayName", "Unknown")
 
                 connection_responses.append(ConnectionLightweight(
                     connection_uuid=conn["connectionUuid"],
