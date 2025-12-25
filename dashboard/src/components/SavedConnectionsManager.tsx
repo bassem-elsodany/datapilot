@@ -905,95 +905,32 @@ export const SavedConnectionsManager: React.FC<SavedConnectionsManagerProps> = (
                   </div>
                 </div>
               </div>
-              
-                             <div className="connections-table">
-                 <div className="connections-table-header">
-                   <div className="connection-name-header">{tSync('connections.name')}</div>
-                   <div className="connection-username-header">{tSync('connections.username')}</div>
-                   <div className="connection-environment-header">{tSync('connections.environment')}</div>
-                   <div className="connection-last-used-header">{tSync('connections.lastUsed')}</div>
-                   <div className="connection-actions-header">{tSync('connections.actions')}</div>
-                 </div>
-                 
-                 <div className="connections-table-body">
-                   {savedConnections.map((connection) => (
-                     <div key={connection.id} className="connection-row">
-                       <div className="connection-name">
-                         <div className="connection-name-text">
-                           {connection.displayName || connection.username}
-                         </div>
-                       </div>
-                       
-                       <div className="connection-username">
-                         {connection.username}
-                       </div>
-                       
-                       <div className="connection-environment">
-                         <span className={`environment-badge ${connection.environment}`}>
-                           {connection.environment === 'sandbox' ? 'Sandbox' : 'Production'}
-                         </span>
-                       </div>
-                       
-                       <div className="connection-last-used">
-                         {new Date(connection.lastUsed).toLocaleDateString()}
-                       </div>
-                       
-                       <div className="connection-actions">
-                         <button 
-                           className={`btn btn-primary btn-sm ${
-                             connectingConnectionId === connection.id ? 'loading' : 
-                             successfulConnectionId === connection.id ? 'success' : ''
-                           }`}
-                           onClick={() => {
-                             logger.debug('Connect button clicked for connection', 'SavedConnectionsManager', { connectionId: connection.id });
-                             handleQuickConnect(connection);
-                           }}
-                           disabled={connectingConnectionId === connection.id || successfulConnectionId === connection.id}
-                           title={tSync('connections.quickConnect')}
-                         >
-                           {connectingConnectionId === connection.id ? (
-                             <>
-                               <div className="loading-spinner"></div>
-                               {tSync('connections.connecting')}
-                             </>
-                           ) : successfulConnectionId === connection.id ? (
-                             <>
-                               <IconCheck size={14} />
-                               {tSync('connections.connected')}
-                             </>
-                           ) : (
-                             <>
-                               <IconLink size={14} />
-                               {tSync('connections.quickConnect')}
-                             </>
-                           )}
-                         </button>
-                         
-                         <button 
-                           className="btn btn-icon-only btn-secondary btn-sm"
-                           onClick={() => {
-                             setNewConnectionName(connection.displayName || connection.username);
-                             setRenamingConnectionId(connection.id);
-                           }}
-                           title={tSync('connections.renameConnection', 'Rename Connection')}
-                           disabled={connectingConnectionId === connection.id || successfulConnectionId === connection.id || isRenaming}
-                         >
-                           <IconEdit size={14} />
-                         </button>
-                         
-                         <button 
-                           className="btn btn-icon-only btn-danger btn-sm"
-                           onClick={() => handleRemoveConnection(connection.id)}
-                           title={tSync('connections.removeConnection')}
-                           disabled={connectingConnectionId === connection.id || successfulConnectionId === connection.id || isRenaming}
-                         >
-                           <IconTrash size={14} />
-                         </button>
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-               </div>
+
+              <div className="connections-table">
+                <div className="connections-table-header">
+                  <div className="connection-name-header">{tSync('connections.name')}</div>
+                  <div className="connection-username-header">{tSync('connections.username')}</div>
+                  <div className="connection-environment-header">{tSync('connections.environment')}</div>
+                  <div className="connection-last-used-header">{tSync('connections.lastUsed')}</div>
+                  <div className="connection-actions-header">{tSync('connections.actions')}</div>
+                </div>
+
+                {/* Virtualized connections list using react-window */}
+                <ConnectionsList
+                  connections={savedConnections}
+                  connectingConnectionId={connectingConnectionId}
+                  successfulConnectionId={successfulConnectionId}
+                  isRenaming={isRenaming}
+                  onConnect={handleQuickConnect}
+                  onRename={(connection) => {
+                    setNewConnectionName(connection.displayName || connection.username);
+                    setRenamingConnectionId(connection.id);
+                  }}
+                  onDelete={handleRemoveConnection}
+                  tSync={tSync}
+                  isLoading={isLoadingConnections}
+                />
+              </div>
             </div>
           )}
 
