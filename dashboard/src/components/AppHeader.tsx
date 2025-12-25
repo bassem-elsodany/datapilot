@@ -129,9 +129,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   const handleSavedConnectionsClick = () => {
     // If currently connected, show confirmation dialog
+    console.log('handleSavedConnectionsClick:', { isConnected, currentConnectionUuid });
     if (isConnected && currentConnectionUuid) {
+      console.log('Showing disconnect confirmation modal');
       setShowDisconnectConfirm(true);
     } else {
+      console.log('No active connection, navigating directly');
       onShowSavedConnections();
       setShowSettingsMenu(false);
     }
