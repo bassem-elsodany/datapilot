@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Group, Badge, Modal, Button, Stack, Text } from '@mantine/core';
-import { modals } from '@mantine/modals';
+import { Group, Badge } from '@mantine/core';
 import { IconLogout, IconLanguage, IconInfoCircle, IconMenu2, IconX, IconUser, IconWorld, IconHelp, IconMessage, IconDatabase, IconSettings } from '@tabler/icons-react';
 import { SalesforceUserInfo } from '../services/SalesforceService';
 import { useTranslation } from '../services/I18nService';
@@ -136,33 +135,25 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     if (isConnected && currentConnectionUuid) {
       console.log('Showing disconnect confirmation modal');
 
-      // Use Mantine modals.openConfirmModal for reliable modal display
-      modals.openConfirmModal({
-        title: tSync('connections.disconnect.title', 'Close Connection'),
-        children: (
-          <Text size="sm">
-            {tSync(
-              'connections.disconnect.message',
-              'The current Salesforce connection will be closed. This will clear all decrypted credentials from memory. Do you want to continue?'
-            )}
-          </Text>
-        ),
-        labels: {
-          confirm: tSync('connections.disconnect.confirm', 'Close & Go Back'),
-          cancel: tSync('common.cancel', 'Cancel')
-        },
-        confirmProps: { color: 'red' },
-        onConfirm: async () => {
-          try {
-            if (onDisconnect) {
-              await onDisconnect();
-            }
-            onShowSavedConnections();
-          } catch (error) {
-            logger.error('Failed to disconnect', 'AppHeader', null, error as Error);
+      // Use window.confirm as a fallback that definitely works
+      const message = tSync(
+        'connections.disconnect.message',
+        'The current Salesforce connection will be closed. This will clear all decrypted credentials from memory. Do you want to continue?'
+      );
+
+      if (window.confirm(message)) {
+        try {
+          console.log('User confirmed disconnect');
+          if (onDisconnect) {
+            await onDisconnect();
           }
+          onShowSavedConnections();
+        } catch (error) {
+          logger.error('Failed to disconnect', 'AppHeader', null, error as Error);
         }
-      });
+      } else {
+        console.log('User cancelled disconnect');
+      }
     } else {
       console.log('No active connection, navigating directly');
       onShowSavedConnections();
