@@ -33,6 +33,7 @@ import json
 from loguru import logger
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone
+from uuid import uuid4
 
 from app.core.mongodb import get_database
 from app.models.saved_apex import SavedApex, DebugLevels, ApexCodeType, ExecutionStatus
@@ -86,8 +87,12 @@ class SavedApexService:
                     if not DebugLevels.validate_debug_level(level):
                         raise ValueError(f"Invalid debug level '{level}' for component '{component}'")
             
+            # Generate unique UUID for this Apex code
+            saved_apex_uuid = str(uuid4())
+
             # Create saved Apex document
             saved_apex_doc = {
+                "saved_apex_uuid": saved_apex_uuid,
                 "connection_uuid": connection_uuid,
                 "name": name,
                 "description": description,
@@ -107,16 +112,16 @@ class SavedApexService:
                 "version": 1,
                 "is_deleted": False
             }
-            
+
             # Save to MongoDB
             db = get_database()
             saved_apex_collection = db.saved_apex
-            
+
             result = saved_apex_collection.insert_one(saved_apex_doc)
-            
-            logger.info(f"✅ Created saved Apex code: {result.inserted_id}")
-            
-            return self._format_saved_apex_response(saved_apex_doc, str(result.inserted_id))
+
+            logger.info(f"✅ Created saved Apex code: {saved_apex_uuid}")
+
+            return self._format_saved_apex_response(saved_apex_doc, saved_apex_uuid)
             
         except Exception as e:
             logger.error(f"❌ Failed to create saved Apex code: {str(e)}")
@@ -464,6 +469,16 @@ class SavedApexService:
     
     def _format_saved_apex_response(self, saved_apex: Dict[str, Any], saved_apex_uuid: str) -> Dict[str, Any]:
         """Format saved Apex code for API response"""
+        from datetime import datetime
+
+        def to_iso_string(dt):
+            """Convert datetime object to ISO format string"""
+            if dt is None:
+                return None
+            if isinstance(dt, datetime):
+                return dt.isoformat()
+            return dt
+
         return {
             "saved_apex_uuid": saved_apex_uuid,
             "connection_uuid": saved_apex.get("connection_uuid"),
@@ -475,11 +490,11 @@ class SavedApexService:
             "debug_levels": saved_apex.get("debug_levels", {}),
             "is_favorite": saved_apex.get("is_favorite", False),
             "execution_count": saved_apex.get("execution_count", 0),
-            "last_executed": saved_apex.get("last_executed"),
+            "last_executed": to_iso_string(saved_apex.get("last_executed")),
             "last_execution_status": saved_apex.get("last_execution_status"),
             "last_execution_time": saved_apex.get("last_execution_time", 0),
-            "created_at": saved_apex.get("created_at"),
-            "updated_at": saved_apex.get("updated_at"),
+            "created_at": to_iso_string(saved_apex.get("created_at")),
+            "updated_at": to_iso_string(saved_apex.get("updated_at")),
             "created_by": saved_apex.get("created_by"),
             "updated_by": saved_apex.get("updated_by"),
             "version": saved_apex.get("version", 1)

@@ -899,11 +899,28 @@ class SalesforceService:
         
         try:
             # Use the Tooling API to execute anonymous Apex
-            result = self.connection.restful(
-                'services/data/v64.0/tooling/executeAnonymous',
-                method='POST',
-                json={'anonymousBody': apex_code}
-            )
+            # Try multiple API versions in case v64.0 is not available
+            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            result = None
+            last_error = None
+
+            for api_version in api_versions:
+                try:
+                    result = self.connection.restful(
+                        f'services/data/{api_version}/tooling/executeAnonymous',
+                        method='POST',
+                        json={'anonymousBody': apex_code}
+                    )
+                    if result:
+                        logger.debug(f"Apex execution succeeded with API version {api_version}")
+                        break
+                except Exception as version_error:
+                    last_error = version_error
+                    logger.debug(f"API version {api_version} failed: {str(version_error)}")
+                    continue
+
+            if not result:
+                raise last_error or ValueError("Failed to execute anonymous Apex")
             
             logger.debug("Executed anonymous Apex code")
             logger.debug(f"Apex execution completed")
@@ -943,7 +960,31 @@ class SalesforceService:
             
         except Exception as e:
             logger.error(f"Failed to execute anonymous Apex: {str(e)}")
-            raise ValueError("salesforce.error.apex_execution_failed")
+            # Return error response instead of raising
+            return {
+                'success': False,
+                'compiled': False,
+                'line': None,
+                'column': None,
+                'compileProblem': None,
+                'exceptionMessage': str(e),
+                'exceptionStackTrace': None,
+                'debugInfo': [],
+                'executionTime': None,
+                'cpuTime': None,
+                'dmlRows': None,
+                'dmlStatements': None,
+                'soqlQueries': None,
+                'soqlRowsProcessed': None,
+                'queryLocatorRows': None,
+                'aggregateQueries': None,
+                'limitExceptions': None,
+                'emailInvocations': None,
+                'futureCalls': None,
+                'queueableJobs': None,
+                'mobilePushApexCalls': None,
+                'soslQueries': None
+            }
 
     def execute_apex_rest(self, endpoint: str, connection_uuid: str, method: str = 'GET', data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -991,23 +1032,39 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
         
         try:
-            # Use Tooling API to compile packages
-            result = self.connection.toolingexecute(
-                'services/data/v64.0/tooling/compilePackages',
-                method='POST',
-                data={'packageNames': package_names}
-            )
-            
+            # Use Tooling API to compile packages - try multiple API versions for compatibility
+            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            result = None
+            last_error = None
+
+            for api_version in api_versions:
+                try:
+                    result = self.connection.restful(
+                        f'services/data/{api_version}/tooling/compilePackages',
+                        method='POST',
+                        json={'packageNames': package_names}
+                    )
+                    if result:
+                        logger.debug(f"Packages compiled successfully with API version {api_version}")
+                        break
+                except Exception as version_error:
+                    last_error = version_error
+                    logger.debug(f"API version {api_version} failed: {str(version_error)}")
+                    continue
+
+            if not result:
+                raise last_error or ValueError("Failed to compile packages with any API version")
+
             logger.debug(f"Compiled packages: {package_names}")
             logger.debug("Package compilation completed")
-            
+
             return {
                 'success': True,
                 'packages': package_names,
                 'result': result,
                 'message': f"Successfully compiled {len(package_names)} packages"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to compile packages: {str(e)}")
             raise ValueError("salesforce.error.package_compilation_failed")
@@ -1026,23 +1083,39 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
         
         try:
-            # Use Tooling API to compile triggers
-            result = self.connection.toolingexecute(
-                'services/data/v64.0/tooling/compileTriggers',
-                method='POST',
-                data={'triggerNames': trigger_names}
-            )
-            
+            # Use Tooling API to compile triggers - try multiple API versions for compatibility
+            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            result = None
+            last_error = None
+
+            for api_version in api_versions:
+                try:
+                    result = self.connection.restful(
+                        f'services/data/{api_version}/tooling/compileTriggers',
+                        method='POST',
+                        json={'triggerNames': trigger_names}
+                    )
+                    if result:
+                        logger.debug(f"Triggers compiled successfully with API version {api_version}")
+                        break
+                except Exception as version_error:
+                    last_error = version_error
+                    logger.debug(f"API version {api_version} failed: {str(version_error)}")
+                    continue
+
+            if not result:
+                raise last_error or ValueError("Failed to compile triggers with any API version")
+
             logger.debug(f"Compiled triggers: {trigger_names}")
             logger.debug(f"Trigger compilation completed")
-            
+
             return {
                 'success': True,
                 'triggers': trigger_names,
                 'result': result,
                 'message': f"Successfully compiled {len(trigger_names)} triggers"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to compile triggers: {str(e)}")
             raise ValueError("salesforce.error.trigger_compilation_failed")
@@ -1050,17 +1123,17 @@ class SalesforceService:
     def run_tests(self, connection_uuid: str, test_classes: Optional[List[str]] = None, test_methods: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Run Apex tests using Salesforce Tooling API
-        
+
         Args:
             test_classes (List[str], optional): List of test class names to run
             test_methods (List[str], optional): List of specific test method names to run
-            
+
         Returns:
             Dict containing test execution results
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
             # Prepare test data
             test_data = {}
@@ -1068,17 +1141,33 @@ class SalesforceService:
                 test_data['testClasses'] = test_classes
             if test_methods:
                 test_data['testMethods'] = test_methods
-            
-            # Use Tooling API to run tests
-            result = self.connection.toolingexecute(
-                'services/data/v64.0/tooling/runTests',
-                method='POST',
-                data=test_data
-            )
-            
+
+            # Use Tooling API to run tests - try multiple API versions for compatibility
+            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            result = None
+            last_error = None
+
+            for api_version in api_versions:
+                try:
+                    result = self.connection.restful(
+                        f'services/data/{api_version}/tooling/runTests',
+                        method='POST',
+                        json=test_data
+                    )
+                    if result:
+                        logger.debug(f"Tests ran successfully with API version {api_version}")
+                        break
+                except Exception as version_error:
+                    last_error = version_error
+                    logger.debug(f"API version {api_version} failed: {str(version_error)}")
+                    continue
+
+            if not result:
+                raise last_error or ValueError("Failed to run tests with any API version")
+
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
             logger.debug(f"Test execution completed")
-            
+
             return {
                 'success': True,
                 'test_classes': test_classes,
@@ -1086,7 +1175,7 @@ class SalesforceService:
                 'result': result,
                 'message': f"Successfully ran tests"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to run tests: {str(e)}")
             raise ValueError("salesforce.error.test_execution_failed")
@@ -1113,22 +1202,38 @@ class SalesforceService:
             if test_classes:
                 test_data['testClasses'] = test_classes
             
-            # Use Tooling API to compile and test
-            result = self.connection.toolingexecute(
-                'services/data/v64.0/tooling/compileAndTest',
-                method='POST',
-                data=test_data
-            )
-            
+            # Use Tooling API to compile and test - try multiple API versions for compatibility
+            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            result = None
+            last_error = None
+
+            for api_version in api_versions:
+                try:
+                    result = self.connection.restful(
+                        f'services/data/{api_version}/tooling/compileAndTest',
+                        method='POST',
+                        json=test_data
+                    )
+                    if result:
+                        logger.debug(f"Compile and test succeeded with API version {api_version}")
+                        break
+                except Exception as version_error:
+                    last_error = version_error
+                    logger.debug(f"API version {api_version} failed: {str(version_error)}")
+                    continue
+
+            if not result:
+                raise last_error or ValueError("Failed to compile and test with any API version")
+
             logger.debug(f"Compiled and tested Apex code")
             logger.debug(f"Compile and test completed")
-            
+
             return {
                 'success': True,
                 'result': result,
                 'message': "Successfully compiled and tested Apex code"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to compile and test: {str(e)}")
             raise ValueError("salesforce.error.compile_test_failed")
@@ -1147,11 +1252,27 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use Tooling API to get compilation status
-            result = self.connection.toolingexecute(
-                f'services/data/v64.0/tooling/compilationStatus/{compilation_id}',
-                method='GET'
-            )
+            # Use Tooling API to get compilation status - try multiple API versions for compatibility
+            api_versions = ['v64.0', 'v63.0', 'v60.0', 'v50.0']
+            result = None
+            last_error = None
+
+            for api_version in api_versions:
+                try:
+                    result = self.connection.restful(
+                        f'services/data/{api_version}/tooling/compilationStatus/{compilation_id}',
+                        method='GET'
+                    )
+                    if result:
+                        logger.debug(f"Status retrieved with API version {api_version}")
+                        break
+                except Exception as version_error:
+                    last_error = version_error
+                    logger.debug(f"API version {api_version} failed: {str(version_error)}")
+                    continue
+
+            if not result:
+                raise last_error or ValueError("Failed to get compilation status with any API version")
 
             logger.debug(f"Retrieved compilation status for ID: {compilation_id}")
             logger.debug(f"Compilation status retrieved")
