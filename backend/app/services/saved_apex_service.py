@@ -88,11 +88,11 @@ class SavedApexService:
                         raise ValueError(f"Invalid debug level '{level}' for component '{component}'")
             
             # Generate unique UUID for this Apex code
-            saved_apex_uuid = str(uuid4())
+            apex_uuid = str(uuid4())
 
             # Create saved Apex document
             saved_apex_doc = {
-                "saved_apex_uuid": saved_apex_uuid,
+                "uuid": apex_uuid,
                 "connection_uuid": connection_uuid,
                 "name": name,
                 "description": description,
@@ -109,8 +109,7 @@ class SavedApexService:
                 "updated_by": created_by or "user",
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc),
-                "version": 1,
-                "is_deleted": False
+                "version": 1
             }
 
             # Save to MongoDB
@@ -119,31 +118,31 @@ class SavedApexService:
 
             result = saved_apex_collection.insert_one(saved_apex_doc)
 
-            logger.info(f"✅ Created saved Apex code: {saved_apex_uuid}")
+            logger.info(f"✅ Created saved Apex code: {apex_uuid}")
 
-            return self._format_saved_apex_response(saved_apex_doc, saved_apex_uuid)
+            return self._format_saved_apex_response(saved_apex_doc, apex_uuid)
             
         except Exception as e:
             logger.error(f"❌ Failed to create saved Apex code: {str(e)}")
             raise
     
-    def get_saved_apex_by_uuid(self, saved_apex_uuid: str) -> Optional[Dict[str, Any]]:
+    def get_saved_apex_by_uuid(self, apex_uuid: str) -> Optional[Dict[str, Any]]:
         """Get saved Apex code by UUID"""
         try:
             db = get_database()
             saved_apex_collection = db.saved_apex
-            
+
             # Build MongoDB query
-            query = {"_id": saved_apex_uuid, "is_deleted": False}
-            
+            query = {"uuid": apex_uuid}
+
             # Execute query
             saved_apex = saved_apex_collection.find_one(query)
-            
+
             if not saved_apex:
                 return None
-            
-            logger.info(f"📖 Retrieved saved Apex code: {saved_apex_uuid}")
-            return self._format_saved_apex_response(saved_apex, saved_apex_uuid)
+
+            logger.info(f"📖 Retrieved saved Apex code: {apex_uuid}")
+            return self._format_saved_apex_response(saved_apex, apex_uuid)
                 
         except Exception as e:
             logger.error(f"❌ Failed to get saved Apex code: {str(e)}")
@@ -168,8 +167,8 @@ class SavedApexService:
             saved_apex_collection = db.saved_apex
             
             # Build MongoDB query
-            query = {"connection_uuid": connection_uuid, "is_deleted": False}
-            
+            query = {"connection_uuid": connection_uuid}
+
             # Apply filters
             if search:
                 # MongoDB text search (requires text index)
@@ -189,9 +188,9 @@ class SavedApexService:
             saved_apex_list = list(cursor)
             
             logger.info(f"📖 Retrieved {len(saved_apex_list)} saved Apex codes for connection: {connection_uuid}")
-            
+
             return {
-                "saved_apex_list": [self._format_saved_apex_response(apex, str(apex.get("_id"))) for apex in saved_apex_list],
+                "saved_apex_list": [self._format_saved_apex_response(apex, apex.get("uuid")) for apex in saved_apex_list],
                 "total_count": total_count,
                 "limit": limit,
                 "offset": offset
@@ -203,7 +202,7 @@ class SavedApexService:
     
     def update_saved_apex(
         self,
-        saved_apex_uuid: str,
+        apex_uuid: str,
         name: Optional[str] = None,
         description: Optional[str] = None,
         tags: Optional[str] = None,
@@ -217,19 +216,19 @@ class SavedApexService:
         try:
             db = get_database()
             saved_apex_collection = db.saved_apex
-            
+
             # Build MongoDB query
-            query = {"_id": saved_apex_uuid, "is_deleted": False}
-            
+            query = {"uuid": apex_uuid}
+
             # Find the saved Apex
             saved_apex = saved_apex_collection.find_one(query)
-            
+
             if not saved_apex:
                 return None
-            
+
             # Prepare update data
             update_data = {}
-            
+
             # Update fields if provided
             if name is not None:
                 update_data["name"] = name
@@ -251,58 +250,43 @@ class SavedApexService:
                 update_data["debug_levels"] = debug_levels
             if is_favorite is not None:
                 update_data["is_favorite"] = is_favorite
-            
+
             update_data["updated_by"] = updated_by or "user"
             update_data["version"] = saved_apex.get("version", 0) + 1
             update_data["updated_at"] = datetime.now(timezone.utc)
-            
+
             # Update in MongoDB
             saved_apex_collection.update_one(
-                {"_id": saved_apex_uuid},
+                {"uuid": apex_uuid},
                 {"$set": update_data}
             )
-            
+
             # Get updated saved Apex
-            updated_saved_apex = saved_apex_collection.find_one({"_id": saved_apex_uuid})
-            
+            updated_saved_apex = saved_apex_collection.find_one({"uuid": apex_uuid})
+
             if not updated_saved_apex:
-                raise ValueError(f"Failed to retrieve updated saved Apex {saved_apex_uuid}")
-            
-            logger.info(f"✅ Updated saved Apex code: {saved_apex_uuid}")
-            return self._format_saved_apex_response(updated_saved_apex, saved_apex_uuid)
+                raise ValueError(f"Failed to retrieve updated saved Apex {apex_uuid}")
+
+            logger.info(f"✅ Updated saved Apex code: {apex_uuid}")
+            return self._format_saved_apex_response(updated_saved_apex, apex_uuid)
                 
         except Exception as e:
             logger.error(f"❌ Failed to update saved Apex code: {str(e)}")
             raise
     
-    def delete_saved_apex(self, saved_apex_uuid: str) -> bool:
-        """Soft delete saved Apex code"""
+    def delete_saved_apex(self, apex_uuid: str) -> bool:
+        """Delete saved Apex code (hard delete)"""
         try:
             db = get_database()
             saved_apex_collection = db.saved_apex
-            
-            # Build MongoDB query
-            query = {"_id": saved_apex_uuid, "is_deleted": False}
-            
-            # Find the saved Apex
-            saved_apex = saved_apex_collection.find_one(query)
-            
-            if not saved_apex:
+
+            # Delete from MongoDB
+            result = saved_apex_collection.delete_one({"uuid": apex_uuid})
+
+            if result.deleted_count == 0:
                 return False
-            
-            # Soft delete
-            update_data = {
-                "is_deleted": True,
-                "deleted_at": datetime.now(timezone.utc),
-                "updated_at": datetime.now(timezone.utc)
-            }
-            
-            saved_apex_collection.update_one(
-                {"_id": saved_apex_uuid},
-                {"$set": update_data}
-            )
-            
-            logger.info(f"🗑️ Deleted saved Apex code: {saved_apex_uuid}")
+
+            logger.info(f"🗑️ Deleted saved Apex code: {apex_uuid}")
             return True
                 
         except Exception as e:
@@ -311,7 +295,7 @@ class SavedApexService:
     
     def execute_saved_apex(
         self,
-        saved_apex_uuid: str,
+        apex_uuid: str,
         connection_uuid: str
     ) -> Dict[str, Any]:
         """Execute saved Apex code with its debug levels"""
@@ -319,38 +303,38 @@ class SavedApexService:
             # Validate connection UUID
             if not self._validate_connection_uuid(connection_uuid):
                 raise ValueError(f"Invalid or non-existent connection UUID: {connection_uuid}")
-            
+
             # Get saved Apex code
-            saved_apex = self.get_saved_apex_by_uuid(saved_apex_uuid)
+            saved_apex = self.get_saved_apex_by_uuid(apex_uuid)
             if not saved_apex:
                 raise ValueError("Saved Apex code not found")
-            
+
             # Verify connection matches
             if saved_apex['connection_uuid'] != connection_uuid:
                 raise ValueError("Connection UUID mismatch")
-            
+
             # Execute the Apex code
             execution_start = datetime.now(timezone.utc)
-            
+
             # TODO: Set debug levels in Salesforce connection before execution
             # This would require extending the Salesforce service to support debug levels
-            
+
             # Execute the Apex code
             result = self.salesforce_service.execute_anonymous_apex(saved_apex['apex_code'], connection_uuid)
-            
+
             execution_end = datetime.now(timezone.utc)
             execution_time = int((execution_end - execution_start).total_seconds() * 1000)
-            
+
             # Update execution statistics
             self._update_execution_stats(
-                saved_apex_uuid,
+                apex_uuid,
                 result.get('success', False),
                 execution_time,
                 result.get('exceptionMessage') or result.get('compileProblem')
             )
-            
-            logger.info(f"🔧 Executed saved Apex code: {saved_apex_uuid}")
-            
+
+            logger.info(f"🔧 Executed saved Apex code: {apex_uuid}")
+
             return {
                 "saved_apex": saved_apex,
                 "execution_result": result,
@@ -362,45 +346,45 @@ class SavedApexService:
             logger.error(f"❌ Failed to execute saved Apex code: {str(e)}")
             raise
     
-    def toggle_favorite(self, saved_apex_uuid: str) -> Optional[Dict[str, Any]]:
+    def toggle_favorite(self, apex_uuid: str) -> Optional[Dict[str, Any]]:
         """Toggle favorite status of saved Apex code"""
         try:
             db = get_database()
             saved_apex_collection = db.saved_apex
-            
+
             # Build MongoDB query
-            query = {"_id": saved_apex_uuid, "is_deleted": False}
-            
+            query = {"uuid": apex_uuid}
+
             # Find the saved Apex
             saved_apex = saved_apex_collection.find_one(query)
-            
+
             if not saved_apex:
                 return None
-            
+
             # Toggle favorite status
             current_favorite = saved_apex.get("is_favorite", False)
             new_favorite_status = not current_favorite
-            
+
             # Update in MongoDB
             update_data = {
                 "is_favorite": new_favorite_status,
                 "updated_at": datetime.now(timezone.utc),
                 "updated_by": "user"
             }
-            
+
             saved_apex_collection.update_one(
-                {"_id": saved_apex_uuid},
+                {"uuid": apex_uuid},
                 {"$set": update_data}
             )
-            
+
             # Get updated saved Apex
-            updated_saved_apex = saved_apex_collection.find_one({"_id": saved_apex_uuid})
-            
+            updated_saved_apex = saved_apex_collection.find_one({"uuid": apex_uuid})
+
             if not updated_saved_apex:
-                raise ValueError(f"Failed to retrieve updated saved Apex {saved_apex_uuid}")
-            
-            logger.info(f"⭐ Toggled favorite status for saved Apex code: {saved_apex_uuid}")
-            return self._format_saved_apex_response(updated_saved_apex, saved_apex_uuid)
+                raise ValueError(f"Failed to retrieve updated saved Apex {apex_uuid}")
+
+            logger.info(f"⭐ Toggled favorite status for saved Apex code: {apex_uuid}")
+            return self._format_saved_apex_response(updated_saved_apex, apex_uuid)
                 
         except Exception as e:
             logger.error(f"❌ Failed to toggle favorite: {str(e)}")
@@ -425,7 +409,7 @@ class SavedApexService:
     
     def _update_execution_stats(
         self,
-        saved_apex_uuid: str,
+        apex_uuid: str,
         success: bool,
         execution_time: int,
         error_message: Optional[str] = None
@@ -434,13 +418,13 @@ class SavedApexService:
         try:
             db = get_database()
             saved_apex_collection = db.saved_apex
-            
+
             # Build MongoDB query
-            query = {"_id": saved_apex_uuid}
-            
+            query = {"uuid": apex_uuid}
+
             # Find the saved Apex
             saved_apex = saved_apex_collection.find_one(query)
-            
+
             if saved_apex:
                 # Prepare update data
                 update_data = {
@@ -449,7 +433,7 @@ class SavedApexService:
                     "last_execution_time": execution_time,
                     "updated_at": datetime.now(timezone.utc)
                 }
-                
+
                 if success:
                     update_data["last_execution_status"] = ExecutionStatus.SUCCESS
                 else:
@@ -457,17 +441,17 @@ class SavedApexService:
                         update_data["last_execution_status"] = ExecutionStatus.COMPILATION_ERROR
                     else:
                         update_data["last_execution_status"] = ExecutionStatus.RUNTIME_ERROR
-                
+
                 # Update in MongoDB
                 saved_apex_collection.update_one(
-                    {"_id": saved_apex_uuid},
+                    {"uuid": apex_uuid},
                     {"$set": update_data}
                 )
                     
         except Exception as e:
             logger.error(f"❌ Failed to update execution stats: {str(e)}")
     
-    def _format_saved_apex_response(self, saved_apex: Dict[str, Any], saved_apex_uuid: str) -> Dict[str, Any]:
+    def _format_saved_apex_response(self, saved_apex: Dict[str, Any], apex_uuid: str) -> Dict[str, Any]:
         """Format saved Apex code for API response"""
         from datetime import datetime
 
@@ -480,7 +464,7 @@ class SavedApexService:
             return dt
 
         return {
-            "saved_apex_uuid": saved_apex_uuid,
+            "uuid": apex_uuid,
             "connection_uuid": saved_apex.get("connection_uuid"),
             "name": saved_apex.get("name"),
             "description": saved_apex.get("description"),
