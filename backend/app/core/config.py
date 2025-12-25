@@ -286,13 +286,19 @@ class Settings(BaseSettings):
         description="Maximum number of fields to return per object in metadata requests"
     )
     
+    # Salesforce API settings
+    SALESFORCE_API_VERSION: str = Field(
+        default="64.0",
+        description="Default Salesforce API version to use (no fallback)"
+    )
+
     # Apex execution settings
     APEX_TIMEOUT_SECONDS: int = Field(
-        default=120, 
+        default=120,
         description="Default timeout for Apex code execution (2 minutes)"
     )
     APEX_MAX_DEBUG_LEVELS: int = Field(
-        default=10, 
+        default=10,
         description="Maximum number of debug levels per Apex execution"
     )
     
