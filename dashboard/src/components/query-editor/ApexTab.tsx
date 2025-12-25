@@ -875,10 +875,9 @@ export const ApexTab: React.FC = () => {
               leftSection={<IconPlus size={14} />}
               size="xs"
               onClick={openCreateModal}
-              disabled
               className="query-tab-save-button"
-              style={{ 
-                padding: '6px 12px', 
+              style={{
+                padding: '6px 12px',
                 minHeight: '28px',
                 fontSize: '11px',
                 fontWeight: 600,
@@ -887,40 +886,6 @@ export const ApexTab: React.FC = () => {
               }}
             >
               {tSync('saved_apex.actions.create', 'Create Apex')}
-            </Button>
-            <Button
-              leftSection={<IconUpload size={14} />}
-              variant="light"
-              size="xs"
-              disabled
-              className="query-tab-page-button"
-              style={{ 
-                padding: '6px 12px', 
-                minHeight: '28px',
-                fontSize: '11px',
-                fontWeight: 600,
-                borderRadius: '6px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {tSync('saved_apex.actions.execute')}
-            </Button>
-            <Button
-              leftSection={<IconDownload size={14} />}
-              variant="light"
-              size="xs"
-              disabled
-              className="query-tab-page-button"
-              style={{ 
-                padding: '6px 12px', 
-                minHeight: '28px',
-                fontSize: '11px',
-                fontWeight: 600,
-                borderRadius: '6px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {tSync('common.actions.export')}
             </Button>
           </div>
         </div>
