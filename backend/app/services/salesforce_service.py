@@ -904,11 +904,11 @@ class SalesforceService:
 
         try:
             # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            # Pass json= kwarg to properly encode JSON for POST requests
             result = self.connection.toolingexecute(
                 'executeAnonymous',
                 method='POST',
-                data={'anonymousBody': apex_code},
-                headers={'Content-Type': 'application/json'}
+                json={'anonymousBody': apex_code}
             )
             
             logger.debug("Executed anonymous Apex code")
@@ -1025,8 +1025,7 @@ class SalesforceService:
             result = self.connection.toolingexecute(
                 'compilePackages',
                 method='POST',
-                data={'packageNames': package_names},
-                headers={'Content-Type': 'application/json'}
+                json={'packageNames': package_names}
             )
 
             logger.debug(f"Compiled packages: {package_names}")
@@ -1061,8 +1060,7 @@ class SalesforceService:
             result = self.connection.toolingexecute(
                 'compileTriggers',
                 method='POST',
-                data={'triggerNames': trigger_names},
-                headers={'Content-Type': 'application/json'}
+                json={'triggerNames': trigger_names}
             )
 
             logger.debug(f"Compiled triggers: {trigger_names}")
@@ -1105,8 +1103,7 @@ class SalesforceService:
             result = self.connection.toolingexecute(
                 'runTests',
                 method='POST',
-                data=test_data,
-                headers={'Content-Type': 'application/json'}
+                json=test_data
             )
 
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
@@ -1150,8 +1147,7 @@ class SalesforceService:
             result = self.connection.toolingexecute(
                 'compileAndTest',
                 method='POST',
-                data=test_data,
-                headers={'Content-Type': 'application/json'}
+                json=test_data
             )
 
             logger.debug(f"Compiled and tested Apex code")
