@@ -8,6 +8,7 @@ import { ApiService } from '../../services/ApiService';
 import { useSessionContext } from '../../contexts/SessionContext';
 import Editor from '@monaco-editor/react';
 import '../../assets/css/components/query-editor/ApexTab.css';
+import '../../assets/css/components/query-editor/ApexCreateModal.css';
 
 // ========================================
 // INTERFACES REFLECTING BACKEND MODELS
@@ -214,6 +215,7 @@ export const ApexTab: React.FC = () => {
   });
 
   const [editingApex, setEditingApex] = useState<SavedApex | null>(null);
+  const [isCreateModalClosing, setIsCreateModalClosing] = useState(false);
 
   // Debug log viewer state
   const [debugLogSearch, setDebugLogSearch] = useState('');
@@ -1566,218 +1568,247 @@ export const ApexTab: React.FC = () => {
       </Modal>
 
       {/* Create Modal */}
-      <Modal
-        opened={state.showCreateModal}
-        onClose={() => setState(prev => ({ ...prev, showCreateModal: false }))}
-        title="Create New Apex Code"
-        size="lg"
-      >
-        <Stack gap="md">
-          <TextInput
-            label={tSync('apex.form.name', 'Name')}
-            placeholder={tSync('apex.form.namePlaceholder', 'Enter Apex code name')}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          
-          <div>
-            <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
-              Apex Code
-              <span style={{ color: 'red', marginLeft: '4px' }}>*</span>
-            </label>
-            <Editor
-              height="350px"
-              defaultLanguage="apex"
-              value={formData.apex_code}
-              onChange={(value) => setFormData({ ...formData, apex_code: value || '' })}
-              options={{
-                minimap: { enabled: false },
-                lineNumbers: 'on',
-                fontSize: 13,
-                fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                tabSize: 2,
-                wordWrap: 'on'
-              }}
-            />
-          </div>
-          
-          <TextInput
-            label={tSync('apex.form.description', 'Description')}
-            placeholder={tSync('apex.form.descriptionPlaceholder', 'Optional description')}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          
-          <TextInput
-            label={tSync('apex.form.tags', 'Tags')}
-            placeholder={tSync('apex.form.tagsPlaceholder', 'Comma-separated tags')}
-            value={formData.tags}
-            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-          />
+      {state.showCreateModal && (
+        <div
+          className={`apex-create-modal-overlay${isCreateModalClosing ? ' closing' : ''}`}
+          onClick={() => {
+            setIsCreateModalClosing(true);
+            setTimeout(() => {
+              setState(prev => ({ ...prev, showCreateModal: false }));
+              setIsCreateModalClosing(false);
+            }, 350);
+          }}
+        >
+          <div
+            className={`apex-create-modal${isCreateModalClosing ? ' closing' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="apex-create-modal-header">
+              <h3>Create New Apex Code</h3>
+              <button
+                className="apex-create-modal-close"
+                onClick={() => {
+                  setIsCreateModalClosing(true);
+                  setTimeout(() => {
+                    setState(prev => ({ ...prev, showCreateModal: false }));
+                    setIsCreateModalClosing(false);
+                  }, 350);
+                }}
+              >
+                ×
+              </button>
+            </div>
 
-          {/* Debug Levels Configuration */}
-          <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '16px' }}>
-            <Text size="sm" fw={500} mb="md">Debug Levels</Text>
-            <Group gap="md" grow>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}>DB</label>
-                <select
-                  value={formData.debug_levels.DB}
-                  onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, DB: e.target.value } })}
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #ced4da', borderRadius: '4px', fontSize: '12px' }}
-                >
-                  <option value="NONE">NONE</option>
-                  <option value="ERROR">ERROR</option>
-                  <option value="WARN">WARN</option>
-                  <option value="INFO">INFO</option>
-                  <option value="DEBUG">DEBUG</option>
-                  <option value="FINE">FINE</option>
-                  <option value="FINER">FINER</option>
-                  <option value="FINEST">FINEST</option>
-                </select>
+            <div className="apex-create-modal-content">
+              {/* Top Section - Basic Info */}
+              <div className="apex-create-modal-info">
+                <TextInput
+                  label={tSync('apex.form.name', 'Name')}
+                  placeholder={tSync('apex.form.namePlaceholder', 'Enter Apex code name')}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+                <div>
+                  <Text size="sm" fw={500} mb="xs">Code Type</Text>
+                  <select
+                    value={formData.code_type}
+                    onChange={(e) => setFormData({ ...formData, code_type: e.target.value as ApexCodeType })}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      backgroundColor: 'white'
+                    }}
+                  >
+                    <option value="anonymous">Anonymous</option>
+                    <option value="class">Class</option>
+                    <option value="trigger">Trigger</option>
+                    <option value="interface">Interface</option>
+                    <option value="enum">Enum</option>
+                    <option value="test_class">Test Class</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}>Workflow</label>
-                <select
-                  value={formData.debug_levels.Workflow}
-                  onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Workflow: e.target.value } })}
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #ced4da', borderRadius: '4px', fontSize: '12px' }}
-                >
-                  <option value="NONE">NONE</option>
-                  <option value="ERROR">ERROR</option>
-                  <option value="WARN">WARN</option>
-                  <option value="INFO">INFO</option>
-                  <option value="DEBUG">DEBUG</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}>Validation</label>
-                <select
-                  value={formData.debug_levels.Validation}
-                  onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Validation: e.target.value } })}
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #ced4da', borderRadius: '4px', fontSize: '12px' }}
-                >
-                  <option value="NONE">NONE</option>
-                  <option value="ERROR">ERROR</option>
-                  <option value="WARN">WARN</option>
-                  <option value="INFO">INFO</option>
-                  <option value="DEBUG">DEBUG</option>
-                </select>
-              </div>
-            </Group>
-            <Group gap="md" grow mt="sm">
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}>Callouts</label>
-                <select
-                  value={formData.debug_levels.Callouts}
-                  onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Callouts: e.target.value } })}
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #ced4da', borderRadius: '4px', fontSize: '12px' }}
-                >
-                  <option value="NONE">NONE</option>
-                  <option value="ERROR">ERROR</option>
-                  <option value="WARN">WARN</option>
-                  <option value="INFO">INFO</option>
-                  <option value="DEBUG">DEBUG</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}>Apex Code</label>
-                <select
-                  value={formData.debug_levels.Apex_Code}
-                  onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Apex_Code: e.target.value } })}
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #ced4da', borderRadius: '4px', fontSize: '12px' }}
-                >
-                  <option value="NONE">NONE</option>
-                  <option value="ERROR">ERROR</option>
-                  <option value="WARN">WARN</option>
-                  <option value="INFO">INFO</option>
-                  <option value="DEBUG">DEBUG</option>
-                  <option value="FINE">FINE</option>
-                  <option value="FINER">FINER</option>
-                  <option value="FINEST">FINEST</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '4px' }}>Apex Profiling</label>
-                <select
-                  value={formData.debug_levels.Apex_Profiling}
-                  onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Apex_Profiling: e.target.value } })}
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #ced4da', borderRadius: '4px', fontSize: '12px' }}
-                >
-                  <option value="NONE">NONE</option>
-                  <option value="ERROR">ERROR</option>
-                  <option value="WARN">WARN</option>
-                  <option value="INFO">INFO</option>
-                  <option value="DEBUG">DEBUG</option>
-                </select>
-              </div>
-            </Group>
-          </div>
 
-          <div>
-            <Text size="sm" fw={500} mb="xs">Code Type</Text>
-            <select
-              value={formData.code_type}
-              onChange={(e) => setFormData({ ...formData, code_type: e.target.value as ApexCodeType })}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid #ced4da',
-                borderRadius: '6px',
-                fontSize: '14px',
-                backgroundColor: 'white'
-              }}
-            >
-              <option value="anonymous">Anonymous</option>
-              <option value="class">Class</option>
-              <option value="trigger">Trigger</option>
-              <option value="interface">Interface</option>
-              <option value="enum">Enum</option>
-              <option value="test_class">Test Class</option>
-            </select>
+              {/* Main Body - Editor Left, Settings Right */}
+              <div className="apex-create-modal-body">
+                {/* Left Column - Code Editor */}
+                <div className="apex-create-modal-editor">
+                  <label>
+                    Apex Code
+                    <span>*</span>
+                  </label>
+                  <Editor
+                    height="450px"
+                    defaultLanguage="apex"
+                    value={formData.apex_code}
+                    onChange={(value) => setFormData({ ...formData, apex_code: value || '' })}
+                    options={{
+                      minimap: { enabled: false },
+                      lineNumbers: 'on',
+                      fontSize: 13,
+                      fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+                      tabSize: 2,
+                      wordWrap: 'on'
+                    }}
+                  />
+                </div>
+
+                {/* Right Column - Settings Sidebar */}
+                <div className="apex-create-modal-sidebar">
+                  {/* Description & Tags */}
+                  <div className="apex-create-modal-section">
+                    <div className="apex-create-modal-section-title">Info</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <TextInput
+                        label="Description"
+                        placeholder="Optional description"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        size="sm"
+                      />
+                      <TextInput
+                        label="Tags"
+                        placeholder="Comma-separated"
+                        value={formData.tags}
+                        onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Debug Levels */}
+                  <div className="apex-create-modal-section">
+                    <div className="apex-create-modal-section-title">Debug Levels</div>
+                    <div className="apex-create-modal-debug-grid">
+                      <div className="apex-create-modal-debug-item">
+                        <label>DB</label>
+                        <select
+                          value={formData.debug_levels.DB}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, DB: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                          <option value="FINE">FINE</option>
+                          <option value="FINER">FINER</option>
+                          <option value="FINEST">FINEST</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Workflow</label>
+                        <select
+                          value={formData.debug_levels.Workflow}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Workflow: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Validation</label>
+                        <select
+                          value={formData.debug_levels.Validation}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Validation: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Callouts</label>
+                        <select
+                          value={formData.debug_levels.Callouts}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Callouts: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Apex Code</label>
+                        <select
+                          value={formData.debug_levels.Apex_Code}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Apex_Code: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                          <option value="FINE">FINE</option>
+                          <option value="FINER">FINER</option>
+                          <option value="FINEST">FINEST</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Apex Profiling</label>
+                        <select
+                          value={formData.debug_levels.Apex_Profiling}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Apex_Profiling: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Favorite & Options */}
+                  <div className="apex-create-modal-section">
+                    <Switch
+                      label="Mark as Favorite"
+                      checked={formData.is_favorite}
+                      onChange={(e) => setFormData({ ...formData, is_favorite: e.target.checked })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="apex-create-modal-footer">
+              <Button
+                variant="light"
+                size="sm"
+                onClick={() => {
+                  setIsCreateModalClosing(true);
+                  setTimeout(() => {
+                    setState(prev => ({ ...prev, showCreateModal: false }));
+                    setIsCreateModalClosing(false);
+                  }, 350);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleCreateApex}
+                className="query-tab-save-button"
+              >
+                Create Apex Code
+              </Button>
+            </div>
           </div>
-          
-          <Switch
-            label="Mark as Favorite"
-            checked={formData.is_favorite}
-            onChange={(e) => setFormData({ ...formData, is_favorite: e.target.checked })}
-          />
-          
-          <Group justify="flex-end" gap="sm">
-            <Button
-              variant="light"
-              size="xs"
-              onClick={() => setState(prev => ({ ...prev, showCreateModal: false }))}
-              style={{ 
-                padding: '6px 12px', 
-                minHeight: '28px',
-                fontSize: '11px',
-                fontWeight: 600,
-                borderRadius: '6px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              size="xs"
-              onClick={handleCreateApex}
-              className="query-tab-save-button"
-              style={{ 
-                padding: '6px 12px', 
-                minHeight: '28px',
-                fontSize: '11px',
-                fontWeight: 600,
-                borderRadius: '6px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Create Apex Code
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        </div>
+      )}
 
       {/* Test Results Modal */}
       <Modal
