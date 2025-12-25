@@ -1321,12 +1321,13 @@ export class ApiService {
       
       return response.data;
     } catch (error: any) {
-      logger.error('/connections/{uuid}/connect endpoint failed', 'ApiService', { 
+      logger.error('/connections/{uuid}/connect endpoint failed', 'ApiService', {
         error: error.response?.data?.detail || error.message,
         status: error.response?.status,
         data: error.response?.data
       });
-      throw new Error(error.response?.data?.detail || 'Failed to connect to Salesforce');
+      // The axios response interceptor will handle the error notification
+      throw error;
     }
   }
 
@@ -1842,11 +1843,245 @@ export class ApiService {
   }
 
   // ========================================
-  // QUERY HISTORY ENDPOINTS
+  // SAVED APEX ENDPOINTS
   // ========================================
 
+  /**
+   * Get all saved Apex code for a connection
+   */
+  async getSavedApexList(connectionUuid: string, params?: { limit?: number; offset?: number; search?: string }): Promise<any[]> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
 
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('connection_uuid', connectionUuid);
+      if (params?.limit) queryParams.append('limit', String(params.limit));
+      if (params?.offset) queryParams.append('offset', String(params.offset));
+      if (params?.search) queryParams.append('search', params.search);
 
+      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/?${queryParams.toString()}`));
+      return response.data.saved_apex_list || [];
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to get saved Apex code');
+    }
+  }
+
+  /**
+   * Create a new saved Apex code
+   */
+  async createSavedApex(params: {
+    connection_uuid: string;
+    name: string;
+    apex_code: string;
+    code_type: string;
+    description?: string;
+    tags?: string;
+    is_favorite?: boolean;
+    debug_levels?: {
+      DB: string;
+      Workflow: string;
+      Validation: string;
+      Callouts: string;
+      Apex_Code: string;
+      Apex_Profiling: string;
+    };
+  }): Promise<string> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/`), params);
+      return response.data.saved_apex_uuid;
+    } catch (error: any) {
+      let errorMessage = 'Failed to create saved Apex code';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Update a saved Apex code
+   */
+  async updateSavedApex(savedApexUuid: string, params: {
+    name?: string;
+    apex_code?: string;
+    code_type?: string;
+    description?: string;
+    tags?: string;
+    is_favorite?: boolean;
+    debug_levels?: {
+      DB: string;
+      Workflow: string;
+      Validation: string;
+      Callouts: string;
+      Apex_Code: string;
+      Apex_Profiling: string;
+    };
+  }): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.put(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/${savedApexUuid}`), params);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to update saved Apex code');
+    }
+  }
+
+  /**
+   * Delete a saved Apex code
+   */
+  async deleteSavedApex(savedApexUuid: string): Promise<void> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      await this.client.delete(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/${savedApexUuid}`));
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to delete saved Apex code');
+    }
+  }
+
+  /**
+   * Toggle favorite status for a saved Apex code
+   */
+  async toggleApexFavorite(savedApexUuid: string): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/${savedApexUuid}/toggle-favorite`), {});
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to toggle favorite status');
+    }
+  }
+
+  /**
+   * Execute anonymous Apex code
+   */
+  async executeAnonymousApex(connectionUuid: string, params: {
+    apex_code: string;
+    debug_levels?: {
+      DB: string;
+      Workflow: string;
+      Validation: string;
+      Callouts: string;
+      Apex_Code: string;
+      Apex_Profiling: string;
+    };
+  }): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/execute-anonymous`),
+        {
+          connection_uuid: connectionUuid,
+          ...params
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to execute Apex code';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Run Apex tests
+   */
+  async runApexTests(connectionUuid: string, params: {
+    test_classes?: string[];
+    test_methods?: string[];
+  }): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/run-tests`),
+        {
+          connection_uuid: connectionUuid,
+          ...params
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to run Apex tests';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  // ========================================
+  // QUERY HISTORY ENDPOINTS
+  // ========================================
 
 
 

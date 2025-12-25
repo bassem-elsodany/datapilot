@@ -261,7 +261,8 @@ export const SavedConnectionsManager: React.FC<SavedConnectionsManagerProps> = (
         }
       } catch (error) {
         logger.error('handleQuickConnect error', 'SavedConnectionsManager', null, error as Error);
-        setError(error instanceof Error ? error.message : tSync('connections.error.connectionFailed', 'Connection failed'));
+        // Don't set local error state - the notification service will handle displaying the error
+        // This prevents duplicate error messages (one in notification, one in the alert box)
       } finally {
         setConnectingConnectionId(null);
         // Clear all sensitive local variables to free up memory

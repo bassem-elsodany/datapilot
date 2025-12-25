@@ -80,6 +80,7 @@ export interface AppConfig {
       authProviders: string;
       appSettings: string;
       savedQueries: string;
+      savedApex: string;
       aiAgents: string;
       datapilotAgent: string;
     };
@@ -223,6 +224,7 @@ export const defaultAppConfig: AppConfig = {
       authProviders: '/api/v1/auth-providers',
       appSettings: '/api/v1/settings',
       savedQueries: '/api/v1/saved-queries',
+      savedApex: '/api/v1/saved-apex',
       aiAgents: '/api/v1/ai-agents',
       datapilotAgent: 'datapilot-agent'
     }

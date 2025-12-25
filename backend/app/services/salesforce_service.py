@@ -219,10 +219,12 @@ class SalesforceService:
             }
             
         except Exception as e:
-            logger.error(f"Failed to connect to Salesforce: {str(e)}")
+            error_msg = str(e)
+            logger.error(f"Failed to connect to Salesforce: {error_msg}")
             logger.error(f"Error type: {type(e).__name__}")
             logger.error(f"Connection details: username={username}, domain={domain}, has_client_id={bool(client_id)}")
-            raise ValueError("salesforce.error.connection_failed")
+            # Preserve original error message for better debugging
+            raise ValueError(error_msg)
     
     def get_sobject_list(self, connection_uuid: str) -> List[Dict[str, Any]]:
         """Get list of all SObjects with MongoDB-based persistent caching"""
