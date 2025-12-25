@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Group, Badge } from '@mantine/core';
+import { Group, Badge, Modal, Button, Stack, Text } from '@mantine/core';
 import { IconLogout, IconLanguage, IconInfoCircle, IconMenu2, IconX, IconUser, IconWorld, IconHelp, IconMessage, IconDatabase, IconSettings } from '@tabler/icons-react';
 import { SalesforceUserInfo } from '../services/SalesforceService';
 import { useTranslation } from '../services/I18nService';
@@ -15,6 +15,9 @@ interface AppHeaderProps {
   onShowAbout: () => void;
   onShowSavedConnections: () => void;
   isOnSavedConnectionsPage?: boolean;
+  isConnected?: boolean;
+  currentConnectionUuid?: string | null;
+  onDisconnect?: () => Promise<void>;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -25,9 +28,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onLocaleChange,
   onShowAbout,
   onShowSavedConnections,
-  isOnSavedConnectionsPage = false
+  isOnSavedConnectionsPage = false,
+  isConnected = false,
+  currentConnectionUuid = null,
+  onDisconnect
 }) => {
   const { tSync, getCurrentLocale } = useTranslation();
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   
   // Get current language UUID based on current locale
   const getCurrentLanguageUuid = () => {
@@ -121,8 +128,28 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   const handleSavedConnectionsClick = () => {
-    onShowSavedConnections();
-    setShowSettingsMenu(false);
+    // If currently connected, show confirmation dialog
+    if (isConnected && currentConnectionUuid) {
+      setShowDisconnectConfirm(true);
+    } else {
+      onShowSavedConnections();
+      setShowSettingsMenu(false);
+    }
+  };
+
+  const handleConfirmDisconnect = async () => {
+    try {
+      setShowDisconnectConfirm(false);
+      // Call disconnect callback if provided
+      if (onDisconnect) {
+        await onDisconnect();
+      }
+      // Then navigate to saved connections
+      onShowSavedConnections();
+      setShowSettingsMenu(false);
+    } catch (error) {
+      logger.error('Failed to disconnect', 'AppHeader', null, error as Error);
+    }
   };
 
   return (
@@ -288,7 +315,38 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </div>
         </div>
       </div>
-      
+
+      {/* Disconnect Confirmation Modal */}
+      <Modal
+        opened={showDisconnectConfirm}
+        onClose={() => setShowDisconnectConfirm(false)}
+        title={tSync('connections.disconnect.title', 'Close Connection')}
+        centered
+        size="md"
+      >
+        <Stack spacing="md">
+          <Text>
+            {tSync(
+              'connections.disconnect.message',
+              'The current Salesforce connection will be closed. This will clear all decrypted credentials from memory. Do you want to continue?'
+            )}
+          </Text>
+          <Group justify="flex-end" spacing="sm">
+            <Button
+              variant="default"
+              onClick={() => setShowDisconnectConfirm(false)}
+            >
+              {tSync('common.cancel', 'Cancel')}
+            </Button>
+            <Button
+              color="red"
+              onClick={handleConfirmDisconnect}
+            >
+              {tSync('connections.disconnect.confirm', 'Close & Go Back')}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </div>
   );
 };
