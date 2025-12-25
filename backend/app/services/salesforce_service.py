@@ -1213,8 +1213,9 @@ class SalesforceService:
             # Query ApexClass using Tooling API via SDK
             query = "SELECT Id, Name, Body, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexClass ORDER BY Name"
             result = self.connection.toolingexecute(
-                f'query?q={query}',
-                method='GET'
+                'query',
+                method='GET',
+                params={'q': query}
             )
 
             logger.debug(f"Retrieved {len(result.get('records', []))} Apex classes")
@@ -1247,8 +1248,9 @@ class SalesforceService:
             # Query ApexTrigger using Tooling API via SDK
             query = "SELECT Id, Name, Body, TableEnumOrId, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexTrigger ORDER BY Name"
             result = self.connection.toolingexecute(
-                f'query?q={query}',
-                method='GET'
+                'query',
+                method='GET',
+                params={'q': query}
             )
 
             logger.debug(f"Retrieved {len(result.get('records', []))} Apex triggers")
