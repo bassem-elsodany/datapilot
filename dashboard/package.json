@@ -48,7 +48,7 @@
     "mantine-datatable": "^8.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-window": "^1.8.10",
+    "react-window": "^1.8.11",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

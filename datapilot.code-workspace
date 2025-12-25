@@ -1,29 +1,32 @@
 {
   "folders": [
+
     {
-      "name": "Root",
-      "path": "."
-    },
-    {
-      "name": "Backend",
+      "name": "backend",
       "path": "./backend"
     },
     {
-      "name": "Dashboard",
+      "name": "dashboard",
       "path": "./dashboard"
     },
     {
-      "name": "Docker",
+      "name": "docker",
       "path": "./docker"
     },
     {
-      "name": "Docs",
+      "name": "docs",
       "path": "./docs"
     }
   ],
   "settings": {
     // Python settings
     "python.defaultInterpreterPath": "${workspaceFolder:Backend}/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python.venvPath": "${workspaceFolder:Backend}",
+    "python.venvFolders": [
+      ".venv"
+    ],
     "python.analysis.typeCheckingMode": "basic",
     "python.analysis.autoImportCompletions": true,
     "python.analysis.diagnosticMode": "workspace",
@@ -106,6 +109,8 @@
     // Terminal settings
     "terminal.integrated.cwd": "${workspaceFolder}",
     "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.shellIntegration.enabled": true,
+    // Note: Python extension handles venv activation automatically via python.terminal.activateEnvironment
 
     // Git settings
     "git.ignoreLimitWarning": true,
@@ -320,6 +325,7 @@
         "env": {
           "PYTHONPATH": "${workspaceFolder:Backend}"
         },
+        "python": "${workspaceFolder:Backend}/.venv/bin/python",
         "console": "integratedTerminal"
       },
       {
@@ -331,7 +337,8 @@
         "cwd": "${workspaceFolder:Backend}",
         "env": {
           "PYTHONPATH": "${workspaceFolder:Backend}"
-        }
+        },
+        "python": "${workspaceFolder:Backend}/.venv/bin/python"
       },
       {
         "name": "Python: Pytest",
@@ -346,7 +353,8 @@
         "cwd": "${workspaceFolder:Backend}",
         "env": {
           "PYTHONPATH": "${workspaceFolder:Backend}"
-        }
+        },
+        "python": "${workspaceFolder:Backend}/.venv/bin/python"
       }
     ],
     "compounds": [

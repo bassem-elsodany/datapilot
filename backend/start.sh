@@ -69,10 +69,10 @@ check_deps
 print_status "Activating virtual environment..."
 source .venv/bin/activate
 
-# Start the server with uv
+# Start the server with uv using the dedicated runner script
 print_success "🚀 Starting DataPilot Backend with uv..."
 print_status "Backend will be available at: http://localhost:8000"
 print_status "API Documentation: http://localhost:8000/docs"
 print_status "Press Ctrl+C to stop the server"
 
-uv run python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run python run_server.py --dev --reload
