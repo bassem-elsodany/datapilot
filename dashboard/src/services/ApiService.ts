@@ -618,6 +618,48 @@ export class ApiService {
   /**
    * Get all connections (REST compliant)
    */
+  /**
+   * Get lightweight connections list with pagination (PREFERRED)
+   * Optimized for performance - no credentials included
+   */
+  async getAllConnectionsLightweight(page: number = 1, pageSize: number = 25): Promise<{
+    connections: any[];
+    total_count: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
+  }> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      logger.debug('Fetching lightweight connections', 'ApiService', { page, pageSize });
+      const masterKey = getMasterKeyFromSession();
+
+      const response = await this.client.get(
+        this.addLangToUrl(`${this.getEndpointUrl('connections')}/lightweight`),
+        {
+          params: {
+            page,
+            page_size: pageSize
+          },
+          headers: {
+            'X-Master-Key': masterKey
+          }
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      const errorDetail = error.response?.data?.detail || 'Failed to get lightweight connections';
+      throw new Error(errorDetail);
+    }
+  }
+
+  /**
+   * Get all connections (DEPRECATED - use getAllConnectionsLightweight instead)
+   * Kept for backward compatibility but has poor performance with many connections
+   */
   async getAllConnections(): Promise<ConnectionResponse[]> {
     if (!this.isAvailable) {
       throw new Error('Python backend not available');
@@ -644,6 +686,7 @@ export class ApiService {
 
   /**
    * Get connection with decrypted credentials (REST compliant)
+   * Optimized endpoint for fetching full connection details including credentials
    */
   async getConnectionWithCredentials(connectionUuid: string): Promise<ConnectionResponse | null> {
     if (!this.isAvailable) {
@@ -666,6 +709,36 @@ export class ApiService {
       }
       // Return the i18n key from the API response
       const errorDetail = error.response?.data?.detail || 'Failed to get connection';
+      throw new Error(errorDetail);
+    }
+  }
+
+  /**
+   * Get only the credentials for a specific connection (lazy-load optimization)
+   * Use this with getAllConnectionsLightweight for two-stage loading
+   */
+  async getConnectionCredentials(connectionUuid: string): Promise<ConnectionResponse | null> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const masterKey = getMasterKeyFromSession();
+
+      const response = await this.client.get(
+        this.addLangToUrl(`${this.getEndpointUrl('connections')}/${connectionUuid}/credentials`),
+        {
+          headers: {
+            'X-Master-Key': masterKey
+          }
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+      const errorDetail = error.response?.data?.detail || 'Failed to get connection credentials';
       throw new Error(errorDetail);
     }
   }
