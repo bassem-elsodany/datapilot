@@ -536,9 +536,11 @@ def list_connections_lightweight(
                     full_conn = connection_service.get_connection_with_credentials(conn["connectionUuid"])
                     if full_conn and "connectionData" in full_conn:
                         conn_data = full_conn["connectionData"]
+                        logger.info(f"DEBUG: connectionData keys for {conn['connectionUuid']}: {list(conn_data.keys()) if isinstance(conn_data, dict) else type(conn_data)}")
+                        logger.info(f"DEBUG: Full connectionData: {conn_data}")
                         username = conn_data.get("username", "Unknown")
                         environment = conn_data.get("environment", "production")
-                        logger.debug(f"Got environment={environment} for connection {conn['connectionUuid']}")
+                        logger.info(f"DEBUG: Extracted username={username}, environment={environment}")
                     else:
                         logger.warning(f"Could not find connectionData in full_conn for {conn['connectionUuid']}, full_conn keys: {full_conn.keys() if full_conn else 'NONE'}")
                 except Exception as decrypt_error:
