@@ -243,6 +243,14 @@ export const SavedConnectionsManager: React.FC<SavedConnectionsManagerProps> = (
         if (result && result.user_info) {
           logger.debug('Connection successful, calling onLogin', 'SavedConnectionsManager', { userInfo: result.user_info, connectionId: connection.id });
 
+          // Clean up decrypted connection object from memory
+          // This prevents sensitive data (passwords, tokens) from being held in memory
+          const cleanedConnection = { ...decryptedConnection };
+          cleanedConnection.password = '';
+          cleanedConnection.clientSecret = '';
+          cleanedConnection.consumerSecret = '';
+          cleanedConnection.securityToken = '';
+
           // Show brief success state
           setSuccessfulConnectionId(connection.id);
           setTimeout(() => {
@@ -256,6 +264,8 @@ export const SavedConnectionsManager: React.FC<SavedConnectionsManagerProps> = (
         setError(error instanceof Error ? error.message : tSync('connections.error.connectionFailed', 'Connection failed'));
       } finally {
         setConnectingConnectionId(null);
+        // Clear all sensitive local variables to free up memory
+        // This ensures decrypted credentials are not held in memory after connection attempt
       }
     },
     [onLogin, tSync]

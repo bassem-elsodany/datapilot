@@ -215,6 +215,27 @@ export class ConnectionManager {
 
 
   /**
+   * Clear sensitive credentials from a connection object
+   * Call this after using credentials to free up memory
+   */
+  clearCredentials(connection: SavedConnectionWithCredentials): SavedConnection {
+    return {
+      id: connection.id,
+      oauthType: connection.oauthType,
+      username: connection.username,
+      environment: connection.environment,
+      displayName: connection.displayName,
+      lastUsed: connection.lastUsed,
+      isActive: connection.isActive,
+      consumerKey: undefined,
+      consumerSecret: undefined,
+      securityToken: undefined,
+      clientId: undefined,
+      clientSecret: undefined
+    };
+  }
+
+  /**
    * Delete a connection via Python backend
    */
   async deleteConnection(connectionId: string): Promise<void> {
