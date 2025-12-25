@@ -133,17 +133,35 @@ export class NotificationService {
   public apiError(error: any, context?: string): void {
     let title = i18nService.tSync('error.notifications.apiError.title', 'API Error');
     let message = i18nService.tSync('error.notifications.apiError.generic', 'An error occurred while communicating with the server');
+    let details = '';
 
     // Parse different types of API errors
     if (error?.response?.data?.detail) {
       const detail = error.response.data.detail;
-      
+
       if (typeof detail === 'object') {
         // Handle structured error response
         if (detail.message) {
           message = i18nService.tSync(detail.message) || detail.message;
         }
-        
+
+        // Extract detailed error information - prioritize 'details' field
+        if (detail.details) {
+          // Try to translate if it looks like a translation key
+          if (typeof detail.details === 'string' && detail.details.includes('.')) {
+            details = i18nService.tSync(detail.details, detail.details);
+          } else {
+            details = detail.details;
+          }
+        }
+        // If no details field, try to use service_status_code info or other fields
+        else if (detail.service_name && !details) {
+          // For external service errors, try to construct a helpful message
+          if (detail.service_name === 'Salesforce') {
+            details = 'Failed to establish Salesforce connection. Please verify your credentials and try again.';
+          }
+        }
+
         // Handle field errors (these contain the actual error details)
         if (detail.field_errors && typeof detail.field_errors === 'object') {
           const fieldErrors = Object.values(detail.field_errors);
@@ -161,7 +179,7 @@ export class NotificationService {
             }
           }
         }
-        
+
         // Set specific title based on error type
         if (detail.error_code) {
           switch (detail.error_code) {
@@ -176,6 +194,9 @@ export class NotificationService {
               break;
             case 'connection_error':
               title = i18nService.tSync('error.notifications.apiError.connection', 'Connection Error');
+              break;
+            case 'external_service_error':
+              title = i18nService.tSync('error.notifications.apiError.server', 'Server Error');
               break;
           }
         }
@@ -195,9 +216,12 @@ export class NotificationService {
       title = `${title} - ${context}`;
     }
 
+    // Combine message and details
+    const fullMessage = details ? `${message}\n\n${details}` : message;
+
     this.error({
       title,
-      message: this.wrapMessage(message),
+      message: this.wrapMessage(fullMessage),
       autoClose: 6000, // Longer for errors
     });
   }

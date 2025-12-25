@@ -1308,12 +1308,32 @@ def connect_to_salesforce(
     except HTTPException:
         raise
     except Exception as e:
+        # Extract more specific error details
+        error_details = str(e)
+
+        # Check for common Salesforce connection error patterns
+        if "Invalid client id" in error_details or "client_id" in error_details.lower():
+            error_details = "Invalid Consumer Key (Client ID). Please verify your OAuth credentials."
+        elif "invalid_client_secret" in error_details.lower() or "client_secret" in error_details.lower():
+            error_details = "Invalid Consumer Secret (Client Secret). Please verify your OAuth credentials."
+        elif "invalid username, password, security token or organization id" in error_details.lower():
+            error_details = "Invalid credentials. Please check your username, password, and security token."
+        elif "login attempt failed" in error_details.lower():
+            error_details = "Login attempt failed. Please verify your Salesforce credentials."
+        elif "connection timeout" in error_details.lower() or "timed out" in error_details.lower():
+            error_details = "Connection timeout. Please check your internet connection and try again."
+        elif "connection refused" in error_details.lower():
+            error_details = "Connection refused. Please check if Salesforce is accessible and your network settings."
+        elif "not found" in error_details.lower():
+            error_details = "Connection not found. The specified connection UUID does not exist."
+        elif "invalid master key" in error_details.lower():
+            error_details = "Invalid master key. Unable to decrypt connection credentials."
 
         ErrorService.raise_external_service_error(
             message="salesforce.errors.connection_failed",
             service_name="Salesforce",
             service_endpoint="/connections/{uuid}/connect",
-            details=str(e),
+            details=error_details,
             request=http_request,
             locale=lang
         )
