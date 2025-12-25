@@ -200,6 +200,41 @@ class ConnectionListResponse(BaseModel):
     """Response for connection list"""
     connections: List[ConnectionResponse]
 
+
+# LIGHTWEIGHT RESPONSE MODELS FOR PERFORMANCE OPTIMIZATION
+class ConnectionLightweight(BaseModel):
+    """Lightweight connection response (no credentials) - for list operations"""
+    connection_uuid: str
+    display_name: str
+    auth_provider_uuid: str
+    environment: str
+    last_used: str
+    is_connection_active: bool
+    created_at: str
+
+
+class ConnectionListLightweightResponse(BaseModel):
+    """Response for lightweight connection list with pagination support"""
+    connections: List[ConnectionLightweight]
+    total_count: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class ConnectionCredentialsResponse(BaseModel):
+    """Response for connection credentials - separate from list"""
+    connection_uuid: str
+    display_name: str
+    auth_provider_uuid: str
+    connection_data: ConnectionData
+    created_at: str
+    updated_at: str
+    created_by: str
+    is_connection_active: bool
+    last_used: str
+
+
 class SavedQueryResponse(BaseModel):
     """Saved query response for connection endpoints"""
     saved_queries_uuid: str
@@ -425,13 +460,122 @@ def create_connection(
             locale=lang
         )
 
+@router.get("/lightweight", response_model=ConnectionListLightweightResponse)
+def list_connections_lightweight(
+    x_master_key: Annotated[str, Header(alias="X-Master-Key", min_length=8)],
+    http_request: Request,
+    lang: str = Query("en", description="Language code for messages"),
+    page: int = Query(1, ge=1, description="Page number (starts at 1)"),
+    page_size: int = Query(25, ge=10, le=100, description="Number of connections per page (10-100)")
+):
+    """GET /connections/lightweight - Get lightweight list of connections (no credentials, with pagination)
+
+    This optimized endpoint returns only essential metadata without decrypting credentials.
+    Use GET /connections/{uuid} to fetch full connection details with credentials.
+
+    Query Parameters:
+    - page: Page number (default: 1)
+    - page_size: Items per page (default: 25, min: 10, max: 100)
+
+    Returns:
+    - connections: Array of lightweight connection objects
+    - total_count: Total number of connections
+    - page: Current page number
+    - page_size: Items per page
+    - total_pages: Total number of pages
+    """
+    try:
+        logger.debug(f"Listing lightweight connections with pagination - page {page}, size {page_size}")
+
+        # Validate master key from header
+        master_key_valid = master_key_service.set_master_key(x_master_key)
+        if not master_key_valid:
+            ErrorService.raise_authentication_error(
+                message="connections.errors.invalid_master_key",
+                auth_type="master_key",
+                request=http_request,
+                locale=lang
+            )
+
+        # Get all connections (metadata only, no decryption needed)
+        all_connections = connection_service.get_all_connections()
+
+        # Calculate pagination
+        total_count = len(all_connections)
+        total_pages = (total_count + page_size - 1) // page_size
+
+        # Validate page number
+        if page > total_pages and total_count > 0:
+            page = total_pages
+
+        # Calculate offsets
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+
+        # Get paginated connections
+        paginated_connections = all_connections[start_idx:end_idx]
+
+        # Transform to lightweight response format (no credentials, pre-formatted dates)
+        connection_responses = []
+        for conn in paginated_connections:
+            try:
+                # Format date at backend to avoid O(n) date operations on frontend
+                last_used_date = conn.get("last_used") or conn.get("updatedAt") or conn.get("createdAt")
+
+                # Format as ISO date string at backend
+                if isinstance(last_used_date, str):
+                    formatted_last_used = last_used_date.split('T')[0] if 'T' in last_used_date else last_used_date
+                else:
+                    formatted_last_used = safe_isoformat(last_used_date).split('T')[0]
+
+                # Extract environment from connection data if available
+                environment = "unknown"
+                if "connectionData" in conn:
+                    environment = conn["connectionData"].get("environment", "production")
+
+                connection_responses.append(ConnectionLightweight(
+                    connection_uuid=conn["connectionUuid"],
+                    display_name=conn["displayName"],
+                    auth_provider_uuid=conn.get("authProviderUuid", "UNKNOWN"),
+                    environment=environment,
+                    last_used=formatted_last_used,
+                    is_connection_active=conn.get("isConnectionActive", True),
+                    created_at=safe_isoformat(conn.get("createdAt"))
+                ))
+            except Exception as transform_error:
+                logger.warning(f"Failed to transform connection {conn.get('connectionUuid')}: {str(transform_error)}")
+                # Skip connections that can't be transformed
+                continue
+
+        return ConnectionListLightweightResponse(
+            connections=connection_responses,
+            total_count=total_count,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        ErrorService.handle_generic_exception(
+            exception=e,
+            operation="listing lightweight connections",
+            request=http_request,
+            locale=lang
+        )
+
+
 @router.get("/", response_model=ConnectionListResponse)
 def list_connections(
     x_master_key: Annotated[str, Header(alias="X-Master-Key", min_length=8)],
     http_request: Request,
     lang: str = Query("en", description="Language code for messages")
 ):
-    """GET /connections - Get all saved connections with decrypted credentials"""
+    """GET /connections - Get all saved connections with decrypted credentials
+
+    DEPRECATED: Use GET /connections/lightweight for better performance with large connection lists.
+    This endpoint is kept for backward compatibility but should be avoided for performance-critical operations.
+    """
     try:
         logger.debug(f"Listing connections with master key {x_master_key}")
         # Validate master key from header
@@ -584,6 +728,83 @@ def get_connection_with_credentials(
             request=http_request,
             locale=lang
         )
+
+
+@router.get("/{connection_uuid}/credentials", response_model=ConnectionCredentialsResponse)
+def get_connection_credentials(
+    connection_uuid: str,
+    x_master_key: Annotated[str, Header(alias="X-Master-Key", min_length=8)],
+    http_request: Request,
+    lang: str = Query("en", description="Language code for messages")
+):
+    """GET /connections/{uuid}/credentials - Get only the credentials for a specific connection
+
+    This endpoint fetches only the decrypted credentials for a single connection.
+    Use this after getting the connection from /connections/lightweight for lazy-loading credentials.
+
+    Response:
+    - Returns connection object with full decrypted credentials
+    - Optimized for single connection credential fetch
+    """
+    try:
+        # Validate master key
+        master_key_valid = master_key_service.set_master_key(x_master_key)
+        if not master_key_valid:
+            ErrorService.raise_authentication_error(
+                message="connections.errors.invalid_master_key",
+                auth_type="master_key",
+                request=http_request,
+                locale=lang
+            )
+
+        # Set master key in connection service for decryption
+        connection_service.set_master_key(x_master_key)
+
+        # Get connection with decrypted credentials
+        connection = connection_service.get_connection_with_credentials(connection_uuid)
+        if not connection:
+            ErrorService.raise_not_found_error(
+                message="connections.errors.not_found",
+                resource_type="connection",
+                resource_id=connection_uuid,
+                request=http_request,
+                locale=lang
+            )
+
+        # Transform connection data to ConnectionData model
+        conn_data = connection["connectionData"]
+        connection_data = ConnectionData(
+            username=conn_data.get("username", ""),
+            password=conn_data.get("password", ""),
+            environment=conn_data.get("environment", ""),
+            consumer_key=conn_data.get("consumerKey"),
+            consumer_secret=conn_data.get("consumerSecret"),
+            security_token=conn_data.get("securityToken"),
+            client_id=conn_data.get("clientId"),
+            client_secret=conn_data.get("clientSecret")
+        )
+
+        return ConnectionCredentialsResponse(
+            connection_uuid=connection["connectionUuid"],
+            display_name=connection["displayName"],
+            auth_provider_uuid=connection.get("authProviderUuid", "UNKNOWN"),
+            connection_data=connection_data,
+            created_at=safe_isoformat(connection.get("createdAt")),
+            updated_at=safe_isoformat(connection.get("updatedAt")),
+            created_by=connection.get("createdBy", "user"),
+            is_connection_active=True,  # Default to True since we don't track this yet
+            last_used=safe_isoformat(connection.get("last_used", connection.get("updatedAt", connection.get("createdAt"))))
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        ErrorService.handle_generic_exception(
+            exception=e,
+            operation="getting connection credentials",
+            request=http_request,
+            locale=lang
+        )
+
 
 @router.put("/{connection_uuid}", response_model=ConnectionCreateResponse, status_code=status.HTTP_200_OK)
 def update_connection(
