@@ -521,7 +521,7 @@ def list_connections_lightweight(
         for conn in paginated_connections:
             try:
                 # Format date at backend to avoid O(n) date operations on frontend
-                last_used_date = conn.get("last_used") or conn.get("updatedAt") or conn.get("createdAt")
+                last_used_date = conn.get("lastUsed") or conn.get("updatedAt") or conn.get("createdAt")
 
                 # Format as ISO date string at backend
                 if isinstance(last_used_date, str):
@@ -535,8 +535,12 @@ def list_connections_lightweight(
                 try:
                     full_conn = connection_service.get_connection_with_credentials(conn["connectionUuid"])
                     if full_conn and "connectionData" in full_conn:
-                        username = full_conn["connectionData"].get("username", "Unknown")
-                        environment = full_conn["connectionData"].get("environment", "production")
+                        conn_data = full_conn["connectionData"]
+                        logger.debug(f"Decrypted connectionData keys: {conn_data.keys() if isinstance(conn_data, dict) else 'NOT A DICT'}")
+                        logger.debug(f"ConnectionData contents: {conn_data}")
+                        username = conn_data.get("username", "Unknown")
+                        environment = conn_data.get("environment", "production")
+                        logger.debug(f"Extracted username={username}, environment={environment}")
                 except Exception as decrypt_error:
                     logger.warning(f"Could not decrypt connection {conn['connectionUuid']} for username: {str(decrypt_error)}")
                     # Use display name as fallback
