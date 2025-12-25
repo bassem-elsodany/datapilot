@@ -979,3 +979,99 @@ def get_compilation_status(
             request=http_request,
             locale=lang
         )
+
+@router.get("/apex/classes")
+def get_apex_classes(
+    http_request: Request,
+    lang: str = Query("en", description="Language code for messages"),
+    connection_uuid: str = Query(description="Connection UUID for the Salesforce connection")
+):
+    """
+    Get list of Apex classes from Salesforce org
+
+    This endpoint retrieves all Apex classes from the connected Salesforce organization
+    using the Tooling API. Returns class metadata including name, status, API version, etc.
+
+    Args:
+        http_request: FastAPI request object
+        lang: Language code for messages
+        connection_uuid: Connection UUID for the Salesforce connection
+
+    Returns:
+        Dict containing list of Apex classes with metadata
+    """
+    try:
+        logger.debug("Fetching Apex classes from Salesforce")
+
+        # Check if connected
+        if not salesforce_service.is_connected():
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.no_connection",
+                details="No active Salesforce connection available",
+                request=http_request,
+                locale=lang
+            )
+
+        # Get the Apex classes
+        result = salesforce_service.get_apex_classes(connection_uuid)
+
+        logger.debug(f"Retrieved {result.get('total_size', 0)} Apex classes successfully")
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        ErrorService.handle_generic_exception(
+            exception=e,
+            operation="retrieving Apex classes",
+            request=http_request,
+            locale=lang
+        )
+
+@router.get("/apex/triggers")
+def get_apex_triggers(
+    http_request: Request,
+    lang: str = Query("en", description="Language code for messages"),
+    connection_uuid: str = Query(description="Connection UUID for the Salesforce connection")
+):
+    """
+    Get list of Apex triggers from Salesforce org
+
+    This endpoint retrieves all Apex triggers from the connected Salesforce organization
+    using the Tooling API. Returns trigger metadata including name, SObject, status, etc.
+
+    Args:
+        http_request: FastAPI request object
+        lang: Language code for messages
+        connection_uuid: Connection UUID for the Salesforce connection
+
+    Returns:
+        Dict containing list of Apex triggers with metadata
+    """
+    try:
+        logger.debug("Fetching Apex triggers from Salesforce")
+
+        # Check if connected
+        if not salesforce_service.is_connected():
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.no_connection",
+                details="No active Salesforce connection available",
+                request=http_request,
+                locale=lang
+            )
+
+        # Get the Apex triggers
+        result = salesforce_service.get_apex_triggers(connection_uuid)
+
+        logger.debug(f"Retrieved {result.get('total_size', 0)} Apex triggers successfully")
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        ErrorService.handle_generic_exception(
+            exception=e,
+            operation="retrieving Apex triggers",
+            request=http_request,
+            locale=lang
+        )
