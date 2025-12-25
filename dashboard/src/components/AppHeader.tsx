@@ -132,19 +132,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     setShowSettingsMenu(false);
 
     // If currently connected, show confirmation dialog
-    console.log('handleSavedConnectionsClick:', { isConnected, currentConnectionUuid });
     if (isConnected && currentConnectionUuid) {
-      console.log('Showing disconnect confirmation modal');
       setShowDisconnectModal(true);
     } else {
-      console.log('No active connection, navigating directly');
       onShowSavedConnections();
     }
   };
 
   const handleConfirmDisconnect = async () => {
     try {
-      console.log('User confirmed disconnect');
       setShowDisconnectModal(false);
       if (onDisconnect) {
         await onDisconnect();
@@ -157,7 +153,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   const handleCancelDisconnect = () => {
-    console.log('User cancelled disconnect');
     setShowDisconnectModal(false);
   };
 
