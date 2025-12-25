@@ -150,7 +150,7 @@ export class ConnectionManager {
           const savedConnection: SavedConnection = {
             id: apiConnection.connection_uuid?.replace(/^"(.*)"$/, '$1'), // Strip quotes if present
             oauthType: OAuthType.OAUTH_STANDARD, // Will be determined from auth_provider_uuid if needed
-            username: 'N/A', // Not included in lightweight response
+            username: apiConnection.username || 'Unknown', // Username from lightweight response
             environment: (apiConnection.environment as 'production' | 'sandbox') || 'production',
             displayName: apiConnection.display_name,
             lastUsed: lastUsedTime,
