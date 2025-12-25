@@ -1136,33 +1136,101 @@ class SalesforceService:
     def get_compilation_status(self, compilation_id: str, connection_uuid: str) -> Dict[str, Any]:
         """
         Get the status of a compilation operation
-        
+
         Args:
             compilation_id (str): The compilation ID to check
-            
+
         Returns:
             Dict containing compilation status
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
             # Use Tooling API to get compilation status
             result = self.connection.toolingexecute(
                 f'services/data/v64.0/tooling/compilationStatus/{compilation_id}',
                 method='GET'
             )
-            
+
             logger.debug(f"Retrieved compilation status for ID: {compilation_id}")
             logger.debug(f"Compilation status retrieved")
-            
+
             return {
                 'success': True,
                 'compilation_id': compilation_id,
                 'result': result,
                 'message': "Successfully retrieved compilation status"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to get compilation status: {str(e)}")
             raise ValueError("salesforce.error.compilation_status_failed")
+
+    def get_apex_classes(self, connection_uuid: str) -> Dict[str, Any]:
+        """
+        Get list of Apex classes from Salesforce org using Tooling API
+
+        Args:
+            connection_uuid (str): The connection UUID
+
+        Returns:
+            Dict containing list of Apex classes with metadata
+        """
+        if not self.connection:
+            raise ValueError("No active Salesforce connection available")
+
+        try:
+            # Query ApexClass using Tooling API
+            query = "SELECT Id, Name, Body, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexClass ORDER BY Name"
+            result = self.connection.restful(
+                f'services/data/v64.0/tooling/query?q={query}',
+                method='GET'
+            )
+
+            logger.debug(f"Retrieved {len(result.get('records', []))} Apex classes")
+
+            return {
+                'success': True,
+                'records': result.get('records', []),
+                'total_size': result.get('totalSize', 0),
+                'message': "Successfully retrieved Apex classes"
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get Apex classes: {str(e)}")
+            raise ValueError(f"Failed to retrieve Apex classes: {str(e)}")
+
+    def get_apex_triggers(self, connection_uuid: str) -> Dict[str, Any]:
+        """
+        Get list of Apex triggers from Salesforce org using Tooling API
+
+        Args:
+            connection_uuid (str): The connection UUID
+
+        Returns:
+            Dict containing list of Apex triggers with metadata
+        """
+        if not self.connection:
+            raise ValueError("No active Salesforce connection available")
+
+        try:
+            # Query ApexTrigger using Tooling API
+            query = "SELECT Id, Name, Body, TableEnumOrId, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexTrigger ORDER BY Name"
+            result = self.connection.restful(
+                f'services/data/v64.0/tooling/query?q={query}',
+                method='GET'
+            )
+
+            logger.debug(f"Retrieved {len(result.get('records', []))} Apex triggers")
+
+            return {
+                'success': True,
+                'records': result.get('records', []),
+                'total_size': result.get('totalSize', 0),
+                'message': "Successfully retrieved Apex triggers"
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get Apex triggers: {str(e)}")
+            raise ValueError(f"Failed to retrieve Apex triggers: {str(e)}")

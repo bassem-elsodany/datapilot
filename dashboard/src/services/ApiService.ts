@@ -2079,6 +2079,76 @@ export class ApiService {
     }
   }
 
+  async getApexClasses(connectionUuid: string): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.get(
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/classes?connection_uuid=${connectionUuid}`)
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to retrieve Apex classes';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  async getApexTriggers(connectionUuid: string): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.get(
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/triggers?connection_uuid=${connectionUuid}`)
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to retrieve Apex triggers';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
   // ========================================
   // QUERY HISTORY ENDPOINTS
   // ========================================

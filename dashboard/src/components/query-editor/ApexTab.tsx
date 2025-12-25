@@ -259,6 +259,98 @@ export const ApexTab: React.FC = () => {
     }
   };
 
+  const loadApexClasses = async () => {
+    setState(prev => ({ ...prev, isLoading: true }));
+    try {
+      if (!currentConnectionUuid) {
+        throw new Error('No active connection');
+      }
+
+      const response = await apiService.getApexClasses(currentConnectionUuid);
+      const classes = response.records || [];
+
+      // Transform the response to match our interface
+      const transformedClasses: SalesforceApexClass[] = classes.map((cls: any) => ({
+        id: cls.Id,
+        name: cls.Name,
+        body: cls.Body || '',
+        status: cls.Status || 'Active',
+        isTest: cls.Body ? cls.Body.toLowerCase().includes('@istest') : false,
+        lastModifiedDate: cls.LastModifiedDate,
+        createdDate: cls.CreatedDate,
+        createdBy: { id: '', name: '' },
+        lastModifiedBy: { id: '', name: '' },
+        lengthWithoutComments: (cls.Body || '').length,
+        metadata: {
+          apiVersion: cls.ApiVersion || 64,
+          status: cls.Status || 'Active'
+        }
+      }));
+
+      setApexClasses(transformedClasses);
+    } catch (error) {
+      logger.error('Failed to load Apex classes', 'ApexTab', null, error as Error);
+      notifications.show({
+        title: 'Failed to load Apex classes',
+        message: (error as Error).message,
+        color: 'red',
+        icon: <IconBug size={16} />
+      });
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const loadApexTriggers = async () => {
+    setState(prev => ({ ...prev, isLoading: true }));
+    try {
+      if (!currentConnectionUuid) {
+        throw new Error('No active connection');
+      }
+
+      const response = await apiService.getApexTriggers(currentConnectionUuid);
+      const triggers = response.records || [];
+
+      // Transform the response to match our interface
+      const transformedTriggers: SalesforceApexTrigger[] = triggers.map((trigger: any) => ({
+        id: trigger.Id,
+        name: trigger.Name,
+        body: trigger.Body || '',
+        status: trigger.Status || 'Active',
+        tableEnumOrId: trigger.TableEnumOrId || '',
+        usageBeforeInsert: trigger.Body ? trigger.Body.toLowerCase().includes('before insert') : false,
+        usageAfterInsert: trigger.Body ? trigger.Body.toLowerCase().includes('after insert') : false,
+        usageBeforeUpdate: trigger.Body ? trigger.Body.toLowerCase().includes('before update') : false,
+        usageAfterUpdate: trigger.Body ? trigger.Body.toLowerCase().includes('after update') : false,
+        usageBeforeDelete: trigger.Body ? trigger.Body.toLowerCase().includes('before delete') : false,
+        usageAfterDelete: trigger.Body ? trigger.Body.toLowerCase().includes('after delete') : false,
+        usageIsBulk: true,
+        usageIsAfterUndelete: trigger.Body ? trigger.Body.toLowerCase().includes('after undelete') : false,
+        lastModifiedDate: trigger.LastModifiedDate,
+        createdDate: trigger.CreatedDate,
+        createdBy: { id: '', name: '' },
+        lastModifiedBy: { id: '', name: '' },
+        lengthWithoutComments: (trigger.Body || '').length,
+        metadata: {
+          apiVersion: trigger.ApiVersion || 64,
+          status: trigger.Status || 'Active'
+        }
+      }));
+
+      setApexTriggers(transformedTriggers);
+    } catch (error) {
+      logger.error('Failed to load Apex triggers', 'ApexTab', null, error as Error);
+      notifications.show({
+        title: 'Failed to load Apex triggers',
+        message: (error as Error).message,
+        color: 'red',
+        icon: <IconBug size={16} />
+      });
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
   // ========================================
   // FILTERING AND SEARCH
   // ========================================
@@ -856,84 +948,129 @@ export const ApexTab: React.FC = () => {
                   {filteredSavedApex.map(renderSavedApexItem)}
                 </div>
                 
-                {state.showEditPanel && editingApex && (
+                {state.showEditPanel && (editingApex || state.selectedClass || state.selectedTrigger) && (
                   <div className="apex-edit-panel">
                     <div className="apex-edit-header">
-                      <Text size="md" fw={600}>Edit Apex Code</Text>
+                      <Text size="md" fw={600}>
+                        {editingApex ? 'Edit Apex Code' : state.selectedClass ? `View Class: ${state.selectedClass.name}` : `View Trigger: ${state.selectedTrigger?.name}`}
+                      </Text>
                       <ActionIcon
                         variant="light"
                         color="gray"
-                        onClick={() => setState(prev => ({ ...prev, showEditPanel: false }))}
+                        onClick={() => setState(prev => ({ ...prev, showEditPanel: false, selectedClass: null, selectedTrigger: null }))}
                       >
                         <IconX size={16} />
                       </ActionIcon>
                     </div>
                     
                     <div className="apex-edit-content">
-                                            <div className="apex-edit-compact-fields">
-                        <Group gap="md">
-                          <TextInput
-                            label={tSync('apex.form.name', 'Name')}
-                            placeholder={tSync('apex.form.namePlaceholder', 'Enter Apex code name')}
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            required
-                            style={{ flex: 1 }}
-                          />
-                          
-                          <TextInput
-                            label={tSync('apex.form.description', 'Description')}
-                            placeholder={tSync('apex.form.descriptionPlaceholder', 'Optional description')}
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            style={{ flex: 1 }}
-                          />
-                          
-                          <TextInput
-                            label={tSync('apex.form.tags', 'Tags')}
-                            placeholder={tSync('apex.form.tagsPlaceholder', 'Comma-separated tags')}
-                            value={formData.tags}
-                            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                            style={{ flex: 1 }}
-                          />
-                        </Group>
-                        
-                        <Group gap="md" align="center">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '0 0 120px' }}>
-                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>Code Type</Text>
-                            <select
-                              value={formData.code_type}
-                              onChange={(e) => setFormData({ ...formData, code_type: e.target.value as ApexCodeType })}
-                              style={{
-                                padding: '8px 12px',
-                                border: '1px solid #ced4da',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                backgroundColor: 'white',
-                                flex: 1
-                              }}
-                            >
-                              <option value="anonymous">Anonymous</option>
-                              <option value="class">Class</option>
-                              <option value="trigger">Trigger</option>
-                              <option value="interface">Interface</option>
-                              <option value="enum">Enum</option>
-                              <option value="test_class">Test Class</option>
-                            </select>
-                          </div>
-                          
-                          <Switch
-                            label={tSync('apex.form.favorite', 'Favorite')}
-                            checked={formData.is_favorite}
-                            onChange={(e) => setFormData({ ...formData, is_favorite: e.target.checked })}
-                          />
-                        </Group>
-                      </div>
+                      {editingApex && (
+                        <div className="apex-edit-compact-fields">
+                          <Group gap="md">
+                            <TextInput
+                              label={tSync('apex.form.name', 'Name')}
+                              placeholder={tSync('apex.form.namePlaceholder', 'Enter Apex code name')}
+                              value={formData.name}
+                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                              required
+                              style={{ flex: 1 }}
+                            />
 
-                      {/* Debug Levels in Edit Panel */}
-                      <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '12px' }}>
-                        <Text size="sm" fw={500} mb="sm">Debug Levels</Text>
-                        <Group gap="sm" grow>
+                            <TextInput
+                              label={tSync('apex.form.description', 'Description')}
+                              placeholder={tSync('apex.form.descriptionPlaceholder', 'Optional description')}
+                              value={formData.description}
+                              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                              style={{ flex: 1 }}
+                            />
+
+                            <TextInput
+                              label={tSync('apex.form.tags', 'Tags')}
+                              placeholder={tSync('apex.form.tagsPlaceholder', 'Comma-separated tags')}
+                              value={formData.tags}
+                              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+
+                          <Group gap="md" align="center">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '0 0 120px' }}>
+                              <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>Code Type</Text>
+                              <select
+                                value={formData.code_type}
+                                onChange={(e) => setFormData({ ...formData, code_type: e.target.value as ApexCodeType })}
+                                style={{
+                                  padding: '8px 12px',
+                                  border: '1px solid #ced4da',
+                                  borderRadius: '6px',
+                                  fontSize: '14px',
+                                  backgroundColor: 'white',
+                                  flex: 1
+                                }}
+                              >
+                                <option value="anonymous">Anonymous</option>
+                                <option value="class">Class</option>
+                                <option value="trigger">Trigger</option>
+                                <option value="interface">Interface</option>
+                                <option value="enum">Enum</option>
+                                <option value="test_class">Test Class</option>
+                              </select>
+                            </div>
+
+                            <Switch
+                              label={tSync('apex.form.favorite', 'Favorite')}
+                              checked={formData.is_favorite}
+                              onChange={(e) => setFormData({ ...formData, is_favorite: e.target.checked })}
+                            />
+                          </Group>
+                        </div>
+                      )}
+
+                      {!editingApex && (state.selectedClass || state.selectedTrigger) && (
+                        <div className="apex-edit-compact-fields">
+                          {state.selectedClass && (
+                            <Group gap="md" mb="md">
+                              <div style={{ flex: 1 }}>
+                                <Text size="sm" fw={500}>Status</Text>
+                                <Badge size="sm" variant="light" color={state.selectedClass.status === 'Active' ? 'green' : 'gray'} mt="xs">
+                                  {state.selectedClass.status}
+                                </Badge>
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <Text size="sm" fw={500}>API Version</Text>
+                                <Text size="sm" mt="xs">{state.selectedClass.metadata.apiVersion}</Text>
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <Text size="sm" fw={500}>Created</Text>
+                                <Text size="xs" mt="xs">{new Date(state.selectedClass.createdDate).toLocaleDateString()}</Text>
+                              </div>
+                            </Group>
+                          )}
+                          {state.selectedTrigger && (
+                            <Group gap="md" mb="md">
+                              <div style={{ flex: 1 }}>
+                                <Text size="sm" fw={500}>SObject</Text>
+                                <Text size="sm" mt="xs">{state.selectedTrigger.tableEnumOrId}</Text>
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <Text size="sm" fw={500}>Status</Text>
+                                <Badge size="sm" variant="light" color={state.selectedTrigger.status === 'Active' ? 'green' : 'gray'} mt="xs">
+                                  {state.selectedTrigger.status}
+                                </Badge>
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <Text size="sm" fw={500}>API Version</Text>
+                                <Text size="sm" mt="xs">{state.selectedTrigger.metadata.apiVersion}</Text>
+                              </div>
+                            </Group>
+                          )}
+                        </div>
+                      )}
+
+                      {editingApex && (
+                        <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '12px' }}>
+                          <Text size="sm" fw={500} mb="sm">Debug Levels</Text>
+                          <Group gap="sm" grow>
                           <div>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>DB</label>
                             <select
@@ -1027,33 +1164,35 @@ export const ApexTab: React.FC = () => {
                             </select>
                           </div>
                         </Group>
-                      </div>
+                        </div>
+                      )}
 
                       <div className="apex-edit-code-section">
-                        <Text size="sm" fw={500} mb="xs">Apex Code</Text>
+                        <Text size="sm" fw={500} mb="xs">Apex Code {!editingApex && '(Read-only)'}</Text>
                         <Editor
                           height="400px"
                           defaultLanguage="apex"
-                          value={formData.apex_code}
-                          onChange={(value) => setFormData({ ...formData, apex_code: value || '' })}
+                          value={editingApex ? formData.apex_code : (state.selectedClass?.body || state.selectedTrigger?.body || '')}
+                          onChange={(value) => editingApex && setFormData({ ...formData, apex_code: value || '' })}
                           options={{
                             minimap: { enabled: false },
                             lineNumbers: 'on',
                             fontSize: 13,
                             fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
                             tabSize: 2,
-                            wordWrap: 'on'
+                            wordWrap: 'on',
+                            readOnly: !editingApex
                           }}
                         />
                       </div>
-                      
+
                       <Group justify="flex-end" gap="sm">
                         <Button
                           variant="light"
                           size="xs"
-                          onClick={() => setState(prev => ({ ...prev, showEditPanel: false }))}
-                          style={{ 
-                            padding: '6px 12px', 
+                          onClick={() => setState(prev => ({ ...prev, showEditPanel: false, selectedClass: null, selectedTrigger: null }))}
+                          style={{
+                            padding: '6px 12px',
                             minHeight: '28px',
                             fontSize: '11px',
                             fontWeight: 600,
@@ -1061,23 +1200,25 @@ export const ApexTab: React.FC = () => {
                             transition: 'all 0.2s ease'
                           }}
                         >
-                          Cancel
+                          {editingApex ? 'Cancel' : 'Close'}
                         </Button>
-                        <Button
-                          size="xs"
-                          onClick={handleUpdateApex}
-                          className="query-tab-save-button"
-                          style={{ 
-                            padding: '6px 12px', 
-                            minHeight: '28px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            borderRadius: '6px',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          Update Apex Code
-                        </Button>
+                        {editingApex && (
+                          <Button
+                            size="xs"
+                            onClick={handleUpdateApex}
+                            className="query-tab-save-button"
+                            style={{
+                              padding: '6px 12px',
+                              minHeight: '28px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              borderRadius: '6px',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            Update Apex Code
+                          </Button>
+                        )}
                       </Group>
                     </div>
                   </div>
@@ -1087,21 +1228,181 @@ export const ApexTab: React.FC = () => {
 
             <Tabs.Panel value="classes" className="apex-panel">
               <div className="apex-list">
-                <div className="apex-items">
+                <Group justify="space-between" mb="md" px="md" pt="md">
+                  <TextInput
+                    placeholder="Search classes..."
+                    leftSection={<IconSearch size={16} />}
+                    value={state.searchTerm}
+                    onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.currentTarget.value }))}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    onClick={loadApexClasses}
+                    loading={state.isLoading}
+                    leftSection={<IconRefresh size={16} />}
+                    variant="light"
+                  >
+                    Load Classes
+                  </Button>
+                </Group>
+
+                {state.isLoading && (
+                  <Flex justify="center" align="center" py="xl">
+                    <Loader size="sm" />
+                  </Flex>
+                )}
+
+                {!state.isLoading && apexClasses.length === 0 && (
                   <Text size="sm" c="dimmed" ta="center" py="xl">
-                    Salesforce metadata integration coming soon
+                    No Apex classes found. Click "Load Classes" to fetch from your Salesforce org.
                   </Text>
-                </div>
+                )}
+
+                <ScrollArea h={600}>
+                  <div className="apex-items">
+                    {apexClasses
+                      .filter(cls =>
+                        cls.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+                        cls.body.toLowerCase().includes(state.searchTerm.toLowerCase())
+                      )
+                      .map((apexClass) => (
+                        <Paper key={apexClass.id} p="md" mb="sm" className="apex-item" radius="md">
+                          <Group justify="space-between" mb="xs">
+                            <div>
+                              <Text fw={600} size="sm">{apexClass.name}</Text>
+                              <Group gap="xs" mt={4}>
+                                <Badge size="sm" variant="light" color={apexClass.status === 'Active' ? 'green' : 'gray'}>
+                                  {apexClass.status}
+                                </Badge>
+                                {apexClass.isTest && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    Test Class
+                                  </Badge>
+                                )}
+                                <Badge size="sm" variant="light" color="cyan">
+                                  {apexClass.lengthWithoutComments} chars
+                                </Badge>
+                              </Group>
+                            </div>
+                            <Tooltip label="View code">
+                              <ActionIcon
+                                variant="light"
+                                onClick={() => setState(prev => ({
+                                  ...prev,
+                                  selectedClass: apexClass,
+                                  showEditPanel: true
+                                }))}
+                              >
+                                <IconFile size={16} />
+                              </ActionIcon>
+                            </Tooltip>
+                          </Group>
+                          <Text size="xs" c="dimmed">
+                            {new Date(apexClass.lastModifiedDate).toLocaleString()}
+                          </Text>
+                        </Paper>
+                      ))}
+                  </div>
+                </ScrollArea>
               </div>
             </Tabs.Panel>
 
             <Tabs.Panel value="triggers" className="apex-panel">
               <div className="apex-list">
-                <div className="apex-items">
+                <Group justify="space-between" mb="md" px="md" pt="md">
+                  <TextInput
+                    placeholder="Search triggers..."
+                    leftSection={<IconSearch size={16} />}
+                    value={state.searchTerm}
+                    onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.currentTarget.value }))}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    onClick={loadApexTriggers}
+                    loading={state.isLoading}
+                    leftSection={<IconRefresh size={16} />}
+                    variant="light"
+                  >
+                    Load Triggers
+                  </Button>
+                </Group>
+
+                {state.isLoading && (
+                  <Flex justify="center" align="center" py="xl">
+                    <Loader size="sm" />
+                  </Flex>
+                )}
+
+                {!state.isLoading && apexTriggers.length === 0 && (
                   <Text size="sm" c="dimmed" ta="center" py="xl">
-                    Salesforce metadata integration coming soon
+                    No Apex triggers found. Click "Load Triggers" to fetch from your Salesforce org.
                   </Text>
-                </div>
+                )}
+
+                <ScrollArea h={600}>
+                  <div className="apex-items">
+                    {apexTriggers
+                      .filter(trigger =>
+                        trigger.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+                        trigger.tableEnumOrId.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+                        trigger.body.toLowerCase().includes(state.searchTerm.toLowerCase())
+                      )
+                      .map((trigger) => {
+                        const events = [];
+                        if (trigger.usageBeforeInsert) events.push('before insert');
+                        if (trigger.usageAfterInsert) events.push('after insert');
+                        if (trigger.usageBeforeUpdate) events.push('before update');
+                        if (trigger.usageAfterUpdate) events.push('after update');
+                        if (trigger.usageBeforeDelete) events.push('before delete');
+                        if (trigger.usageAfterDelete) events.push('after delete');
+                        if (trigger.usageIsAfterUndelete) events.push('after undelete');
+
+                        return (
+                          <Paper key={trigger.id} p="md" mb="sm" className="apex-item" radius="md">
+                            <Group justify="space-between" mb="xs">
+                              <div>
+                                <Text fw={600} size="sm">{trigger.name}</Text>
+                                <Text size="xs" c="dimmed" mt={2}>
+                                  SObject: {trigger.tableEnumOrId}
+                                </Text>
+                                <Group gap="xs" mt={4}>
+                                  <Badge size="sm" variant="light" color={trigger.status === 'Active' ? 'green' : 'gray'}>
+                                    {trigger.status}
+                                  </Badge>
+                                  <Badge size="sm" variant="light" color="violet">
+                                    {events.length} events
+                                  </Badge>
+                                  <Badge size="sm" variant="light" color="cyan">
+                                    {trigger.lengthWithoutComments} chars
+                                  </Badge>
+                                </Group>
+                                {events.length > 0 && (
+                                  <Text size="xs" c="dimmed" mt={4}>
+                                    Events: {events.join(', ')}
+                                  </Text>
+                                )}
+                              </div>
+                              <Tooltip label="View code">
+                                <ActionIcon
+                                  variant="light"
+                                  onClick={() => setState(prev => ({
+                                    ...prev,
+                                    selectedTrigger: trigger,
+                                    showEditPanel: true
+                                  }))}
+                                >
+                                  <IconFile size={16} />
+                                </ActionIcon>
+                              </Tooltip>
+                            </Group>
+                            <Text size="xs" c="dimmed">
+                              {new Date(trigger.lastModifiedDate).toLocaleString()}
+                            </Text>
+                          </Paper>
+                        );
+                      })}
+                  </div>
+                </ScrollArea>
               </div>
             </Tabs.Panel>
 
