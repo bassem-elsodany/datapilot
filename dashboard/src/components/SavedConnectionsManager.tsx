@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -9,6 +9,7 @@ import { useTranslation } from '../services/I18nService';
 import { logger } from '../services/Logger';
 import { ApiService } from '../services/ApiService';
 import { useSessionContext } from '../contexts/SessionContext';
+import { ConnectionsList } from './connections/ConnectionsList';
 import '../assets/css/components/SavedConnectionsManager.css';
 import '../assets/css/components/Modal.css';
 import {
@@ -209,120 +210,128 @@ export const SavedConnectionsManager: React.FC<SavedConnectionsManagerProps> = (
     }
   };
 
-  const handleQuickConnect = async (connection: SavedConnection) => {
-    logger.debug('handleQuickConnect called with connection', 'SavedConnectionsManager', { connection });
-    try {
-      setConnectingConnectionId(connection.id);
-      setError(null);
-      
-      const decryptedConnection = await connectionManager.getConnection(connection.id);
-      
-      if (!decryptedConnection) {
-        setError(tSync('connections.error.decryptFailed', 'Failed to decrypt connection. Please check your master key.'));
+  const handleQuickConnect = useCallback(
+    async (connection: SavedConnection) => {
+      logger.debug('handleQuickConnect called with connection', 'SavedConnectionsManager', { connection });
+      try {
+        setConnectingConnectionId(connection.id);
+        setError(null);
+
+        const decryptedConnection = await connectionManager.getConnection(connection.id);
+
+        if (!decryptedConnection) {
+          setError(tSync('connections.error.decryptFailed', 'Failed to decrypt connection. Please check your master key.'));
+          return;
+        }
+
+        const domainUrl = decryptedConnection.environment === 'sandbox' ? 'https://test.salesforce.com' : 'https://login.salesforce.com';
+
+        let finalUsername = decryptedConnection.username;
+        let finalPassword = decryptedConnection.password || '';
+        let finalClientId = decryptedConnection.clientId || '';
+        let finalClientSecret = decryptedConnection.clientSecret || '';
+
+        if (decryptedConnection.oauthType === 'salesforce_classic') {
+          finalClientId = decryptedConnection.consumerKey || '';
+          finalClientSecret = decryptedConnection.consumerSecret || '';
+          finalPassword = decryptedConnection.securityToken ? `${finalPassword}${decryptedConnection.securityToken}` : finalPassword;
+        }
+
+        // Connect using the existing saved connection UUID
+        const result = await apiService.connectToSalesforce(connection.id);
+
+        if (result && result.user_info) {
+          logger.debug('Connection successful, calling onLogin', 'SavedConnectionsManager', { userInfo: result.user_info, connectionId: connection.id });
+
+          // Show brief success state
+          setSuccessfulConnectionId(connection.id);
+          setTimeout(() => {
+            onLogin(result.user_info, connection.id);
+          }, 500); // Brief delay to show success state
+        } else {
+          throw new Error(result?.error || tSync('connections.error.connectionFailed', 'Connection failed'));
+        }
+      } catch (error) {
+        logger.error('handleQuickConnect error', 'SavedConnectionsManager', null, error as Error);
+        setError(error instanceof Error ? error.message : tSync('connections.error.connectionFailed', 'Connection failed'));
+      } finally {
+        setConnectingConnectionId(null);
+      }
+    },
+    [onLogin, tSync]
+  );
+
+  const handleRemoveConnection = useCallback(
+    async (connectionId: string) => {
+      try {
+        await connectionManager.deleteConnection(connectionId);
+        await loadSavedConnections();
+
+        // Show success notification
+        notifications.show({
+          title: tSync('connections.delete.success.title', 'Connection Deleted'),
+          message: tSync('connections.delete.success.message', 'Connection has been deleted successfully'),
+          color: 'green',
+          icon: <IconTrash size={16} />,
+          autoClose: 3000,
+        });
+      } catch (error) {
+        logger.error('Failed to remove connection', 'SavedConnectionsManager', null, error as Error);
+
+        // Show error notification
+        notifications.show({
+          title: tSync('connections.delete.error.title', 'Delete Failed'),
+          message: tSync('connections.delete.error.message', 'Failed to delete connection. Please try again.'),
+          color: 'red',
+          autoClose: 3000,
+        });
+      }
+    },
+    [tSync]
+  );
+
+  const handleRenameConnection = useCallback(
+    async (connectionId: string, newName: string) => {
+      if (!newName.trim()) {
+        notifications.show({
+          title: tSync('connections.rename.error.invalid_name', 'Invalid Name'),
+          message: tSync('connections.rename.error.invalid_name_message', 'Please provide a valid connection name'),
+          color: 'red',
+          autoClose: 3000,
+        });
         return;
       }
 
-      const domainUrl = decryptedConnection.environment === 'sandbox' ? 'https://test.salesforce.com' : 'https://login.salesforce.com';
-      
-      let finalUsername = decryptedConnection.username;
-      let finalPassword = decryptedConnection.password || '';
-      let finalClientId = decryptedConnection.clientId || '';
-      let finalClientSecret = decryptedConnection.clientSecret || '';
+      try {
+        setIsRenaming(true);
+        setRenamingConnectionId(connectionId);
 
-      if (decryptedConnection.oauthType === 'salesforce_classic') {
-        finalClientId = decryptedConnection.consumerKey || '';
-        finalClientSecret = decryptedConnection.consumerSecret || '';
-        finalPassword = decryptedConnection.securityToken ? `${finalPassword}${decryptedConnection.securityToken}` : finalPassword;
+        await apiService.updateConnection(connectionId, newName.trim());
+        await loadSavedConnections();
+
+        notifications.show({
+          title: tSync('connections.rename.success.title', 'Connection Renamed'),
+          message: tSync('connections.rename.success.message', 'Connection has been renamed successfully'),
+          color: 'green',
+          icon: <IconEdit size={16} />,
+          autoClose: 3000,
+        });
+      } catch (error) {
+        logger.error('Failed to rename connection', 'SavedConnectionsManager', null, error as Error);
+        notifications.show({
+          title: tSync('connections.rename.error.title', 'Rename Failed'),
+          message: tSync('connections.rename.error.message', 'Failed to rename connection. Please try again.'),
+          color: 'red',
+          autoClose: 3000,
+        });
+      } finally {
+        setIsRenaming(false);
+        setRenamingConnectionId(null);
+        setNewConnectionName('');
       }
-
-      // Connect using the existing saved connection UUID
-      const result = await apiService.connectToSalesforce(connection.id);
-
-      if (result && result.user_info) {
-        logger.debug('Connection successful, calling onLogin', 'SavedConnectionsManager', { userInfo: result.user_info, connectionId: connection.id });
-        
-        // Show brief success state
-        setSuccessfulConnectionId(connection.id);
-        setTimeout(() => {
-          onLogin(result.user_info, connection.id);
-        }, 500); // Brief delay to show success state
-      } else {
-        throw new Error(result?.error || tSync('connections.error.connectionFailed', 'Connection failed'));
-      }
-    } catch (error) {
-      logger.error('handleQuickConnect error', 'SavedConnectionsManager', null, error as Error);
-      setError(error instanceof Error ? error.message : tSync('connections.error.connectionFailed', 'Connection failed'));
-    } finally {
-      setConnectingConnectionId(null);
-    }
-  };
-
-  const handleRemoveConnection = async (connectionId: string) => {
-    try {
-      await connectionManager.deleteConnection(connectionId);
-      await loadSavedConnections();
-      
-      // Show success notification
-      notifications.show({
-        title: tSync('connections.delete.success.title', 'Connection Deleted'),
-        message: tSync('connections.delete.success.message', 'Connection has been deleted successfully'),
-        color: 'green',
-        icon: <IconTrash size={16} />,
-        autoClose: 3000,
-      });
-      
-    } catch (error) {
-      logger.error('Failed to remove connection', 'SavedConnectionsManager', null, error as Error);
-      
-      // Show error notification
-      notifications.show({
-        title: tSync('connections.delete.error.title', 'Delete Failed'),
-        message: tSync('connections.delete.error.message', 'Failed to delete connection. Please try again.'),
-        color: 'red',
-        autoClose: 3000,
-      });
-    }
-  };
-
-  const handleRenameConnection = async (connectionId: string, newName: string) => {
-    if (!newName.trim()) {
-      notifications.show({
-        title: tSync('connections.rename.error.invalid_name', 'Invalid Name'),
-        message: tSync('connections.rename.error.invalid_name_message', 'Please provide a valid connection name'),
-        color: 'red',
-        autoClose: 3000,
-      });
-      return;
-    }
-
-    try {
-      setIsRenaming(true);
-      setRenamingConnectionId(connectionId);
-      
-      await apiService.updateConnection(connectionId, newName.trim());
-      await loadSavedConnections();
-      
-      notifications.show({
-        title: tSync('connections.rename.success.title', 'Connection Renamed'),
-        message: tSync('connections.rename.success.message', 'Connection has been renamed successfully'),
-        color: 'green',
-        icon: <IconEdit size={16} />,
-        autoClose: 3000,
-      });
-    } catch (error) {
-      logger.error('Failed to rename connection', 'SavedConnectionsManager', null, error as Error);
-      notifications.show({
-        title: tSync('connections.rename.error.title', 'Rename Failed'),
-        message: tSync('connections.rename.error.message', 'Failed to rename connection. Please try again.'),
-        color: 'red',
-        autoClose: 3000,
-      });
-    } finally {
-      setIsRenaming(false);
-      setRenamingConnectionId(null);
-      setNewConnectionName('');
-    }
-  };
+    },
+    [tSync]
+  );
 
   const handleClearAllConnections = async () => {
     try {

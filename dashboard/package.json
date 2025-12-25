@@ -48,6 +48,7 @@
     "mantine-datatable": "^8.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-window": "^1.8.10",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -57,6 +58,7 @@
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@types/react-window": "^1.8.8",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "concurrently": "^9.2.0",
