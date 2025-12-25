@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Group, Badge } from '@mantine/core';
+import { Group, Badge, Modal, Button, Stack, Text } from '@mantine/core';
 import { IconLogout, IconLanguage, IconInfoCircle, IconMenu2, IconX, IconUser, IconWorld, IconHelp, IconMessage, IconDatabase, IconSettings } from '@tabler/icons-react';
 import { SalesforceUserInfo } from '../services/SalesforceService';
 import { useTranslation } from '../services/I18nService';
@@ -47,6 +47,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
 
 
   // Close settings menu when clicking outside or resizing window
@@ -126,7 +127,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     setShowSettingsMenu(false);
   };
 
-  const handleSavedConnectionsClick = async () => {
+  const handleSavedConnectionsClick = () => {
     // Close settings menu first
     setShowSettingsMenu(false);
 
@@ -134,30 +135,30 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     console.log('handleSavedConnectionsClick:', { isConnected, currentConnectionUuid });
     if (isConnected && currentConnectionUuid) {
       console.log('Showing disconnect confirmation modal');
-
-      // Use window.confirm as a fallback that definitely works
-      const message = tSync(
-        'connections.disconnect.message',
-        'The current Salesforce connection will be closed. This will clear all decrypted credentials from memory. Do you want to continue?'
-      );
-
-      if (window.confirm(message)) {
-        try {
-          console.log('User confirmed disconnect');
-          if (onDisconnect) {
-            await onDisconnect();
-          }
-          onShowSavedConnections();
-        } catch (error) {
-          logger.error('Failed to disconnect', 'AppHeader', null, error as Error);
-        }
-      } else {
-        console.log('User cancelled disconnect');
-      }
+      setShowDisconnectModal(true);
     } else {
       console.log('No active connection, navigating directly');
       onShowSavedConnections();
     }
+  };
+
+  const handleConfirmDisconnect = async () => {
+    try {
+      console.log('User confirmed disconnect');
+      setShowDisconnectModal(false);
+      if (onDisconnect) {
+        await onDisconnect();
+      }
+      onShowSavedConnections();
+    } catch (error) {
+      logger.error('Failed to disconnect', 'AppHeader', null, error as Error);
+      setShowDisconnectModal(false);
+    }
+  };
+
+  const handleCancelDisconnect = () => {
+    console.log('User cancelled disconnect');
+    setShowDisconnectModal(false);
   };
 
 
@@ -325,6 +326,38 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </div>
       </div>
 
+      {/* Disconnect Confirmation Modal */}
+      <Modal
+        opened={showDisconnectModal}
+        onClose={handleCancelDisconnect}
+        title={tSync('connections.disconnect.title', 'Close Connection')}
+        centered
+        size="md"
+        zIndex={10000}
+      >
+        <Stack spacing="lg">
+          <Text>
+            {tSync(
+              'connections.disconnect.message',
+              'The current Salesforce connection will be closed. This will clear all decrypted credentials from memory. Do you want to continue?'
+            )}
+          </Text>
+          <Group justify="flex-end" spacing="sm">
+            <Button
+              variant="default"
+              onClick={handleCancelDisconnect}
+            >
+              {tSync('common.cancel', 'Cancel')}
+            </Button>
+            <Button
+              color="red"
+              onClick={handleConfirmDisconnect}
+            >
+              {tSync('connections.disconnect.confirm', 'Close & Go Back')}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </div>
   );
 };
