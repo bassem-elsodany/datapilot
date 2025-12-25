@@ -907,7 +907,8 @@ class SalesforceService:
             result = self.connection.toolingexecute(
                 'executeAnonymous',
                 method='POST',
-                data={'anonymousBody': apex_code}
+                data={'anonymousBody': apex_code},
+                headers={'Content-Type': 'application/json'}
             )
             
             logger.debug("Executed anonymous Apex code")
@@ -1024,7 +1025,8 @@ class SalesforceService:
             result = self.connection.toolingexecute(
                 'compilePackages',
                 method='POST',
-                data={'packageNames': package_names}
+                data={'packageNames': package_names},
+                headers={'Content-Type': 'application/json'}
             )
 
             logger.debug(f"Compiled packages: {package_names}")
@@ -1059,7 +1061,8 @@ class SalesforceService:
             result = self.connection.toolingexecute(
                 'compileTriggers',
                 method='POST',
-                data={'triggerNames': trigger_names}
+                data={'triggerNames': trigger_names},
+                headers={'Content-Type': 'application/json'}
             )
 
             logger.debug(f"Compiled triggers: {trigger_names}")
@@ -1102,7 +1105,8 @@ class SalesforceService:
             result = self.connection.toolingexecute(
                 'runTests',
                 method='POST',
-                data=test_data
+                data=test_data,
+                headers={'Content-Type': 'application/json'}
             )
 
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
@@ -1146,7 +1150,8 @@ class SalesforceService:
             result = self.connection.toolingexecute(
                 'compileAndTest',
                 method='POST',
-                data=test_data
+                data=test_data,
+                headers={'Content-Type': 'application/json'}
             )
 
             logger.debug(f"Compiled and tested Apex code")
