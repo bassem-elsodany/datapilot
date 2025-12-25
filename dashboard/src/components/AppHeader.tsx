@@ -324,12 +324,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       </div>
 
       {/* Disconnect Confirmation Modal */}
+      {console.log('Modal state:', { showDisconnectConfirm })}
       <Modal
         opened={showDisconnectConfirm}
         onClose={() => setShowDisconnectConfirm(false)}
         title={tSync('connections.disconnect.title', 'Close Connection')}
         centered
         size="md"
+        zIndex={9999}
       >
         <Stack spacing="md">
           <Text>
