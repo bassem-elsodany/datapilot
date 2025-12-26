@@ -2050,15 +2050,17 @@ export class ApiService {
       if (error.response?.data?.detail) {
         const detail = error.response.data.detail;
 
-        if (detail.message && typeof detail.message === 'string') {
-          errorMessage = detail.message;
-        } else if (detail.error_code && typeof detail.error_code === 'string') {
-          errorMessage = detail.error_code;
-        } else {
-          errorMessage = JSON.stringify(detail);
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
         }
-      } else if (typeof detail === 'string') {
-        errorMessage = detail;
       } else if (error.message) {
         errorMessage = error.message;
       }
