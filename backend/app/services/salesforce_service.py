@@ -933,7 +933,7 @@ class SalesforceService:
                 'exceptionMessage': result.get('exceptionMessage') if result else None,
                 'exceptionStackTrace': result.get('exceptionStackTrace') if result else None,
                 'debugInfo': result.get('debugInfo', []) if result else [],
-                'executionTime': result.get('executionTime') if result else None,
+                'executionTime': result.get('totalTime') if result else None,  # Salesforce returns 'totalTime' not 'executionTime'
                 'cpuTime': result.get('cpuTime') if result else None,
                 'dmlRows': result.get('dmlRows') if result else None,
                 'dmlStatements': result.get('dmlStatements') if result else None,
