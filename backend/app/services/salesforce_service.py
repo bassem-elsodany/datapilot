@@ -903,13 +903,12 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's toolingexecute method for Tooling API
-            # toolingexecute nulls out data parameter, so pass params as query string with GET
-            from urllib.parse import quote
-            encoded_code = quote(apex_code)
-            result = self.connection.toolingexecute(
-                f'executeAnonymous/?anonymousBody={encoded_code}',
-                method='GET'
+            # Use simple_salesforce SDK's restful method for Tooling API
+            # Pass json body directly - this is the only way to handle Apex code with special chars
+            result = self.connection.restful(
+                'tooling/executeAnonymous',
+                method='POST',
+                json={'anonymousBody': apex_code}
             )
             
             logger.debug("Executed anonymous Apex code")
@@ -1022,14 +1021,11 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's toolingexecute method for Tooling API
-            # toolingexecute nulls out data parameter, so pass params as query string with GET
-            import json
-            from urllib.parse import quote
-            params_json = quote(json.dumps({'packageNames': package_names}))
-            result = self.connection.toolingexecute(
-                f'compilePackages/?params={params_json}',
-                method='GET'
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/compilePackages',
+                method='POST',
+                json={'packageNames': package_names}
             )
 
             logger.debug(f"Compiled packages: {package_names}")
@@ -1060,14 +1056,11 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's toolingexecute method for Tooling API
-            # toolingexecute nulls out data parameter, so pass params as query string with GET
-            import json
-            from urllib.parse import quote
-            params_json = quote(json.dumps({'triggerNames': trigger_names}))
-            result = self.connection.toolingexecute(
-                f'compileTriggers/?params={params_json}',
-                method='GET'
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/compileTriggers',
+                method='POST',
+                json={'triggerNames': trigger_names}
             )
 
             logger.debug(f"Compiled triggers: {trigger_names}")
@@ -1106,14 +1099,11 @@ class SalesforceService:
             if test_methods:
                 test_data['testMethods'] = test_methods
 
-            # Use simple_salesforce SDK's toolingexecute method for Tooling API
-            # toolingexecute nulls out data parameter, so pass params as query string with GET
-            import json
-            from urllib.parse import quote
-            params_json = quote(json.dumps(test_data))
-            result = self.connection.toolingexecute(
-                f'runTests/?params={params_json}',
-                method='GET'
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/runTests',
+                method='POST',
+                json=test_data
             )
 
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
@@ -1153,14 +1143,11 @@ class SalesforceService:
             if test_classes:
                 test_data['testClasses'] = test_classes
 
-            # Use simple_salesforce SDK's toolingexecute method for Tooling API
-            # toolingexecute nulls out data parameter, so pass params as query string with GET
-            import json
-            from urllib.parse import quote
-            params_json = quote(json.dumps(test_data))
-            result = self.connection.toolingexecute(
-                f'compileAndTest/?params={params_json}',
-                method='GET'
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/compileAndTest',
+                method='POST',
+                json=test_data
             )
 
             logger.debug(f"Compiled and tested Apex code")
