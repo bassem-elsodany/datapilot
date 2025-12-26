@@ -904,11 +904,12 @@ class SalesforceService:
 
         try:
             # Use simple_salesforce SDK's toolingexecute method for Tooling API
-            # Pass json= kwarg to properly encode JSON for POST requests
+            # toolingexecute nulls out data parameter, so pass params as query string with GET
+            from urllib.parse import quote
+            encoded_code = quote(apex_code)
             result = self.connection.toolingexecute(
-                'executeAnonymous',
-                method='POST',
-                json={'anonymousBody': apex_code}
+                f'executeAnonymous/?anonymousBody={encoded_code}',
+                method='GET'
             )
             
             logger.debug("Executed anonymous Apex code")
@@ -1022,10 +1023,13 @@ class SalesforceService:
 
         try:
             # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            # toolingexecute nulls out data parameter, so pass params as query string with GET
+            import json
+            from urllib.parse import quote
+            params_json = quote(json.dumps({'packageNames': package_names}))
             result = self.connection.toolingexecute(
-                'compilePackages',
-                method='POST',
-                json={'packageNames': package_names}
+                f'compilePackages/?params={params_json}',
+                method='GET'
             )
 
             logger.debug(f"Compiled packages: {package_names}")
@@ -1057,10 +1061,13 @@ class SalesforceService:
 
         try:
             # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            # toolingexecute nulls out data parameter, so pass params as query string with GET
+            import json
+            from urllib.parse import quote
+            params_json = quote(json.dumps({'triggerNames': trigger_names}))
             result = self.connection.toolingexecute(
-                'compileTriggers',
-                method='POST',
-                json={'triggerNames': trigger_names}
+                f'compileTriggers/?params={params_json}',
+                method='GET'
             )
 
             logger.debug(f"Compiled triggers: {trigger_names}")
@@ -1100,10 +1107,13 @@ class SalesforceService:
                 test_data['testMethods'] = test_methods
 
             # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            # toolingexecute nulls out data parameter, so pass params as query string with GET
+            import json
+            from urllib.parse import quote
+            params_json = quote(json.dumps(test_data))
             result = self.connection.toolingexecute(
-                'runTests',
-                method='POST',
-                json=test_data
+                f'runTests/?params={params_json}',
+                method='GET'
             )
 
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
@@ -1144,10 +1154,13 @@ class SalesforceService:
                 test_data['testClasses'] = test_classes
 
             # Use simple_salesforce SDK's toolingexecute method for Tooling API
+            # toolingexecute nulls out data parameter, so pass params as query string with GET
+            import json
+            from urllib.parse import quote
+            params_json = quote(json.dumps(test_data))
             result = self.connection.toolingexecute(
-                'compileAndTest',
-                method='POST',
-                json=test_data
+                f'compileAndTest/?params={params_json}',
+                method='GET'
             )
 
             logger.debug(f"Compiled and tested Apex code")
