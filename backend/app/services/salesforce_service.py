@@ -923,41 +923,54 @@ class SalesforceService:
             logger.debug("Executed anonymous Apex code")
             logger.debug(f"Apex execution completed")
 
+            # Log full response structure for debugging
+            if result:
+                logger.info(f"🔍 FULL SALESFORCE RESPONSE:")
+                logger.info(f"   Type: {type(result)}")
+                logger.info(f"   Keys: {list(result.keys()) if isinstance(result, dict) else 'N/A'}")
+                logger.info(f"   Full Response: {json.dumps(result, indent=2, default=str)}")
+
             # Get debug log - Salesforce returns it in the 'logs' field as a string
-            debug_log = result.get('logs', '') if result else ''
+            # Try multiple field names that Salesforce might use
+            debug_log = result.get('logs', '') or result.get('debugLog', '') or result.get('log', '') if result else ''
+
+            # If still no logs, log all keys for debugging
+            if not debug_log and result:
+                logger.warning(f"No debug log found. Available keys in result: {list(result.keys())}")
+
             debug_info = [debug_log] if debug_log else []
 
-            # Map the response to a consistent format
+            # Map the response to a consistent format using snake_case
             response = {
                 'success': result.get('success', False) if result else False,
                 'compiled': result.get('compiled', False) if result else False,
                 'line': result.get('line') if result else None,
                 'column': result.get('column') if result else None,
-                'compileProblem': result.get('compileProblem') if result else None,
-                'exceptionMessage': result.get('exceptionMessage') if result else None,
-                'exceptionStackTrace': result.get('exceptionStackTrace') if result else None,
-                'debugInfo': debug_info,
+                'compile_problem': result.get('compileProblem') if result else None,
+                'exception_message': result.get('exceptionMessage') if result else None,
+                'exception_stack_trace': result.get('exceptionStackTrace') if result else None,
+                'debug_info': debug_info,
                 'debug_log': debug_log,
-                'executionTime': result.get('totalTime') if result else None,  # Salesforce returns 'totalTime' not 'executionTime'
-                'cpuTime': result.get('cpuTime') if result else None,
-                'dmlRows': result.get('dmlRows') if result else None,
-                'dmlStatements': result.get('dmlStatements') if result else None,
-                'soqlQueries': result.get('soqlQueries') if result else None,
-                'soqlRowsProcessed': result.get('soqlRowsProcessed') if result else None,
-                'queryLocatorRows': result.get('queryLocatorRows') if result else None,
-                'aggregateQueries': result.get('aggregateQueries') if result else None,
-                'limitExceptions': result.get('limitExceptions') if result else None,
-                'emailInvocations': result.get('emailInvocations') if result else None,
-                'futureCalls': result.get('futureCalls') if result else None,
-                'queueableJobs': result.get('queueableJobs') if result else None,
-                'mobilePushApexCalls': result.get('mobilePushApexCalls') if result else None,
-                'soslQueries': result.get('soslQueries') if result else None
+                'execution_time': result.get('totalTime') if result else None,  # Salesforce returns 'totalTime' not 'executionTime'
+                'cpu_time': result.get('cpuTime') if result else None,
+                'dml_rows': result.get('dmlRows') if result else None,
+                'dml_statements': result.get('dmlStatements') if result else None,
+                'soql_queries': result.get('soqlQueries') if result else None,
+                'soql_rows_processed': result.get('soqlRowsProcessed') if result else None,
+                'query_locator_rows': result.get('queryLocatorRows') if result else None,
+                'aggregate_queries': result.get('aggregateQueries') if result else None,
+                'limit_exceptions': result.get('limitExceptions') if result else None,
+                'email_invocations': result.get('emailInvocations') if result else None,
+                'future_calls': result.get('futureCalls') if result else None,
+                'queueable_jobs': result.get('queueableJobs') if result else None,
+                'mobile_push_apex_calls': result.get('mobilePushApexCalls') if result else None,
+                'sosl_queries': result.get('soslQueries') if result else None
             }
             
             if response['success']:
                 logger.debug("Apex code executed successfully")
             else:
-                logger.warning(f"Apex code execution failed: {response.get('compileProblem') or response.get('exceptionMessage')}")
+                logger.warning(f"Apex code execution failed: {response.get('compile_problem') or response.get('exception_message')}")
             
             return response
             
@@ -969,25 +982,25 @@ class SalesforceService:
                 'compiled': False,
                 'line': None,
                 'column': None,
-                'compileProblem': None,
-                'exceptionMessage': str(e),
-                'exceptionStackTrace': None,
-                'debugInfo': [],
+                'compile_problem': None,
+                'exception_message': str(e),
+                'exception_stack_trace': None,
+                'debug_info': [],
                 'debug_log': '',
-                'executionTime': None,
-                'cpuTime': None,
-                'dmlRows': None,
-                'dmlStatements': None,
-                'soqlQueries': None,
-                'soqlRowsProcessed': None,
-                'queryLocatorRows': None,
-                'aggregateQueries': None,
-                'limitExceptions': None,
-                'emailInvocations': None,
-                'futureCalls': None,
-                'queueableJobs': None,
-                'mobilePushApexCalls': None,
-                'soslQueries': None
+                'execution_time': None,
+                'cpu_time': None,
+                'dml_rows': None,
+                'dml_statements': None,
+                'soql_queries': None,
+                'soql_rows_processed': None,
+                'query_locator_rows': None,
+                'aggregate_queries': None,
+                'limit_exceptions': None,
+                'email_invocations': None,
+                'future_calls': None,
+                'queueable_jobs': None,
+                'mobile_push_apex_calls': None,
+                'sosl_queries': None
             }
 
     def execute_apex_rest(self, endpoint: str, connection_uuid: str, method: str = 'GET', data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
