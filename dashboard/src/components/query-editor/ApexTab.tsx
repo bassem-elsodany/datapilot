@@ -1436,11 +1436,18 @@ export const ApexTab: React.FC = () => {
         size="lg"
         zIndex={10000}
         centered={true}
+        withPortal={true}
         styles={{
           overlay: {
             zIndex: 9999,
+            opacity: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
           },
           content: {
+            zIndex: 10000,
+            opacity: 1,
+          },
+          root: {
             zIndex: 10000,
           }
         }}
@@ -1851,11 +1858,18 @@ export const ApexTab: React.FC = () => {
         size="lg"
         zIndex={10000}
         centered={true}
+        withPortal={true}
         styles={{
           overlay: {
             zIndex: 9999,
+            opacity: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
           },
           content: {
+            zIndex: 10000,
+            opacity: 1,
+          },
+          root: {
             zIndex: 10000,
           }
         }}
