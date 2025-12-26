@@ -923,6 +923,10 @@ class SalesforceService:
             logger.debug("Executed anonymous Apex code")
             logger.debug(f"Apex execution completed")
             
+            # Get debug info and format it
+            debug_info = result.get('debugInfo', []) if result else []
+            debug_log = '\n'.join(debug_info) if isinstance(debug_info, list) else str(debug_info)
+
             # Map the response to a consistent format
             response = {
                 'success': result.get('success', False) if result else False,
@@ -932,7 +936,8 @@ class SalesforceService:
                 'compileProblem': result.get('compileProblem') if result else None,
                 'exceptionMessage': result.get('exceptionMessage') if result else None,
                 'exceptionStackTrace': result.get('exceptionStackTrace') if result else None,
-                'debugInfo': result.get('debugInfo', []) if result else [],
+                'debugInfo': debug_info,
+                'debug_log': debug_log,
                 'executionTime': result.get('totalTime') if result else None,  # Salesforce returns 'totalTime' not 'executionTime'
                 'cpuTime': result.get('cpuTime') if result else None,
                 'dmlRows': result.get('dmlRows') if result else None,
@@ -968,6 +973,7 @@ class SalesforceService:
                 'exceptionMessage': str(e),
                 'exceptionStackTrace': None,
                 'debugInfo': [],
+                'debug_log': '',
                 'executionTime': None,
                 'cpuTime': None,
                 'dmlRows': None,
