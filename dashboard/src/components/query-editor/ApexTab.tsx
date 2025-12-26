@@ -32,7 +32,7 @@ export type ExecutionStatus = 'success' | 'error' | 'compilation_error' | 'runti
 
 // Saved Apex Code (from backend SavedApex model)
 export interface SavedApex {
-  saved_apex_uuid: string;
+  uuid: string;
   connection_uuid: string;
   name: string;
   description?: string;
@@ -579,7 +579,7 @@ export const ApexTab: React.FC = () => {
         return;
       }
 
-      await apiService.updateSavedApex(editingApex.saved_apex_uuid, {
+      await apiService.updateSavedApex(editingApex.uuid, {
         name: formData.name,
         apex_code: formData.apex_code,
         code_type: formData.code_type,
@@ -613,7 +613,7 @@ export const ApexTab: React.FC = () => {
 
   const handleDeleteApex = async (apex: SavedApex) => {
     try {
-      await apiService.deleteSavedApex(apex.saved_apex_uuid);
+      await apiService.deleteSavedApex(apex.uuid);
       await loadSavedApexData();
 
       notifications.show({
