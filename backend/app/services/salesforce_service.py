@@ -105,6 +105,7 @@ License: MIT License
 """
 
 from functools import lru_cache
+from urllib.parse import quote
 
 from loguru import logger
 from typing import Dict, List, Any, Optional
@@ -904,11 +905,12 @@ class SalesforceService:
 
         try:
             # Salesforce Tooling API executeAnonymous only accepts GET method
-            # The requests library will properly URL-encode the query parameter
+            # URL-encode the Apex code using quote() to preserve special characters
+            # Example from docs: /services/data/v65.0/tooling/executeAnonymous/?anonymousBody=System.debug('Test')%3B
+            encoded_apex = quote(apex_code, safe='')
             result = self.connection.restful(
-                'tooling/executeAnonymous',
-                method='GET',
-                params={'anonymousBody': apex_code}
+                f'tooling/executeAnonymous/?anonymousBody={encoded_apex}',
+                method='GET'
             )
             
             logger.debug("Executed anonymous Apex code")
