@@ -2041,7 +2041,7 @@ export class ApiService {
 
     try {
       const response = await this.client.post(
-        this.addLangToUrl(`${this.getEndpointUrl('saved-apex')}/${encodeURIComponent(apex_uuid)}/execute?connection_uuid=${encodeURIComponent(connection_uuid)}`)
+        this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/${encodeURIComponent(apex_uuid)}/execute?connection_uuid=${encodeURIComponent(connection_uuid)}`)
       );
       return response.data;
     } catch (error: any) {
