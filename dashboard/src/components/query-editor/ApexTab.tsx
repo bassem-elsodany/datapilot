@@ -396,15 +396,12 @@ export const ApexTab: React.FC = () => {
         throw new Error('No active connection');
       }
 
-      const result = await apiService.executeAnonymousApex(currentConnectionUuid, {
-        apex_code: apex.apex_code,
-        debug_levels: apex.debug_levels
-      });
+      const result = await apiService.executeSavedApex(apex.uuid, currentConnectionUuid);
 
       console.log('✅ Apex execution result:', result);
       setState(prev => ({
         ...prev,
-        executionResult: result,
+        executionResult: result.execution_result,
         isExecuting: false
       }));
 
