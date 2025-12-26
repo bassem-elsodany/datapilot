@@ -1171,21 +1171,23 @@ export const ApexTab: React.FC = () => {
 
                       <div className="apex-edit-code-section">
                         <Text size="sm" fw={500} mb="xs">Apex Code {!editingApex && '(Read-only)'}</Text>
-                        <Editor
-                          height="400px"
-                          defaultLanguage="apex"
-                          value={editingApex ? formData.apex_code : (state.selectedClass?.body || state.selectedTrigger?.body || '')}
-                          onChange={(value) => editingApex && setFormData({ ...formData, apex_code: value || '' })}
-                          options={{
-                            minimap: { enabled: false },
-                            lineNumbers: 'on',
-                            fontSize: 13,
-                            fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                            tabSize: 2,
-                            wordWrap: 'on',
-                            readOnly: !editingApex
-                          }}
-                        />
+                        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                          <Editor
+                            height="100%"
+                            defaultLanguage="apex"
+                            value={editingApex ? formData.apex_code : (state.selectedClass?.body || state.selectedTrigger?.body || '')}
+                            onChange={(value) => editingApex && setFormData({ ...formData, apex_code: value || '' })}
+                            options={{
+                              minimap: { enabled: false },
+                              lineNumbers: 'on',
+                              fontSize: 13,
+                              fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+                              tabSize: 2,
+                              wordWrap: 'on',
+                              readOnly: !editingApex
+                            }}
+                          />
+                        </div>
                       </div>
 
                       <Group justify="flex-end" gap="sm">
