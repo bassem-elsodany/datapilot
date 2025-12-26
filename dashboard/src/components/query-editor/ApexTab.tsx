@@ -231,6 +231,18 @@ export const ApexTab: React.FC = () => {
     // loadSalesforceApexData();
   }, []);
 
+  // Reload data when tab changes to ensure fresh data from database
+  useEffect(() => {
+    if (state.activeTab === 'saved') {
+      loadSavedApexData();
+    } else if (state.activeTab === 'classes') {
+      loadApexClasses();
+    } else if (state.activeTab === 'triggers') {
+      loadApexTriggers();
+    }
+    // Note: 'tests' tab doesn't need auto-load as it's for manual test input
+  }, [state.activeTab]);
+
   // Get context
   const { currentConnectionUuid } = useSessionContext();
   const apiService = ApiService.getInstance();
