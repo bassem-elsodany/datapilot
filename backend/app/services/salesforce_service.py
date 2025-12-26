@@ -922,10 +922,10 @@ class SalesforceService:
             logger.debug(f"Apex execution result: {result}")
             logger.debug("Executed anonymous Apex code")
             logger.debug(f"Apex execution completed")
-            
-            # Get debug info and format it
-            debug_info = result.get('debugInfo', []) if result else []
-            debug_log = '\n'.join(debug_info) if isinstance(debug_info, list) else str(debug_info)
+
+            # Get debug log - Salesforce returns it in the 'logs' field as a string
+            debug_log = result.get('logs', '') if result else ''
+            debug_info = [debug_log] if debug_log else []
 
             # Map the response to a consistent format
             response = {
