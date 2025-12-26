@@ -1028,147 +1028,40 @@ export const ApexTab: React.FC = () => {
                         </div>
                       )}
 
-                      {!editingApex && (state.selectedClass || state.selectedTrigger) && (
-                        <div className="apex-edit-compact-fields">
-                          {state.selectedClass && (
-                            <Group gap="md" mb="md">
-                              <div style={{ flex: 1 }}>
-                                <Text size="sm" fw={500}>Status</Text>
-                                <Badge size="sm" variant="light" color={state.selectedClass.status === 'Active' ? 'green' : 'gray'} mt="xs">
-                                  {state.selectedClass.status}
-                                </Badge>
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <Text size="sm" fw={500}>API Version</Text>
-                                <Text size="sm" mt="xs">{state.selectedClass.metadata.apiVersion}</Text>
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <Text size="sm" fw={500}>Created</Text>
-                                <Text size="xs" mt="xs">{new Date(state.selectedClass.createdDate).toLocaleDateString()}</Text>
-                              </div>
-                            </Group>
-                          )}
-                          {state.selectedTrigger && (
-                            <Group gap="md" mb="md">
-                              <div style={{ flex: 1 }}>
-                                <Text size="sm" fw={500}>SObject</Text>
-                                <Text size="sm" mt="xs">{state.selectedTrigger.tableEnumOrId}</Text>
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <Text size="sm" fw={500}>Status</Text>
-                                <Badge size="sm" variant="light" color={state.selectedTrigger.status === 'Active' ? 'green' : 'gray'} mt="xs">
-                                  {state.selectedTrigger.status}
-                                </Badge>
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                <Text size="sm" fw={500}>API Version</Text>
-                                <Text size="sm" mt="xs">{state.selectedTrigger.metadata.apiVersion}</Text>
-                              </div>
-                            </Group>
-                          )}
-                        </div>
-                      )}
-
+                      {/* Debug Levels - Compact */}
                       {editingApex && (
-                        <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '12px' }}>
-                          <Text size="sm" fw={500} mb="sm">Debug Levels</Text>
-                          <Group gap="sm" grow>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>DB</label>
-                            <select
-                              value={formData.debug_levels.DB}
-                              onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, DB: e.target.value } })}
-                              style={{ width: '100%', padding: '5px 6px', border: '1px solid #ced4da', borderRadius: '3px', fontSize: '11px' }}
-                            >
-                              <option value="NONE">NONE</option>
-                              <option value="ERROR">ERROR</option>
-                              <option value="WARN">WARN</option>
-                              <option value="INFO">INFO</option>
-                              <option value="DEBUG">DEBUG</option>
-                              <option value="FINE">FINE</option>
-                              <option value="FINER">FINER</option>
-                              <option value="FINEST">FINEST</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Workflow</label>
-                            <select
-                              value={formData.debug_levels.Workflow}
-                              onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Workflow: e.target.value } })}
-                              style={{ width: '100%', padding: '5px 6px', border: '1px solid #ced4da', borderRadius: '3px', fontSize: '11px' }}
-                            >
-                              <option value="NONE">NONE</option>
-                              <option value="ERROR">ERROR</option>
-                              <option value="WARN">WARN</option>
-                              <option value="INFO">INFO</option>
-                              <option value="DEBUG">DEBUG</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Validation</label>
-                            <select
-                              value={formData.debug_levels.Validation}
-                              onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Validation: e.target.value } })}
-                              style={{ width: '100%', padding: '5px 6px', border: '1px solid #ced4da', borderRadius: '3px', fontSize: '11px' }}
-                            >
-                              <option value="NONE">NONE</option>
-                              <option value="ERROR">ERROR</option>
-                              <option value="WARN">WARN</option>
-                              <option value="INFO">INFO</option>
-                              <option value="DEBUG">DEBUG</option>
-                            </select>
-                          </div>
-                        </Group>
-                        <Group gap="sm" grow mt="xs">
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Callouts</label>
-                            <select
-                              value={formData.debug_levels.Callouts}
-                              onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Callouts: e.target.value } })}
-                              style={{ width: '100%', padding: '5px 6px', border: '1px solid #ced4da', borderRadius: '3px', fontSize: '11px' }}
-                            >
-                              <option value="NONE">NONE</option>
-                              <option value="ERROR">ERROR</option>
-                              <option value="WARN">WARN</option>
-                              <option value="INFO">INFO</option>
-                              <option value="DEBUG">DEBUG</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Apex Code</label>
-                            <select
-                              value={formData.debug_levels.Apex_Code}
-                              onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Apex_Code: e.target.value } })}
-                              style={{ width: '100%', padding: '5px 6px', border: '1px solid #ced4da', borderRadius: '3px', fontSize: '11px' }}
-                            >
-                              <option value="NONE">NONE</option>
-                              <option value="ERROR">ERROR</option>
-                              <option value="WARN">WARN</option>
-                              <option value="INFO">INFO</option>
-                              <option value="DEBUG">DEBUG</option>
-                              <option value="FINE">FINE</option>
-                              <option value="FINER">FINER</option>
-                              <option value="FINEST">FINEST</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 500, marginBottom: '3px' }}>Apex Profiling</label>
-                            <select
-                              value={formData.debug_levels.Apex_Profiling}
-                              onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Apex_Profiling: e.target.value } })}
-                              style={{ width: '100%', padding: '5px 6px', border: '1px solid #ced4da', borderRadius: '3px', fontSize: '11px' }}
-                            >
-                              <option value="NONE">NONE</option>
-                              <option value="ERROR">ERROR</option>
-                              <option value="WARN">WARN</option>
-                              <option value="INFO">INFO</option>
-                              <option value="DEBUG">DEBUG</option>
-                            </select>
-                          </div>
-                        </Group>
+                        <div style={{ flexShrink: 0, paddingTop: '8px', borderTop: '1px solid #e9ecef' }}>
+                          <Group gap="xs" grow>
+                            {(['DB', 'Workflow', 'Validation', 'Callouts', 'Apex_Code', 'Apex_Profiling'] as const).map(level => (
+                              <div key={level} style={{ minWidth: 0 }}>
+                                <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, marginBottom: '2px', color: '#475569', textTransform: 'uppercase' }}>
+                                  {level.replace('_', ' ')}
+                                </label>
+                                <select
+                                  value={formData.debug_levels[level]}
+                                  onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, [level]: e.target.value } })}
+                                  style={{ width: '100%', padding: '4px 4px', border: '1px solid #cbd5e1', borderRadius: '3px', fontSize: '11px', backgroundColor: 'white' }}
+                                >
+                                  <option value="NONE">NONE</option>
+                                  <option value="ERROR">ERROR</option>
+                                  <option value="WARN">WARN</option>
+                                  <option value="INFO">INFO</option>
+                                  <option value="DEBUG">DEBUG</option>
+                                  {(level === 'DB' || level === 'Apex_Code') && (
+                                    <>
+                                      <option value="FINE">FINE</option>
+                                      <option value="FINER">FINER</option>
+                                      <option value="FINEST">FINEST</option>
+                                    </>
+                                  )}
+                                </select>
+                              </div>
+                            ))}
+                          </Group>
                         </div>
                       )}
 
+                      {/* Code Editor Section - Has Priority */}
                       <div className="apex-edit-code-section">
                         <Text size="sm" fw={500} mb="xs">Apex Code {!editingApex && '(Read-only)'}</Text>
                         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
