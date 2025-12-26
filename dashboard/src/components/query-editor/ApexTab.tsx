@@ -1062,8 +1062,8 @@ export const ApexTab: React.FC = () => {
                       )}
 
                       {/* Code Editor Section - Has Priority */}
-                      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                        <div className="apex-edit-code-section" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                        <div className="apex-edit-code-section" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
                           <Text size="sm" fw={500} mb={2}>Apex Code {!editingApex && '(Read-only)'}</Text>
                           <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
                             <Editor
@@ -1086,7 +1086,7 @@ export const ApexTab: React.FC = () => {
                         </div>
                       </div>
 
-                      <Group justify="flex-end" gap="xs" style={{ flexShrink: 0 }}>
+                      <Group justify="flex-end" gap="xs" style={{ flexShrink: 0, minHeight: 'fit-content' }}>
                         <Button
                           variant="light"
                           size="xs"
