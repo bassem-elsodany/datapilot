@@ -1061,32 +1061,40 @@ export const ApexTab: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Code Editor Section - Has Priority */}
-                      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                        <div className="apex-edit-code-section" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
-                          <Text size="sm" fw={500} mb={2}>Apex Code {!editingApex && '(Read-only)'}</Text>
-                          <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                            <Editor
-                              height="100%"
-                              width="100%"
-                              defaultLanguage="apex"
-                              value={editingApex ? formData.apex_code : (state.selectedClass?.body || state.selectedTrigger?.body || '')}
-                              onChange={(value) => editingApex && setFormData({ ...formData, apex_code: value || '' })}
-                              options={{
-                                minimap: { enabled: false },
-                                lineNumbers: 'on',
-                                fontSize: 13,
-                                fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                                tabSize: 2,
-                                wordWrap: 'on',
-                                readOnly: !editingApex
-                              }}
-                            />
-                          </div>
+                      {/* Code Editor Section - Grows to fill space */}
+                      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        <Text size="sm" fw={500} style={{ flexShrink: 0, marginBottom: '4px' }}>Apex Code {!editingApex && '(Read-only)'}</Text>
+                        <div style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflow: 'hidden', width: '100%' }}>
+                          <Editor
+                            key={editingApex ? `edit-${editingApex.uuid}` : `view-${state.selectedClass?.id || state.selectedTrigger?.id || 'empty'}`}
+                            height="100%"
+                            width="100%"
+                            defaultLanguage="apex"
+                            value={editingApex ? formData.apex_code : (state.selectedClass?.body || state.selectedTrigger?.body || '')}
+                            onChange={(value) => editingApex && setFormData({ ...formData, apex_code: value || '' })}
+                            onMount={(editor) => {
+                              // Force editor to recalculate dimensions
+                              editor.layout();
+                              // Ensure layout is recalculated after render
+                              setTimeout(() => editor.layout(), 50);
+                              setTimeout(() => editor.layout(), 150);
+                            }}
+                            options={{
+                              automaticLayout: false,
+                              minimap: { enabled: false },
+                              lineNumbers: 'on',
+                              fontSize: 13,
+                              fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+                              tabSize: 2,
+                              wordWrap: 'on',
+                              readOnly: !editingApex,
+                              scrollBeyondLastLine: false
+                            }}
+                          />
                         </div>
                       </div>
 
-                      <Group justify="flex-end" gap="xs" style={{ flexShrink: 0, minHeight: 'fit-content' }}>
+                      <Group justify="flex-end" gap="xs" style={{ flexShrink: 0, marginTop: '8px' }}>
                         <Button
                           variant="light"
                           size="xs"

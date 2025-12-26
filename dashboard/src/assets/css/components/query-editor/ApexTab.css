@@ -243,7 +243,7 @@
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
   overflow: hidden;
   min-height: 0;
 }
@@ -275,7 +275,6 @@
 
 .apex-edit-code-section .mantine-Textarea-input {
   flex: 1;
-  min-height: 400px !important;
 }
 
 /* Ensure button group at bottom doesn't shrink */
@@ -296,6 +295,16 @@
     flex: none;
     height: 200px;
   }
+}
+
+/* ========================================
+   MONACO EDITOR WRAPPER
+   ======================================== */
+
+/* Ensure Monaco editor wrapper is properly constrained */
+.apex-edit-content .monaco-editor {
+  height: 100% !important;
+  width: 100% !important;
 }
 
 /* ========================================
