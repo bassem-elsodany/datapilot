@@ -394,12 +394,24 @@ export const ApexTab: React.FC = () => {
         isExecuting: false
       }));
     } catch (error) {
+      const errorMessage = (error as Error).message;
       logger.error('Failed to execute Apex code', 'ApexTab', null, error as Error);
+
+      // Show error notification
+      notifications.show({
+        title: 'Apex Execution Failed',
+        message: errorMessage,
+        color: 'red',
+        autoClose: false,
+      });
+
       setState(prev => ({
         ...prev,
         executionResult: {
           success: false,
-          message: (error as Error).message
+          compiled: false,
+          message: errorMessage,
+          exception_message: errorMessage
         },
         isExecuting: false
       }));
@@ -1421,7 +1433,12 @@ export const ApexTab: React.FC = () => {
         title={tSync('apex.execution.results', 'Apex Execution Results')}
         size="lg"
       >
-        {state.executionResult && (
+        {state.isExecuting ? (
+          <Stack align="center" justify="center" py="xl">
+            <Loader size="lg" />
+            <Text c="dimmed">Executing Apex code...</Text>
+          </Stack>
+        ) : state.executionResult ? (
           <ScrollArea h={400}>
             <Stack gap="md">
               <Group>
@@ -1564,6 +1581,10 @@ export const ApexTab: React.FC = () => {
               )}
             </Stack>
           </ScrollArea>
+        ) : (
+          <Stack align="center" justify="center" py="xl">
+            <Text c="dimmed">No execution results</Text>
+          </Stack>
         )}
       </Modal>
 
