@@ -162,40 +162,6 @@ class SalesforceService:
         """Get the Salesforce API version from settings"""
         return settings.SALESFORCE_API_VERSION
 
-    def _tooling_post(self, action: str, json_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute a POST request to Salesforce Tooling API using SDK's session.
-        This works around toolingexecute's limitation of not properly handling JSON bodies in POST.
-
-        Args:
-            action (str): The Tooling API endpoint (e.g., 'compilePackages', 'runTests')
-            json_data (Dict): The JSON body to send
-
-        Returns:
-            The JSON response from Salesforce
-        """
-        if not self.connection:
-            raise ValueError("No active Salesforce connection available")
-
-        # Use the SDK's session and tooling_url to make the request
-        url = f"{self.connection.tooling_url}{action}"
-        headers = self.connection.headers.copy()
-        headers['Content-Type'] = 'application/json'
-
-        response = self.connection.session.post(url, json=json_data, headers=headers)
-
-        if response.status_code >= 300:
-            error_msg = response.text
-            try:
-                error_data = response.json()
-                if isinstance(error_data, list) and error_data:
-                    error_msg = error_data[0].get('message', error_msg)
-            except:
-                pass
-            raise ValueError(f"Tooling API error: {error_msg}")
-
-        return response.json() if response.text else {}
-
     @classmethod
     def get_instance(cls):
         """Get the singleton instance of SalesforceService"""
@@ -937,11 +903,12 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Try executeAnonymous via POST using SDK session directly
-            # executeAnonymous endpoint accepts POST with JSON body even though docs say GET
-            result = self._tooling_post(
-                'executeAnonymous',
-                {'anonymousBody': apex_code}
+            # Use simple_salesforce SDK's restful method for Tooling API
+            # This is the proper SDK method for REST endpoints with JSON bodies
+            result = self.connection.restful(
+                'tooling/executeAnonymous',
+                method='POST',
+                json={'anonymousBody': apex_code}
             )
             
             logger.debug("Executed anonymous Apex code")
@@ -1054,10 +1021,11 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use SDK's session to POST with proper JSON encoding
-            result = self._tooling_post(
-                'compilePackages',
-                {'packageNames': package_names}
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/compilePackages',
+                method='POST',
+                json={'packageNames': package_names}
             )
 
             logger.debug(f"Compiled packages: {package_names}")
@@ -1088,10 +1056,11 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use SDK's session to POST with proper JSON encoding
-            result = self._tooling_post(
-                'compileTriggers',
-                {'triggerNames': trigger_names}
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/compileTriggers',
+                method='POST',
+                json={'triggerNames': trigger_names}
             )
 
             logger.debug(f"Compiled triggers: {trigger_names}")
@@ -1130,10 +1099,11 @@ class SalesforceService:
             if test_methods:
                 test_data['testMethods'] = test_methods
 
-            # Use SDK's session to POST with proper JSON encoding
-            result = self._tooling_post(
-                'runTests',
-                test_data
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/runTests',
+                method='POST',
+                json=test_data
             )
 
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
@@ -1173,10 +1143,11 @@ class SalesforceService:
             if test_classes:
                 test_data['testClasses'] = test_classes
 
-            # Use SDK's session to POST with proper JSON encoding
-            result = self._tooling_post(
-                'compileAndTest',
-                test_data
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/compileAndTest',
+                method='POST',
+                json=test_data
             )
 
             logger.debug(f"Compiled and tested Apex code")
