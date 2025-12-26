@@ -903,10 +903,10 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's restful method for Tooling API
-            # Pass json body directly - this is the only way to handle Apex code with special chars
-            result = self.connection.restful(
-                'tooling/executeAnonymous',
+            # Use simple_salesforce SDK's toolingexecute method with json kwarg
+            # Pass json through kwargs to let requests library handle encoding properly
+            result = self.connection.toolingexecute(
+                'executeAnonymous',
                 method='POST',
                 json={'anonymousBody': apex_code}
             )
@@ -1021,9 +1021,9 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's restful method for Tooling API
-            result = self.connection.restful(
-                'tooling/compilePackages',
+            # Use simple_salesforce SDK's toolingexecute method with json kwarg
+            result = self.connection.toolingexecute(
+                'compilePackages',
                 method='POST',
                 json={'packageNames': package_names}
             )
@@ -1056,9 +1056,9 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's restful method for Tooling API
-            result = self.connection.restful(
-                'tooling/compileTriggers',
+            # Use simple_salesforce SDK's toolingexecute method with json kwarg
+            result = self.connection.toolingexecute(
+                'compileTriggers',
                 method='POST',
                 json={'triggerNames': trigger_names}
             )
@@ -1099,9 +1099,9 @@ class SalesforceService:
             if test_methods:
                 test_data['testMethods'] = test_methods
 
-            # Use simple_salesforce SDK's restful method for Tooling API
-            result = self.connection.restful(
-                'tooling/runTests',
+            # Use simple_salesforce SDK's toolingexecute method with json kwarg
+            result = self.connection.toolingexecute(
+                'runTests',
                 method='POST',
                 json=test_data
             )
@@ -1143,9 +1143,9 @@ class SalesforceService:
             if test_classes:
                 test_data['testClasses'] = test_classes
 
-            # Use simple_salesforce SDK's restful method for Tooling API
-            result = self.connection.restful(
-                'tooling/compileAndTest',
+            # Use simple_salesforce SDK's toolingexecute method with json kwarg
+            result = self.connection.toolingexecute(
+                'compileAndTest',
                 method='POST',
                 json=test_data
             )
