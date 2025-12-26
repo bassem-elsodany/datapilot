@@ -801,16 +801,17 @@ export const ApexTab: React.FC = () => {
   // ========================================
 
   return (
-    <div className="apex-tab">
-      <div className="apex-tab-header">
-        <div className="apex-tab-title">
-          <IconCode size={20} className="apex-tab-icon" />
-          <span>{tSync('apex.title')}</span>
+    <>
+      <div className="apex-tab">
+        <div className="apex-tab-header">
+          <div className="apex-tab-title">
+            <IconCode size={20} className="apex-tab-icon" />
+            <span>{tSync('apex.title')}</span>
+          </div>
+          <div className="apex-tab-subtitle">
+            {tSync('apex.subtitle')}
+          </div>
         </div>
-        <div className="apex-tab-subtitle">
-          {tSync('apex.subtitle')}
-        </div>
-      </div>
 
       <div className="apex-tab-content">
         <div className="apex-controls">
@@ -1422,9 +1423,10 @@ export const ApexTab: React.FC = () => {
           </Tabs>
         </div>
       </div>
+    </div>
 
-      {/* Execution Result Modal */}
-      <Modal
+    {/* Execution Result Modal - Rendered outside apex-tab to avoid overflow:hidden clipping */}
+    <Modal
         opened={state.showExecutionModal}
         onClose={() => {
           setState(prev => ({ ...prev, showExecutionModal: false }));
@@ -1598,8 +1600,8 @@ export const ApexTab: React.FC = () => {
         )}
       </Modal>
 
-      {/* Create Modal */}
-      {state.showCreateModal && (
+    {/* Create Modal */}
+    {state.showCreateModal && (
         <div
           className={`apex-create-modal-overlay${isCreateModalClosing ? ' closing' : ''}`}
           onClick={() => {
@@ -1841,12 +1843,22 @@ export const ApexTab: React.FC = () => {
         </div>
       )}
 
-      {/* Test Results Modal */}
-      <Modal
+    {/* Test Results Modal - Also rendered outside to avoid clipping */}
+    <Modal
         opened={state.showTestResultsModal}
         onClose={() => setState(prev => ({ ...prev, showTestResultsModal: false }))}
         title="Test Execution Results"
         size="lg"
+        zIndex={10000}
+        centered={true}
+        styles={{
+          overlay: {
+            zIndex: 9999,
+          },
+          content: {
+            zIndex: 10000,
+          }
+        }}
       >
         {state.testResults && (
           <ScrollArea h={500}>
@@ -1940,7 +1952,6 @@ export const ApexTab: React.FC = () => {
           </ScrollArea>
         )}
       </Modal>
-
-    </div>
+    </>
   );
 };
