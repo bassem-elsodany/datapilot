@@ -937,12 +937,11 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Salesforce Tooling API executeAnonymous only accepts GET method with query parameters
-            # Use toolingexecute with GET and params argument for proper URL encoding
-            result = self.connection.toolingexecute(
+            # Try executeAnonymous via POST using SDK session directly
+            # executeAnonymous endpoint accepts POST with JSON body even though docs say GET
+            result = self._tooling_post(
                 'executeAnonymous',
-                method='GET',
-                params={'anonymousBody': apex_code}
+                {'anonymousBody': apex_code}
             )
             
             logger.debug("Executed anonymous Apex code")
