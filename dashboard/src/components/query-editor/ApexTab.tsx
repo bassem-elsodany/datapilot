@@ -1437,18 +1437,35 @@ export const ApexTab: React.FC = () => {
         zIndex={10000}
         centered={true}
         withPortal={true}
+        closeButtonProps={{ 'aria-label': 'Close modal' }}
         styles={{
           overlay: {
             zIndex: 9999,
             opacity: 1,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            filter: 'none',
+            mixBlendMode: 'normal',
           },
           content: {
             zIndex: 10000,
             opacity: 1,
+            filter: 'none',
+            mixBlendMode: 'normal',
           },
           root: {
             zIndex: 10000,
+          },
+          header: {
+            zIndex: 10001,
+            backgroundColor: '#ffffff',
+            backdropFilter: 'none',
+            filter: 'none',
+          },
+          title: {
+            zIndex: 10001,
+            color: '#1e293b',
           }
         }}
       >
@@ -1859,18 +1876,35 @@ export const ApexTab: React.FC = () => {
         zIndex={10000}
         centered={true}
         withPortal={true}
+        closeButtonProps={{ 'aria-label': 'Close modal' }}
         styles={{
           overlay: {
             zIndex: 9999,
             opacity: 1,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            filter: 'none',
+            mixBlendMode: 'normal',
           },
           content: {
             zIndex: 10000,
             opacity: 1,
+            filter: 'none',
+            mixBlendMode: 'normal',
           },
           root: {
             zIndex: 10000,
+          },
+          header: {
+            zIndex: 10001,
+            backgroundColor: '#ffffff',
+            backdropFilter: 'none',
+            filter: 'none',
+          },
+          title: {
+            zIndex: 10001,
+            color: '#1e293b',
           }
         }}
       >
