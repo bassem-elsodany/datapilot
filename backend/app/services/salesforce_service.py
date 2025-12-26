@@ -908,11 +908,18 @@ class SalesforceService:
             # URL-encode the Apex code using quote() to preserve special characters
             # Example from docs: /services/data/v65.0/tooling/executeAnonymous/?anonymousBody=System.debug('Test')%3B
             encoded_apex = quote(apex_code, safe='')
+            endpoint = f'tooling/executeAnonymous/?anonymousBody={encoded_apex}'
+
+            logger.debug(f"Calling Salesforce Tooling API executeAnonymous")
+            logger.debug(f"Endpoint: {endpoint[:100]}...")
+            logger.debug(f"Apex code length: {len(apex_code)} characters")
+
             result = self.connection.restful(
-                f'tooling/executeAnonymous/?anonymousBody={encoded_apex}',
+                endpoint,
                 method='GET'
             )
-            
+
+            logger.debug(f"Apex execution result: {result}")
             logger.debug("Executed anonymous Apex code")
             logger.debug(f"Apex execution completed")
             
