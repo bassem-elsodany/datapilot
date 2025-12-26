@@ -709,7 +709,7 @@ export const ApexTab: React.FC = () => {
 
   const renderSavedApexItem = (apex: SavedApex) => (
     <div
-      key={apex.saved_apex_uuid}
+      key={apex.uuid}
       className="apex-item"
     >
       <div className="apex-item-row apex-item-row-1">
