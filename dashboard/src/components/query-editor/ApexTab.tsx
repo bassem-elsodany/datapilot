@@ -395,6 +395,9 @@ export const ApexTab: React.FC = () => {
         executionResult: result,
         isExecuting: false
       }));
+
+      // Reload saved apex list to reflect updated execution_count and last_executed timestamp
+      await loadSavedApexData();
     } catch (error) {
       const errorMessage = (error as Error).message;
       logger.error('Failed to execute Apex code', 'ApexTab', null, error as Error);
