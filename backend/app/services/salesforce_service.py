@@ -1220,12 +1220,12 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Query ApexClass using Tooling API via SDK
+            # Query ApexClass using Tooling API
+            # Using restful method with proper SOQL endpoint
             query = "SELECT Id, Name, Body, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexClass ORDER BY Name"
-            result = self.connection.toolingexecute(
-                'query',
-                method='GET',
-                params={'q': query}
+            result = self.connection.restful(
+                f'tooling/query?q={quote(query, safe="")}',
+                method='GET'
             )
 
             logger.debug(f"Retrieved {len(result.get('records', []))} Apex classes")
@@ -1255,12 +1255,12 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Query ApexTrigger using Tooling API via SDK
+            # Query ApexTrigger using Tooling API
+            # Using restful method with proper SOQL endpoint
             query = "SELECT Id, Name, Body, TableEnumOrId, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexTrigger ORDER BY Name"
-            result = self.connection.toolingexecute(
-                'query',
-                method='GET',
-                params={'q': query}
+            result = self.connection.restful(
+                f'tooling/query?q={quote(query, safe="")}',
+                method='GET'
             )
 
             logger.debug(f"Retrieved {len(result.get('records', []))} Apex triggers")
