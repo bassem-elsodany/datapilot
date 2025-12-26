@@ -1205,109 +1205,6 @@ export const ApexTab: React.FC = () => {
                     </div>
                   </div>
                 )}
-
-                {/* Test Results Panel - Displayed on the right side like edit panel */}
-                {state.showTestResultsPanel && state.testResults && (
-                  <div className="apex-edit-panel">
-                    <div className="apex-edit-header">
-                      <Text size="md" fw={600}>
-                        Test Execution Results
-                      </Text>
-                      <ActionIcon
-                        variant="light"
-                        color="gray"
-                        onClick={() => setState(prev => ({ ...prev, showTestResultsPanel: false }))}
-                      >
-                        <IconX size={16} />
-                      </ActionIcon>
-                    </div>
-
-                    <div className="apex-edit-content">
-                      <ScrollArea>
-                        <Stack gap="md">
-                          {/* Summary */}
-                          <div>
-                            <Group mb="md">
-                              <Badge
-                                size="lg"
-                                color={state.testResults.success ? 'green' : 'red'}
-                                leftSection={state.testResults.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
-                              >
-                                {state.testResults.success ? 'Tests Passed' : 'Tests Failed'}
-                              </Badge>
-                            </Group>
-
-                            {state.testResults.tests_run !== undefined && (
-                              <Group gap="md" mb="md">
-                                <Badge size="sm" variant="light" color="blue">
-                                  Total Tests: {state.testResults.tests_run}
-                                </Badge>
-                                {state.testResults.tests_passed !== undefined && (
-                                  <Badge size="sm" variant="light" color="green">
-                                    Passed: {state.testResults.tests_passed}
-                                  </Badge>
-                                )}
-                                {state.testResults.tests_failed !== undefined && (
-                                  <Badge size="sm" variant="light" color="red">
-                                    Failed: {state.testResults.tests_failed}
-                                  </Badge>
-                                )}
-                              </Group>
-                            )}
-
-                            {state.testResults.code_coverage !== undefined && (
-                              <Badge size="sm" variant="light" color="cyan">
-                                Code Coverage: {state.testResults.code_coverage}%
-                              </Badge>
-                            )}
-                          </div>
-
-                          {/* Test Results */}
-                          {state.testResults.test_results && state.testResults.test_results.length > 0 && (
-                            <div>
-                              <Text fw={600} mb="xs">Test Details</Text>
-                              <Stack gap="xs">
-                                {state.testResults.test_results.map((test: any, index: number) => (
-                                  <Paper
-                                    key={index}
-                                    p="sm"
-                                    withBorder
-                                    style={{
-                                      borderColor: test.outcome === 'Pass' ? '#51cf66' : '#ff6b6b',
-                                      backgroundColor: test.outcome === 'Pass' ? '#f0fdf4' : '#fef2f2'
-                                    }}
-                                  >
-                                    <Group justify="space-between" align="flex-start" mb="xs">
-                                      <div>
-                                        <Text size="sm" fw={500}>{test.method_name || test.name}</Text>
-                                        {test.class_name && <Text size="xs" c="dimmed">{test.class_name}</Text>}
-                                      </div>
-                                      <Badge
-                                        color={test.outcome === 'Pass' ? 'green' : 'red'}
-                                        size="sm"
-                                      >
-                                        {test.outcome || 'Unknown'}
-                                      </Badge>
-                                    </Group>
-                                    {test.stack_trace && (
-                                      <Text size="xs" c="red" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                        {test.stack_trace}
-                                      </Text>
-                                    )}
-                                  </Paper>
-                                ))}
-                              </Stack>
-                            </div>
-                          )}
-
-                          {state.testResults.message && (
-                            <Text size="sm" c="dimmed">{state.testResults.message}</Text>
-                          )}
-                        </Stack>
-                      </ScrollArea>
-                    </div>
-                  </div>
-                )}
               </div>
             </Tabs.Panel>
 
@@ -1492,37 +1389,143 @@ export const ApexTab: React.FC = () => {
             </Tabs.Panel>
 
             <Tabs.Panel value="tests" className="apex-panel">
-              <div className="apex-test-runner" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                <Stack gap="md" p="md">
-                  <div>
-                    <Text size="sm" fw={500} mb="sm">Test Classes (comma-separated)</Text>
-                    <textarea
-                      placeholder="Example: MyTestClass, AnotherTestClass"
-                      value={testInput}
-                      onChange={(e) => setTestInput(e.target.value)}
-                      style={{
-                        width: '100%',
-                        minHeight: '100px',
-                        padding: '12px',
-                        border: '1px solid #ced4da',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                        resize: 'vertical'
-                      }}
-                    />
-                  </div>
+              <div className="apex-list">
+                {/* Left side - Test input */}
+                <div style={{ flex: '0 0 400px', padding: '16px', borderRight: '1px solid #e5e7eb', overflowY: 'auto' }}>
+                  <Stack gap="md">
+                    <div>
+                      <Text size="sm" fw={500} mb="sm">Test Classes (comma-separated)</Text>
+                      <textarea
+                        placeholder="Example: MyTestClass, AnotherTestClass"
+                        value={testInput}
+                        onChange={(e) => setTestInput(e.target.value)}
+                        style={{
+                          width: '100%',
+                          minHeight: '150px',
+                          padding: '12px',
+                          border: '1px solid #ced4da',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
 
-                  <Button
-                    onClick={handleRunTests}
-                    loading={testRunning}
-                    leftSection={<IconPlayerPlay size={16} />}
-                    className="query-tab-save-button"
-                    disabled={testRunning || testInput.trim().length === 0}
-                  >
-                    Run Tests
-                  </Button>
-                </Stack>
+                    <Button
+                      onClick={handleRunTests}
+                      loading={testRunning}
+                      leftSection={<IconPlayerPlay size={16} />}
+                      className="query-tab-save-button"
+                      disabled={testRunning || testInput.trim().length === 0}
+                    >
+                      Run Tests
+                    </Button>
+                  </Stack>
+                </div>
+
+                {/* Right side - Test results panel */}
+                {state.showTestResultsPanel && state.testResults && (
+                  <div className="apex-edit-panel">
+                    <div className="apex-edit-header">
+                      <Text size="md" fw={600}>
+                        Test Execution Results
+                      </Text>
+                      <ActionIcon
+                        variant="light"
+                        color="gray"
+                        onClick={() => setState(prev => ({ ...prev, showTestResultsPanel: false }))}
+                      >
+                        <IconX size={16} />
+                      </ActionIcon>
+                    </div>
+
+                    <div className="apex-edit-content">
+                      <ScrollArea>
+                        <Stack gap="md">
+                          {/* Summary */}
+                          <div>
+                            <Group mb="md">
+                              <Badge
+                                size="lg"
+                                color={state.testResults.success ? 'green' : 'red'}
+                                leftSection={state.testResults.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
+                              >
+                                {state.testResults.success ? 'Tests Passed' : 'Tests Failed'}
+                              </Badge>
+                            </Group>
+
+                            {state.testResults.tests_run !== undefined && (
+                              <Group gap="md" mb="md">
+                                <Badge size="sm" variant="light" color="blue">
+                                  Total Tests: {state.testResults.tests_run}
+                                </Badge>
+                                {state.testResults.tests_passed !== undefined && (
+                                  <Badge size="sm" variant="light" color="green">
+                                    Passed: {state.testResults.tests_passed}
+                                  </Badge>
+                                )}
+                                {state.testResults.tests_failed !== undefined && (
+                                  <Badge size="sm" variant="light" color="red">
+                                    Failed: {state.testResults.tests_failed}
+                                  </Badge>
+                                )}
+                              </Group>
+                            )}
+
+                            {state.testResults.code_coverage !== undefined && (
+                              <Badge size="sm" variant="light" color="cyan">
+                                Code Coverage: {state.testResults.code_coverage}%
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Test Results */}
+                          {state.testResults.test_results && state.testResults.test_results.length > 0 && (
+                            <div>
+                              <Text fw={600} mb="xs">Test Details</Text>
+                              <Stack gap="xs">
+                                {state.testResults.test_results.map((test: any, index: number) => (
+                                  <Paper
+                                    key={index}
+                                    p="sm"
+                                    withBorder
+                                    style={{
+                                      borderColor: test.outcome === 'Pass' ? '#51cf66' : '#ff6b6b',
+                                      backgroundColor: test.outcome === 'Pass' ? '#f0fdf4' : '#fef2f2'
+                                    }}
+                                  >
+                                    <Group justify="space-between" align="flex-start" mb="xs">
+                                      <div>
+                                        <Text size="sm" fw={500}>{test.method_name || test.name}</Text>
+                                        {test.class_name && <Text size="xs" c="dimmed">{test.class_name}</Text>}
+                                      </div>
+                                      <Badge
+                                        color={test.outcome === 'Pass' ? 'green' : 'red'}
+                                        size="sm"
+                                      >
+                                        {test.outcome || 'Unknown'}
+                                      </Badge>
+                                    </Group>
+                                    {test.stack_trace && (
+                                      <Text size="xs" c="red" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                        {test.stack_trace}
+                                      </Text>
+                                    )}
+                                  </Paper>
+                                ))}
+                              </Stack>
+                            </div>
+                          )}
+
+                          {state.testResults.message && (
+                            <Text size="sm" c="dimmed">{state.testResults.message}</Text>
+                          )}
+                        </Stack>
+                      </ScrollArea>
+                    </div>
+                  </div>
+                )}
               </div>
             </Tabs.Panel>
           </Tabs>
