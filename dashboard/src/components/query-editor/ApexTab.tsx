@@ -1062,9 +1062,9 @@ export const ApexTab: React.FC = () => {
                       )}
 
                       {/* Code Editor Section - Grows to fill space */}
-                      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}>
                         <Text size="sm" fw={500} style={{ flexShrink: 0, marginBottom: '4px' }}>Apex Code {!editingApex && '(Read-only)'}</Text>
-                        <div style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflow: 'hidden', width: '100%' }}>
+                        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', width: '100%', height: '100%' }}>
                           <Editor
                             key={editingApex ? `edit-${editingApex.uuid}` : `view-${state.selectedClass?.id || state.selectedTrigger?.id || 'empty'}`}
                             height="100%"
