@@ -903,12 +903,12 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's restful method for Tooling API
-            # This is the proper SDK method for REST endpoints with JSON bodies
+            # Salesforce Tooling API executeAnonymous only accepts GET method
+            # The requests library will properly URL-encode the query parameter
             result = self.connection.restful(
                 'tooling/executeAnonymous',
-                method='POST',
-                json={'anonymousBody': apex_code}
+                method='GET',
+                params={'anonymousBody': apex_code}
             )
             
             logger.debug("Executed anonymous Apex code")
