@@ -1638,31 +1638,23 @@ export const ApexTab: React.FC = () => {
     </div>
 
     {/* Loading Modal - Only show while executing, hide when results are ready */}
-    {state.isExecuting && console.log('📱 Showing Loading Modal')}
     <Modal
         opened={state.isExecuting}
         onClose={() => {}}
         title={tSync('apex.execution.results', 'Executing Apex Code')}
         size="sm"
         zIndex={10000}
-        centered={true}
-        withPortal={true}
+        centered
+        withPortal
         closeButtonProps={{ 'aria-label': 'Close modal' }}
         styles={{
           overlay: {
             zIndex: 9999,
-            opacity: 1,
+            opacity: 0.5,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
-            filter: 'none',
-            mixBlendMode: 'normal',
           },
           content: {
             zIndex: 10000,
-            opacity: 1,
-            filter: 'none',
-            mixBlendMode: 'normal',
           },
           root: {
             zIndex: 10000,
@@ -1670,8 +1662,6 @@ export const ApexTab: React.FC = () => {
           header: {
             zIndex: 10001,
             backgroundColor: '#ffffff',
-            backdropFilter: 'none',
-            filter: 'none',
           },
           title: {
             zIndex: 10001,
