@@ -1064,7 +1064,7 @@ export const ApexTab: React.FC = () => {
                       {/* Code Editor Section - Has Priority */}
                       <div className="apex-edit-code-section">
                         <Text size="sm" fw={500} mb={2}>Apex Code {!editingApex && '(Read-only)'}</Text>
-                        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
                           <Editor
                             height="100%"
                             width="100%"
@@ -1078,8 +1078,7 @@ export const ApexTab: React.FC = () => {
                               fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
                               tabSize: 2,
                               wordWrap: 'on',
-                              readOnly: !editingApex,
-                              automaticLayout: true
+                              readOnly: !editingApex
                             }}
                           />
                         </div>
