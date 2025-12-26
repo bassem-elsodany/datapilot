@@ -1205,6 +1205,110 @@ export const ApexTab: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Execution Results Panel - Show when executing anonymous Apex code */}
+                {state.showExecutionModal && state.executionResult && !state.isExecuting && (
+                  <div className="apex-edit-panel">
+                    <div className="apex-edit-header">
+                      <Text size="md" fw={600}>
+                        Apex Execution Results
+                      </Text>
+                      <ActionIcon
+                        variant="light"
+                        color="gray"
+                        onClick={() => setState(prev => ({ ...prev, showExecutionModal: false, executionResult: null }))}
+                      >
+                        <IconX size={16} />
+                      </ActionIcon>
+                    </div>
+
+                    <div className="apex-edit-content">
+                      <ScrollArea>
+                        <Stack gap="md">
+                          <Group>
+                            <Badge
+                              size="lg"
+                              color={state.executionResult.success ? 'green' : 'red'}
+                              leftSection={state.executionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
+                            >
+                              {state.executionResult.success ? 'Execution Successful' : 'Execution Failed'}
+                            </Badge>
+                          </Group>
+
+                          {state.executionResult.message && (
+                            <Text size="sm">{state.executionResult.message}</Text>
+                          )}
+
+                          {state.executionResult.compile_problem && (
+                            <Paper p="md" bg="red.0" c="red.8">
+                              <Text size="sm" fw={500} mb="xs">Compilation Error:</Text>
+                              <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                {state.executionResult.compile_problem}
+                              </Text>
+                              {state.executionResult.line && (
+                                <Text size="xs" c="red.8" mt="xs">
+                                  Line {state.executionResult.line}, Column {state.executionResult.column}
+                                </Text>
+                              )}
+                            </Paper>
+                          )}
+
+                          {state.executionResult.exceptionMessage && (
+                            <Paper p="md" bg="red.0" c="red.8">
+                              <Text size="sm" fw={500} mb="xs">Exception:</Text>
+                              <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                {state.executionResult.exceptionMessage}
+                              </Text>
+                            </Paper>
+                          )}
+
+                          {state.executionResult.limit_exceptions && state.executionResult.limit_exceptions.length > 0 && (
+                            <Paper p="md" bg="yellow.0" c="yellow.8">
+                              <Text size="sm" fw={500}>Governor Limit Warnings:</Text>
+                              <Stack gap="xs" mt="sm">
+                                {state.executionResult.limit_exceptions.map((limit, index) => (
+                                  <Text key={index} size="sm">{limit}</Text>
+                                ))}
+                              </Stack>
+                            </Paper>
+                          )}
+
+                          <div>
+                            <Text size="sm" fw={500} mb="sm">Performance Metrics:</Text>
+                            <Group gap="md" wrap="wrap">
+                              {state.executionResult.execution_time !== undefined && (
+                                <Badge size="sm" variant="light" color="blue">
+                                  Execution Time: {state.executionResult.execution_time}ms
+                                </Badge>
+                              )}
+                              {state.executionResult.cpu_time !== undefined && (
+                                <Badge size="sm" variant="light" color="blue">
+                                  CPU Time: {state.executionResult.cpu_time}ms
+                                </Badge>
+                              )}
+                              {state.executionResult.dml_statements !== undefined && (
+                                <Badge size="sm" variant="light" color="cyan">
+                                  DML Statements: {state.executionResult.dml_statements}
+                                </Badge>
+                              )}
+                            </Group>
+                          </div>
+
+                          {state.executionResult.debug_log && state.executionResult.debug_log.length > 0 && (
+                            <div>
+                              <Text size="sm" fw={500} mb="sm">Debug Log:</Text>
+                              <Paper p="sm" withBorder bg="gray.0">
+                                <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                  {state.executionResult.debug_log}
+                                </Text>
+                              </Paper>
+                            </div>
+                          )}
+                        </Stack>
+                      </ScrollArea>
+                    </div>
+                  </div>
+                )}
               </div>
             </Tabs.Panel>
 
@@ -1533,17 +1637,13 @@ export const ApexTab: React.FC = () => {
       </div>
     </div>
 
-    {/* Execution Result Modal - Rendered outside apex-tab to avoid overflow:hidden clipping */}
-    {state.showExecutionModal && console.log('📱 Rendering Execution Modal - state:', state.showExecutionModal, 'isExecuting:', state.isExecuting)}
+    {/* Loading Modal - Only show while executing, hide when results are ready */}
+    {state.isExecuting && console.log('📱 Showing Loading Modal')}
     <Modal
-        opened={state.showExecutionModal}
-        onClose={() => {
-          console.log('🔴 Closing Execution Modal');
-          setState(prev => ({ ...prev, showExecutionModal: false }));
-          setDebugLogSearch('');
-        }}
-        title={tSync('apex.execution.results', 'Apex Execution Results')}
-        size="lg"
+        opened={state.isExecuting}
+        onClose={() => {}}
+        title={tSync('apex.execution.results', 'Executing Apex Code')}
+        size="sm"
         zIndex={10000}
         centered={true}
         withPortal={true}
@@ -1579,159 +1679,10 @@ export const ApexTab: React.FC = () => {
           }
         }}
       >
-        {state.isExecuting ? (
-          <Stack align="center" justify="center" py="xl">
-            <Loader size="lg" />
-            <Text size="md" fw={500} c="dimmed">Executing Apex code...</Text>
-          </Stack>
-        ) : state.executionResult ? (
-          <ScrollArea h={400}>
-            <Stack gap="md">
-              <Group>
-                <Badge 
-                  size="lg" 
-                  color={state.executionResult.success ? 'green' : 'red'}
-                  leftSection={state.executionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
-                >
-                  {state.executionResult.success ? tSync('apex.success.execution') : tSync('apex.error.execution_failed')}
-                </Badge>
-              </Group>
-
-              {state.executionResult.message && (
-                <Text size="sm">{state.executionResult.message}</Text>
-              )}
-
-              {state.executionResult.compile_problem && (
-                <Paper p="md" bg="red.0" c="red.7">
-                  <Text size="sm" fw={500}>Compilation Error:</Text>
-                  {(state.executionResult.line || state.executionResult.column) && (
-                    <Text size="sm" c="red.9" fw={600}>
-                      Line {state.executionResult.line || '?'}, Column {state.executionResult.column || '?'}
-                    </Text>
-                  )}
-                  <Text size="sm">{state.executionResult.compile_problem}</Text>
-                </Paper>
-              )}
-
-              {state.executionResult.exception_message && (
-                <Paper p="md" bg="red.0" c="red.7">
-                  <Text size="sm" fw={500}>Runtime Error:</Text>
-                  <Text size="sm">{state.executionResult.exception_message}</Text>
-                  {state.executionResult.exception_stack_trace && (
-                    <ScrollArea h={150} mt="sm">
-                      <Text size="xs" ff="monospace" c="red.8">
-                        {state.executionResult.exception_stack_trace}
-                      </Text>
-                    </ScrollArea>
-                  )}
-                </Paper>
-              )}
-
-              {state.executionResult.limit_exceptions && state.executionResult.limit_exceptions.length > 0 && (
-                <Paper p="md" bg="yellow.0" c="yellow.8">
-                  <Text size="sm" fw={500}>Governor Limit Warnings:</Text>
-                  <Stack gap="xs" mt="sm">
-                    {state.executionResult.limit_exceptions.map((limit, index) => (
-                      <Text key={index} size="sm">{limit}</Text>
-                    ))}
-                  </Stack>
-                </Paper>
-              )}
-
-              <div>
-                <Text size="sm" fw={500} mb="sm">Performance Metrics:</Text>
-                <Group gap="md" wrap="wrap">
-                  {state.executionResult.execution_time !== undefined && (
-                    <Badge size="sm" variant="light" color="blue">
-                      Execution Time: {state.executionResult.execution_time}ms
-                    </Badge>
-                  )}
-                  {state.executionResult.cpu_time !== undefined && (
-                    <Badge size="sm" variant="light" color="blue">
-                      CPU Time: {state.executionResult.cpu_time}ms
-                    </Badge>
-                  )}
-                  {state.executionResult.dml_statements !== undefined && (
-                    <Badge size="sm" variant="light" color="cyan">
-                      DML Statements: {state.executionResult.dml_statements}
-                    </Badge>
-                  )}
-                  {state.executionResult.dml_rows !== undefined && (
-                    <Badge size="sm" variant="light" color="cyan">
-                      DML Rows: {state.executionResult.dml_rows}
-                    </Badge>
-                  )}
-                  {state.executionResult.soql_queries !== undefined && (
-                    <Badge size="sm" variant="light" color="grape">
-                      SOQL Queries: {state.executionResult.soql_queries}
-                    </Badge>
-                  )}
-                  {state.executionResult.soql_rows_processed !== undefined && (
-                    <Badge size="sm" variant="light" color="grape">
-                      SOQL Rows: {state.executionResult.soql_rows_processed}
-                    </Badge>
-                  )}
-                </Group>
-              </div>
-
-              {state.executionResult.debug_info && state.executionResult.debug_info.length > 0 && (
-                <div>
-                  <Group justify="space-between" align="center" mb="sm">
-                    <Text size="sm" fw={500}>Debug Information ({getFilteredDebugLogs().length}/{state.executionResult.debug_info.length}):</Text>
-                    <ActionIcon
-                      size="sm"
-                      variant="subtle"
-                      onClick={() => {
-                        const logs = getFilteredDebugLogs().join('\n');
-                        navigator.clipboard.writeText(logs);
-                        notifications.show({
-                          title: 'Logs Copied',
-                          message: 'Debug logs copied to clipboard',
-                          color: 'green',
-                          autoClose: 2000,
-                        });
-                      }}
-                      title="Copy logs to clipboard"
-                    >
-                      <IconCopy size={14} />
-                    </ActionIcon>
-                  </Group>
-
-                  <TextInput
-                    placeholder="Search logs..."
-                    value={debugLogSearch}
-                    onChange={(e) => setDebugLogSearch(e.currentTarget.value)}
-                    size="xs"
-                    mb="sm"
-                    leftSection={<IconSearch size={14} />}
-                  />
-
-                  <ScrollArea h={250}>
-                    <Stack gap="xs">
-                      {getFilteredDebugLogs().length > 0 ? (
-                        getFilteredDebugLogs().map((log, index) => (
-                          <Paper key={index} p="xs" withBorder style={{ backgroundColor: '#f8f9fa' }}>
-                            <Text size="xs" ff="monospace" style={{ wordBreak: 'break-all' }}>
-                              {typeof log === 'string' ? log : JSON.stringify(log, null, 2)}
-                            </Text>
-                          </Paper>
-                        ))
-                      ) : (
-                        <Text size="sm" c="dimmed" ta="center" py="md">
-                          No debug logs match your search
-                        </Text>
-                      )}
-                    </Stack>
-                  </ScrollArea>
-                </div>
-              )}
-            </Stack>
-          </ScrollArea>
-        ) : (
-          <Stack align="center" justify="center" py="xl">
-            <Text c="dimmed">No execution results</Text>
-          </Stack>
-        )}
+        <Stack align="center" justify="center" py="xl">
+          <Loader size="lg" />
+          <Text size="md" fw={500} c="dimmed">Executing Apex code...</Text>
+        </Stack>
       </Modal>
 
     {/* Create Modal */}
