@@ -1432,11 +1432,21 @@ export const ApexTab: React.FC = () => {
         }}
         title={tSync('apex.execution.results', 'Apex Execution Results')}
         size="lg"
+        zIndex={10000}
+        centered={true}
+        styles={{
+          overlay: {
+            zIndex: 9999,
+          },
+          content: {
+            zIndex: 10000,
+          }
+        }}
       >
         {state.isExecuting ? (
           <Stack align="center" justify="center" py="xl">
             <Loader size="lg" />
-            <Text c="dimmed">Executing Apex code...</Text>
+            <Text size="md" fw={500} c="dimmed">Executing Apex code...</Text>
           </Stack>
         ) : state.executionResult ? (
           <ScrollArea h={400}>
