@@ -1185,21 +1185,66 @@ export const ApexTab: React.FC = () => {
                           {editingApex ? 'Cancel' : 'Close'}
                         </Button>
                         {editingApex && (
-                          <Button
-                            size="xs"
-                            onClick={handleUpdateApex}
-                            className="query-tab-save-button"
-                            style={{
-                              padding: '6px 12px',
-                              minHeight: '28px',
-                              fontSize: '11px',
-                              fontWeight: 600,
-                              borderRadius: '6px',
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            Update Apex Code
-                          </Button>
+                          <>
+                            <Button
+                              size="xs"
+                              variant="light"
+                              onClick={() => {
+                                setState(prev => ({ ...prev, isExecuting: true, showTestResultPanel: true }));
+                                const testExecute = async () => {
+                                  try {
+                                    const result = await apiService.executeAnonymousApex(currentConnectionUuid, {
+                                      apex_code: formData.apex_code,
+                                      debug_levels: formData.debug_levels
+                                    });
+                                    setState(prev => ({
+                                      ...prev,
+                                      testExecutionResult: result,
+                                      isExecuting: false
+                                    }));
+                                  } catch (error) {
+                                    logger.error('Failed to execute test', 'ApexTab', null, error as Error);
+                                    setState(prev => ({
+                                      ...prev,
+                                      testExecutionResult: {
+                                        success: false,
+                                        message: 'Execution failed',
+                                        compile_problem: (error as Error).message
+                                      },
+                                      isExecuting: false
+                                    }));
+                                  }
+                                };
+                                testExecute();
+                              }}
+                              leftSection={<IconPlayerPlay size={14} />}
+                              style={{
+                                padding: '6px 12px',
+                                minHeight: '28px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                borderRadius: '6px',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              Test
+                            </Button>
+                            <Button
+                              size="xs"
+                              onClick={handleUpdateApex}
+                              className="query-tab-save-button"
+                              style={{
+                                padding: '6px 12px',
+                                minHeight: '28px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                borderRadius: '6px',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              Update Apex Code
+                            </Button>
+                          </>
                         )}
                       </Group>
                     </div>
@@ -1308,6 +1353,119 @@ export const ApexTab: React.FC = () => {
                                 <Paper p="sm" withBorder bg="gray.0">
                                   <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                                     {state.executionResult.debug_log}
+                                  </Text>
+                                </Paper>
+                              </div>
+                            )}
+                          </Stack>
+                        </ScrollArea>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
+
+                {/* Test Results Panel - Show during edit when test is executed */}
+                {state.showEditPanel && editingApex && state.showTestResultPanel && (
+                  <div className="apex-edit-panel">
+                    <div className="apex-edit-header">
+                      <Text size="md" fw={600}>
+                        Test Results
+                      </Text>
+                      {!state.isExecuting && (
+                        <ActionIcon
+                          variant="light"
+                          color="gray"
+                          onClick={() => setState(prev => ({ ...prev, showTestResultPanel: false, testExecutionResult: null }))}
+                        >
+                          <IconX size={16} />
+                        </ActionIcon>
+                      )}
+                    </div>
+
+                    <div className="apex-edit-content">
+                      {state.isExecuting ? (
+                        <Stack align="center" justify="center" gap="md" style={{ height: '100%' }}>
+                          <Loader size="lg" />
+                          <Text size="md" fw={500} c="dimmed">Executing test...</Text>
+                        </Stack>
+                      ) : state.testExecutionResult ? (
+                        <ScrollArea>
+                          <Stack gap="md">
+                            <Group>
+                              <Badge
+                                size="lg"
+                                color={state.testExecutionResult.success ? 'green' : 'red'}
+                                leftSection={state.testExecutionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
+                              >
+                                {state.testExecutionResult.success ? 'Test Passed' : 'Test Failed'}
+                              </Badge>
+                            </Group>
+
+                            {state.testExecutionResult.message && (
+                              <Text size="sm">{state.testExecutionResult.message}</Text>
+                            )}
+
+                            {state.testExecutionResult.compile_problem && (
+                              <Paper p="md" bg="red.0" c="red.8">
+                                <Text size="sm" fw={500} mb="xs">Compilation Error:</Text>
+                                <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                  {state.testExecutionResult.compile_problem}
+                                </Text>
+                                {state.testExecutionResult.line && (
+                                  <Text size="xs" c="red.8" mt="xs">
+                                    Line {state.testExecutionResult.line}, Column {state.testExecutionResult.column}
+                                  </Text>
+                                )}
+                              </Paper>
+                            )}
+
+                            {state.testExecutionResult.exceptionMessage && (
+                              <Paper p="md" bg="red.0" c="red.8">
+                                <Text size="sm" fw={500} mb="xs">Exception:</Text>
+                                <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                  {state.testExecutionResult.exceptionMessage}
+                                </Text>
+                              </Paper>
+                            )}
+
+                            {state.testExecutionResult.limit_exceptions && state.testExecutionResult.limit_exceptions.length > 0 && (
+                              <Paper p="md" bg="yellow.0" c="yellow.8">
+                                <Text size="sm" fw={500}>Governor Limit Warnings:</Text>
+                                <Stack gap="xs" mt="sm">
+                                  {state.testExecutionResult.limit_exceptions.map((limit, index) => (
+                                    <Text key={index} size="sm">{limit}</Text>
+                                  ))}
+                                </Stack>
+                              </Paper>
+                            )}
+
+                            <div>
+                              <Text size="sm" fw={500} mb="sm">Performance Metrics:</Text>
+                              <Group gap="md" wrap="wrap">
+                                {state.testExecutionResult.execution_time !== undefined && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    Execution Time: {state.testExecutionResult.execution_time}ms
+                                  </Badge>
+                                )}
+                                {state.testExecutionResult.cpu_time !== undefined && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    CPU Time: {state.testExecutionResult.cpu_time}ms
+                                  </Badge>
+                                )}
+                                {state.testExecutionResult.dml_statements !== undefined && (
+                                  <Badge size="sm" variant="light" color="cyan">
+                                    DML Statements: {state.testExecutionResult.dml_statements}
+                                  </Badge>
+                                )}
+                              </Group>
+                            </div>
+
+                            {state.testExecutionResult.debug_log && state.testExecutionResult.debug_log.length > 0 && (
+                              <div>
+                                <Text size="sm" fw={500} mb="sm">Debug Log:</Text>
+                                <Paper p="sm" withBorder bg="gray.0">
+                                  <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                    {state.testExecutionResult.debug_log}
                                   </Text>
                                 </Paper>
                               </div>
