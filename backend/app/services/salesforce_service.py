@@ -162,6 +162,40 @@ class SalesforceService:
         """Get the Salesforce API version from settings"""
         return settings.SALESFORCE_API_VERSION
 
+    def _tooling_post(self, action: str, json_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute a POST request to Salesforce Tooling API using SDK's session.
+        This works around toolingexecute's limitation of not properly handling JSON bodies in POST.
+
+        Args:
+            action (str): The Tooling API endpoint (e.g., 'compilePackages', 'runTests')
+            json_data (Dict): The JSON body to send
+
+        Returns:
+            The JSON response from Salesforce
+        """
+        if not self.connection:
+            raise ValueError("No active Salesforce connection available")
+
+        # Use the SDK's session and tooling_url to make the request
+        url = f"{self.connection.tooling_url}{action}"
+        headers = self.connection.headers.copy()
+        headers['Content-Type'] = 'application/json'
+
+        response = self.connection.session.post(url, json=json_data, headers=headers)
+
+        if response.status_code >= 300:
+            error_msg = response.text
+            try:
+                error_data = response.json()
+                if isinstance(error_data, list) and error_data:
+                    error_msg = error_data[0].get('message', error_msg)
+            except:
+                pass
+            raise ValueError(f"Tooling API error: {error_msg}")
+
+        return response.json() if response.text else {}
+
     @classmethod
     def get_instance(cls):
         """Get the singleton instance of SalesforceService"""
@@ -903,12 +937,12 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's toolingexecute method with json kwarg
-            # Pass json through kwargs to let requests library handle encoding properly
+            # Salesforce Tooling API executeAnonymous only accepts GET method with query parameters
+            # Use toolingexecute with GET and params argument for proper URL encoding
             result = self.connection.toolingexecute(
                 'executeAnonymous',
-                method='POST',
-                json={'anonymousBody': apex_code}
+                method='GET',
+                params={'anonymousBody': apex_code}
             )
             
             logger.debug("Executed anonymous Apex code")
@@ -1021,11 +1055,10 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's toolingexecute method with json kwarg
-            result = self.connection.toolingexecute(
+            # Use SDK's session to POST with proper JSON encoding
+            result = self._tooling_post(
                 'compilePackages',
-                method='POST',
-                json={'packageNames': package_names}
+                {'packageNames': package_names}
             )
 
             logger.debug(f"Compiled packages: {package_names}")
@@ -1056,11 +1089,10 @@ class SalesforceService:
             raise ValueError("No active Salesforce connection available")
 
         try:
-            # Use simple_salesforce SDK's toolingexecute method with json kwarg
-            result = self.connection.toolingexecute(
+            # Use SDK's session to POST with proper JSON encoding
+            result = self._tooling_post(
                 'compileTriggers',
-                method='POST',
-                json={'triggerNames': trigger_names}
+                {'triggerNames': trigger_names}
             )
 
             logger.debug(f"Compiled triggers: {trigger_names}")
@@ -1099,11 +1131,10 @@ class SalesforceService:
             if test_methods:
                 test_data['testMethods'] = test_methods
 
-            # Use simple_salesforce SDK's toolingexecute method with json kwarg
-            result = self.connection.toolingexecute(
+            # Use SDK's session to POST with proper JSON encoding
+            result = self._tooling_post(
                 'runTests',
-                method='POST',
-                json=test_data
+                test_data
             )
 
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
@@ -1143,11 +1174,10 @@ class SalesforceService:
             if test_classes:
                 test_data['testClasses'] = test_classes
 
-            # Use simple_salesforce SDK's toolingexecute method with json kwarg
-            result = self.connection.toolingexecute(
+            # Use SDK's session to POST with proper JSON encoding
+            result = self._tooling_post(
                 'compileAndTest',
-                method='POST',
-                json=test_data
+                test_data
             )
 
             logger.debug(f"Compiled and tested Apex code")
