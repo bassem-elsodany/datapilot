@@ -377,6 +377,7 @@ export const ApexTab: React.FC = () => {
   // ========================================
 
   const handleExecuteApex = async (apex: SavedApex) => {
+    console.log('🚀 Opening Apex execution modal');
     setState(prev => ({ ...prev, isExecuting: true, showExecutionModal: true }));
     try {
       if (!currentConnectionUuid) {
@@ -388,6 +389,7 @@ export const ApexTab: React.FC = () => {
         debug_levels: apex.debug_levels
       });
 
+      console.log('✅ Apex execution result:', result);
       setState(prev => ({
         ...prev,
         executionResult: result,
@@ -1426,9 +1428,11 @@ export const ApexTab: React.FC = () => {
     </div>
 
     {/* Execution Result Modal - Rendered outside apex-tab to avoid overflow:hidden clipping */}
+    {state.showExecutionModal && console.log('📱 Rendering Execution Modal - state:', state.showExecutionModal, 'isExecuting:', state.isExecuting)}
     <Modal
         opened={state.showExecutionModal}
         onClose={() => {
+          console.log('🔴 Closing Execution Modal');
           setState(prev => ({ ...prev, showExecutionModal: false }));
           setDebugLogSearch('');
         }}
