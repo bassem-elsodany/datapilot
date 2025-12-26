@@ -664,7 +664,7 @@ export const ApexTab: React.FC = () => {
       setState(prev => ({
         ...prev,
         testResults: result,
-        showTestResultsModal: true
+        showTestResultsPanel: true
       }));
 
       notifications.show({
@@ -1871,49 +1871,24 @@ export const ApexTab: React.FC = () => {
         </div>
       )}
 
-    {/* Test Results Modal - Also rendered outside to avoid clipping */}
-    <Modal
-        opened={state.showTestResultsModal}
-        onClose={() => setState(prev => ({ ...prev, showTestResultsModal: false }))}
-        title="Test Execution Results"
-        size="lg"
-        zIndex={10000}
-        centered={true}
-        withPortal={true}
-        closeButtonProps={{ 'aria-label': 'Close modal' }}
-        styles={{
-          overlay: {
-            zIndex: 9999,
-            opacity: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
-            filter: 'none',
-            mixBlendMode: 'normal',
-          },
-          content: {
-            zIndex: 10000,
-            opacity: 1,
-            filter: 'none',
-            mixBlendMode: 'normal',
-          },
-          root: {
-            zIndex: 10000,
-          },
-          header: {
-            zIndex: 10001,
-            backgroundColor: '#ffffff',
-            backdropFilter: 'none',
-            filter: 'none',
-          },
-          title: {
-            zIndex: 10001,
-            color: '#1e293b',
-          }
-        }}
-      >
-        {state.testResults && (
-          <ScrollArea h={500}>
+    {/* Test Results Panel - Displayed on the right side like edit panel */}
+    {state.showTestResultsPanel && state.testResults && (
+      <div className="apex-edit-panel">
+        <div className="apex-edit-header">
+          <Text size="md" fw={600}>
+            Test Execution Results
+          </Text>
+          <ActionIcon
+            variant="light"
+            color="gray"
+            onClick={() => setState(prev => ({ ...prev, showTestResultsPanel: false }))}
+          >
+            <IconX size={16} />
+          </ActionIcon>
+        </div>
+
+        <div className="apex-edit-content">
+          <ScrollArea>
             <Stack gap="md">
               {/* Summary */}
               <div>
@@ -1952,10 +1927,10 @@ export const ApexTab: React.FC = () => {
                 )}
               </div>
 
-              {/* Test Details */}
+              {/* Test Results */}
               {state.testResults.test_results && state.testResults.test_results.length > 0 && (
                 <div>
-                  <Text size="sm" fw={500} mb="xs">Test Details:</Text>
+                  <Text fw={600} mb="xs">Test Details</Text>
                   <Stack gap="xs">
                     {state.testResults.test_results.map((test: any, index: number) => (
                       <Paper
@@ -1979,17 +1954,10 @@ export const ApexTab: React.FC = () => {
                             {test.outcome || 'Unknown'}
                           </Badge>
                         </Group>
-
-                        {test.message && (
-                          <Text size="xs" c="dimmed">{test.message}</Text>
-                        )}
-
                         {test.stack_trace && (
-                          <ScrollArea h={120} mt="xs">
-                            <Text size="xs" ff="monospace" c="red">
-                              {test.stack_trace}
-                            </Text>
-                          </ScrollArea>
+                          <Text size="xs" c="red" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                            {test.stack_trace}
+                          </Text>
                         )}
                       </Paper>
                     ))}
@@ -2002,8 +1970,11 @@ export const ApexTab: React.FC = () => {
               )}
             </Stack>
           </ScrollArea>
-        )}
-      </Modal>
+        </div>
+      </div>
+    )}
+
+    {/* Old test results modal removed - now displays as right panel */}
     </>
   );
 };
