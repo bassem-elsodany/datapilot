@@ -1202,7 +1202,7 @@ export const ApexTab: React.FC = () => {
                               size="xs"
                               variant="light"
                               onClick={() => {
-                                setState(prev => ({ ...prev, isExecuting: true, showTestResultPanel: true }));
+                                setState(prev => ({ ...prev, isExecuting: true, showTestResultPanel: true, showExecutionModal: false }));
                                 const testExecute = async () => {
                                   try {
                                     const result = await apiService.executeAnonymousApex(currentConnectionUuid, {
