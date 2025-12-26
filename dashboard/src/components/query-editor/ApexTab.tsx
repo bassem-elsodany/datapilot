@@ -62,13 +62,21 @@ export interface ApexExecutionResponse {
   exception_message?: string;
   exception_stack_trace?: string;
   debug_info?: any[];
+  debug_log?: string;
   execution_time?: number;
   cpu_time?: number;
   dml_rows?: number;
   dml_statements?: number;
   soql_queries?: number;
   soql_rows_processed?: number;
+  query_locator_rows?: number;
+  aggregate_queries?: number;
   limit_exceptions?: any[];
+  email_invocations?: number;
+  future_calls?: number;
+  queueable_jobs?: number;
+  mobile_push_apex_calls?: number;
+  sosl_queries?: number;
   message?: string;
 }
 
