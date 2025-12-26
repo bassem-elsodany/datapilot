@@ -323,7 +323,10 @@ class SavedApexService:
             result = self.salesforce_service.execute_anonymous_apex(saved_apex['apex_code'], connection_uuid)
 
             execution_end = datetime.now(timezone.utc)
-            execution_time = int((execution_end - execution_start).total_seconds() * 1000)
+
+            # Use Salesforce's actual execution time if available, otherwise use local timing
+            # Salesforce's executionTime (from totalTime) is more accurate than our local measurement
+            execution_time = result.get('executionTime') if result.get('executionTime') is not None else int((execution_end - execution_start).total_seconds() * 1000)
 
             # Update execution statistics
             self._update_execution_stats(
