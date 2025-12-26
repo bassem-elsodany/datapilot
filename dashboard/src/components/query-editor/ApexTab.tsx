@@ -1206,106 +1206,115 @@ export const ApexTab: React.FC = () => {
                   </div>
                 )}
 
-                {/* Execution Results Panel - Show when executing anonymous Apex code */}
-                {state.showExecutionModal && state.executionResult && !state.isExecuting && (
+                {/* Execution Results Panel - Show loading or results */}
+                {state.showExecutionModal && (
                   <div className="apex-edit-panel">
                     <div className="apex-edit-header">
                       <Text size="md" fw={600}>
                         Apex Execution Results
                       </Text>
-                      <ActionIcon
-                        variant="light"
-                        color="gray"
-                        onClick={() => setState(prev => ({ ...prev, showExecutionModal: false, executionResult: null }))}
-                      >
-                        <IconX size={16} />
-                      </ActionIcon>
+                      {!state.isExecuting && (
+                        <ActionIcon
+                          variant="light"
+                          color="gray"
+                          onClick={() => setState(prev => ({ ...prev, showExecutionModal: false, executionResult: null }))}
+                        >
+                          <IconX size={16} />
+                        </ActionIcon>
+                      )}
                     </div>
 
                     <div className="apex-edit-content">
-                      <ScrollArea>
-                        <Stack gap="md">
-                          <Group>
-                            <Badge
-                              size="lg"
-                              color={state.executionResult.success ? 'green' : 'red'}
-                              leftSection={state.executionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
-                            >
-                              {state.executionResult.success ? 'Execution Successful' : 'Execution Failed'}
-                            </Badge>
-                          </Group>
-
-                          {state.executionResult.message && (
-                            <Text size="sm">{state.executionResult.message}</Text>
-                          )}
-
-                          {state.executionResult.compile_problem && (
-                            <Paper p="md" bg="red.0" c="red.8">
-                              <Text size="sm" fw={500} mb="xs">Compilation Error:</Text>
-                              <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                {state.executionResult.compile_problem}
-                              </Text>
-                              {state.executionResult.line && (
-                                <Text size="xs" c="red.8" mt="xs">
-                                  Line {state.executionResult.line}, Column {state.executionResult.column}
-                                </Text>
-                              )}
-                            </Paper>
-                          )}
-
-                          {state.executionResult.exceptionMessage && (
-                            <Paper p="md" bg="red.0" c="red.8">
-                              <Text size="sm" fw={500} mb="xs">Exception:</Text>
-                              <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                {state.executionResult.exceptionMessage}
-                              </Text>
-                            </Paper>
-                          )}
-
-                          {state.executionResult.limit_exceptions && state.executionResult.limit_exceptions.length > 0 && (
-                            <Paper p="md" bg="yellow.0" c="yellow.8">
-                              <Text size="sm" fw={500}>Governor Limit Warnings:</Text>
-                              <Stack gap="xs" mt="sm">
-                                {state.executionResult.limit_exceptions.map((limit, index) => (
-                                  <Text key={index} size="sm">{limit}</Text>
-                                ))}
-                              </Stack>
-                            </Paper>
-                          )}
-
-                          <div>
-                            <Text size="sm" fw={500} mb="sm">Performance Metrics:</Text>
-                            <Group gap="md" wrap="wrap">
-                              {state.executionResult.execution_time !== undefined && (
-                                <Badge size="sm" variant="light" color="blue">
-                                  Execution Time: {state.executionResult.execution_time}ms
-                                </Badge>
-                              )}
-                              {state.executionResult.cpu_time !== undefined && (
-                                <Badge size="sm" variant="light" color="blue">
-                                  CPU Time: {state.executionResult.cpu_time}ms
-                                </Badge>
-                              )}
-                              {state.executionResult.dml_statements !== undefined && (
-                                <Badge size="sm" variant="light" color="cyan">
-                                  DML Statements: {state.executionResult.dml_statements}
-                                </Badge>
-                              )}
+                      {state.isExecuting ? (
+                        <Stack align="center" justify="center" gap="md" style={{ height: '100%' }}>
+                          <Loader size="lg" />
+                          <Text size="md" fw={500} c="dimmed">Executing Apex code...</Text>
+                        </Stack>
+                      ) : state.executionResult ? (
+                        <ScrollArea>
+                          <Stack gap="md">
+                            <Group>
+                              <Badge
+                                size="lg"
+                                color={state.executionResult.success ? 'green' : 'red'}
+                                leftSection={state.executionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
+                              >
+                                {state.executionResult.success ? 'Execution Successful' : 'Execution Failed'}
+                              </Badge>
                             </Group>
-                          </div>
 
-                          {state.executionResult.debug_log && state.executionResult.debug_log.length > 0 && (
-                            <div>
-                              <Text size="sm" fw={500} mb="sm">Debug Log:</Text>
-                              <Paper p="sm" withBorder bg="gray.0">
-                                <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                  {state.executionResult.debug_log}
+                            {state.executionResult.message && (
+                              <Text size="sm">{state.executionResult.message}</Text>
+                            )}
+
+                            {state.executionResult.compile_problem && (
+                              <Paper p="md" bg="red.0" c="red.8">
+                                <Text size="sm" fw={500} mb="xs">Compilation Error:</Text>
+                                <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                  {state.executionResult.compile_problem}
+                                </Text>
+                                {state.executionResult.line && (
+                                  <Text size="xs" c="red.8" mt="xs">
+                                    Line {state.executionResult.line}, Column {state.executionResult.column}
+                                  </Text>
+                                )}
+                              </Paper>
+                            )}
+
+                            {state.executionResult.exceptionMessage && (
+                              <Paper p="md" bg="red.0" c="red.8">
+                                <Text size="sm" fw={500} mb="xs">Exception:</Text>
+                                <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                  {state.executionResult.exceptionMessage}
                                 </Text>
                               </Paper>
+                            )}
+
+                            {state.executionResult.limit_exceptions && state.executionResult.limit_exceptions.length > 0 && (
+                              <Paper p="md" bg="yellow.0" c="yellow.8">
+                                <Text size="sm" fw={500}>Governor Limit Warnings:</Text>
+                                <Stack gap="xs" mt="sm">
+                                  {state.executionResult.limit_exceptions.map((limit, index) => (
+                                    <Text key={index} size="sm">{limit}</Text>
+                                  ))}
+                                </Stack>
+                              </Paper>
+                            )}
+
+                            <div>
+                              <Text size="sm" fw={500} mb="sm">Performance Metrics:</Text>
+                              <Group gap="md" wrap="wrap">
+                                {state.executionResult.execution_time !== undefined && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    Execution Time: {state.executionResult.execution_time}ms
+                                  </Badge>
+                                )}
+                                {state.executionResult.cpu_time !== undefined && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    CPU Time: {state.executionResult.cpu_time}ms
+                                  </Badge>
+                                )}
+                                {state.executionResult.dml_statements !== undefined && (
+                                  <Badge size="sm" variant="light" color="cyan">
+                                    DML Statements: {state.executionResult.dml_statements}
+                                  </Badge>
+                                )}
+                              </Group>
                             </div>
-                          )}
-                        </Stack>
-                      </ScrollArea>
+
+                            {state.executionResult.debug_log && state.executionResult.debug_log.length > 0 && (
+                              <div>
+                                <Text size="sm" fw={500} mb="sm">Debug Log:</Text>
+                                <Paper p="sm" withBorder bg="gray.0">
+                                  <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                    {state.executionResult.debug_log}
+                                  </Text>
+                                </Paper>
+                              </div>
+                            )}
+                          </Stack>
+                        </ScrollArea>
+                      ) : null}
                     </div>
                   </div>
                 )}
