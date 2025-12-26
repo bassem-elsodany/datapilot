@@ -1238,8 +1238,14 @@ class SalesforceService:
             }
 
         except Exception as e:
-            logger.error(f"Failed to get Apex classes: {str(e)}")
-            raise ValueError(f"Failed to retrieve Apex classes: {str(e)}")
+            logger.warning(f"Failed to get Apex classes: {str(e)}")
+            # Return empty result instead of failing - some orgs may not have access to ApexClass
+            return {
+                'success': False,
+                'records': [],
+                'total_size': 0,
+                'message': f"Unable to retrieve Apex classes: {str(e)}. Your Salesforce org may not have access to this data."
+            }
 
     def get_apex_triggers(self, connection_uuid: str) -> Dict[str, Any]:
         """
@@ -1273,5 +1279,11 @@ class SalesforceService:
             }
 
         except Exception as e:
-            logger.error(f"Failed to get Apex triggers: {str(e)}")
-            raise ValueError(f"Failed to retrieve Apex triggers: {str(e)}")
+            logger.warning(f"Failed to get Apex triggers: {str(e)}")
+            # Return empty result instead of failing - some orgs may not have access to ApexTrigger
+            return {
+                'success': False,
+                'records': [],
+                'total_size': 0,
+                'message': f"Unable to retrieve Apex triggers: {str(e)}. Your Salesforce org may not have access to this data."
+            }
