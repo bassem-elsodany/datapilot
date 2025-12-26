@@ -442,11 +442,11 @@ export const ApexTab: React.FC = () => {
 
   const handleToggleFavorite = async (apex: SavedApex) => {
     try {
-      await apiService.toggleApexFavorite(apex.saved_apex_uuid);
+      await apiService.toggleApexFavorite(apex.uuid);
 
       // Update local state optimistically
       setSavedApexList(prev => prev.map(item =>
-        item.saved_apex_uuid === apex.saved_apex_uuid
+        item.uuid === apex.uuid
           ? { ...item, is_favorite: !item.is_favorite }
           : item
       ));
@@ -968,7 +968,7 @@ export const ApexTab: React.FC = () => {
                     <div className="apex-edit-content">
                       {editingApex && (
                         <div className="apex-edit-compact-fields">
-                          <Group gap="md">
+                          <Group gap="xs">
                             <TextInput
                               label={tSync('apex.form.name', 'Name')}
                               placeholder={tSync('apex.form.namePlaceholder', 'Enter Apex code name')}
@@ -995,8 +995,8 @@ export const ApexTab: React.FC = () => {
                             />
                           </Group>
 
-                          <Group gap="md" align="center">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '0 0 120px' }}>
+                          <Group gap="xs" align="center">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '0 0 120px' }}>
                               <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>Code Type</Text>
                               <select
                                 value={formData.code_type}
@@ -1030,7 +1030,7 @@ export const ApexTab: React.FC = () => {
 
                       {/* Debug Levels - Compact */}
                       {editingApex && (
-                        <div style={{ flexShrink: 0, paddingTop: '8px', borderTop: '1px solid #e9ecef' }}>
+                        <div style={{ flexShrink: 0, paddingTop: '2px', borderTop: '1px solid #e9ecef', marginBottom: '2px' }}>
                           <Group gap="xs" grow>
                             {(['DB', 'Workflow', 'Validation', 'Callouts', 'Apex_Code', 'Apex_Profiling'] as const).map(level => (
                               <div key={level} style={{ minWidth: 0 }}>
@@ -1063,10 +1063,11 @@ export const ApexTab: React.FC = () => {
 
                       {/* Code Editor Section - Has Priority */}
                       <div className="apex-edit-code-section">
-                        <Text size="sm" fw={500} mb="xs">Apex Code {!editingApex && '(Read-only)'}</Text>
-                        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                        <Text size="sm" fw={500} mb={2}>Apex Code {!editingApex && '(Read-only)'}</Text>
+                        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
                           <Editor
                             height="100%"
+                            width="100%"
                             defaultLanguage="apex"
                             value={editingApex ? formData.apex_code : (state.selectedClass?.body || state.selectedTrigger?.body || '')}
                             onChange={(value) => editingApex && setFormData({ ...formData, apex_code: value || '' })}
@@ -1077,13 +1078,14 @@ export const ApexTab: React.FC = () => {
                               fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
                               tabSize: 2,
                               wordWrap: 'on',
-                              readOnly: !editingApex
+                              readOnly: !editingApex,
+                              automaticLayout: true
                             }}
                           />
                         </div>
                       </div>
 
-                      <Group justify="flex-end" gap="sm">
+                      <Group justify="flex-end" gap="xs">
                         <Button
                           variant="light"
                           size="xs"
@@ -1105,7 +1107,7 @@ export const ApexTab: React.FC = () => {
                               size="xs"
                               variant="light"
                               onClick={() => {
-                                setState(prev => ({ ...prev, isExecuting: true, showTestResultPanel: true, showExecutionModal: false }));
+                                setState(prev => ({ ...prev, isExecuting: true, showTestResultsModal: true, showExecutionModal: false }));
                                 const testExecute = async () => {
                                   try {
                                     const result = await apiService.executeAnonymousApex(currentConnectionUuid, {
@@ -1114,14 +1116,14 @@ export const ApexTab: React.FC = () => {
                                     });
                                     setState(prev => ({
                                       ...prev,
-                                      testExecutionResult: result,
+                                      executionResult: result,
                                       isExecuting: false
                                     }));
                                   } catch (error) {
                                     logger.error('Failed to execute test', 'ApexTab', null, error as Error);
                                     setState(prev => ({
                                       ...prev,
-                                      testExecutionResult: {
+                                      executionResult: {
                                         success: false,
                                         message: 'Execution failed',
                                         compile_problem: (error as Error).message
@@ -1221,11 +1223,11 @@ export const ApexTab: React.FC = () => {
                               </Paper>
                             )}
 
-                            {state.executionResult.exceptionMessage && (
+                            {state.executionResult.exception_message && (
                               <Paper p="md" bg="red.0" c="red.8">
                                 <Text size="sm" fw={500} mb="xs">Exception:</Text>
                                 <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                  {state.executionResult.exceptionMessage}
+                                  {state.executionResult.exception_message}
                                 </Text>
                               </Paper>
                             )}
@@ -1280,7 +1282,7 @@ export const ApexTab: React.FC = () => {
                 )}
 
                 {/* Test Results Panel - Show during edit when test is executed */}
-                {state.showEditPanel && editingApex && state.showTestResultPanel && (
+                {state.showEditPanel && editingApex && state.showTestResultsModal && (
                   <div className="apex-edit-panel">
                     <div className="apex-edit-header">
                       <Text size="md" fw={600}>
@@ -1290,7 +1292,7 @@ export const ApexTab: React.FC = () => {
                         <ActionIcon
                           variant="light"
                           color="gray"
-                          onClick={() => setState(prev => ({ ...prev, showTestResultPanel: false, testExecutionResult: null }))}
+                          onClick={() => setState(prev => ({ ...prev, showTestResultsModal: false, executionResult: null }))}
                         >
                           <IconX size={16} />
                         </ActionIcon>
@@ -1303,51 +1305,51 @@ export const ApexTab: React.FC = () => {
                           <Loader size="lg" />
                           <Text size="md" fw={500} c="dimmed">Executing test...</Text>
                         </Stack>
-                      ) : state.testExecutionResult ? (
+                      ) : state.executionResult ? (
                         <ScrollArea>
                           <Stack gap="md">
                             <Group>
                               <Badge
                                 size="lg"
-                                color={state.testExecutionResult.success ? 'green' : 'red'}
-                                leftSection={state.testExecutionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
+                                color={state.executionResult.success ? 'green' : 'red'}
+                                leftSection={state.executionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
                               >
-                                {state.testExecutionResult.success ? 'Test Passed' : 'Test Failed'}
+                                {state.executionResult.success ? 'Test Passed' : 'Test Failed'}
                               </Badge>
                             </Group>
 
-                            {state.testExecutionResult.message && (
-                              <Text size="sm">{state.testExecutionResult.message}</Text>
+                            {state.executionResult.message && (
+                              <Text size="sm">{state.executionResult.message}</Text>
                             )}
 
-                            {state.testExecutionResult.compile_problem && (
+                            {state.executionResult.compile_problem && (
                               <Paper p="md" bg="red.0" c="red.8">
                                 <Text size="sm" fw={500} mb="xs">Compilation Error:</Text>
                                 <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                  {state.testExecutionResult.compile_problem}
+                                  {state.executionResult.compile_problem}
                                 </Text>
-                                {state.testExecutionResult.line && (
+                                {state.executionResult.line && (
                                   <Text size="xs" c="red.8" mt="xs">
-                                    Line {state.testExecutionResult.line}, Column {state.testExecutionResult.column}
+                                    Line {state.executionResult.line}, Column {state.executionResult.column}
                                   </Text>
                                 )}
                               </Paper>
                             )}
 
-                            {state.testExecutionResult.exceptionMessage && (
+                            {state.executionResult.exception_message && (
                               <Paper p="md" bg="red.0" c="red.8">
                                 <Text size="sm" fw={500} mb="xs">Exception:</Text>
                                 <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                  {state.testExecutionResult.exceptionMessage}
+                                  {state.executionResult.exception_message}
                                 </Text>
                               </Paper>
                             )}
 
-                            {state.testExecutionResult.limit_exceptions && state.testExecutionResult.limit_exceptions.length > 0 && (
+                            {state.executionResult.limit_exceptions && state.executionResult.limit_exceptions.length > 0 && (
                               <Paper p="md" bg="yellow.0" c="yellow.8">
                                 <Text size="sm" fw={500}>Governor Limit Warnings:</Text>
                                 <Stack gap="xs" mt="sm">
-                                  {state.testExecutionResult.limit_exceptions.map((limit, index) => (
+                                  {state.executionResult.limit_exceptions.map((limit, index) => (
                                     <Text key={index} size="sm">{limit}</Text>
                                   ))}
                                 </Stack>
@@ -1357,30 +1359,30 @@ export const ApexTab: React.FC = () => {
                             <div>
                               <Text size="sm" fw={500} mb="sm">Performance Metrics:</Text>
                               <Group gap="md" wrap="wrap">
-                                {state.testExecutionResult.execution_time !== undefined && (
+                                {state.executionResult.execution_time !== undefined && (
                                   <Badge size="sm" variant="light" color="blue">
-                                    Execution Time: {state.testExecutionResult.execution_time}ms
+                                    Execution Time: {state.executionResult.execution_time}ms
                                   </Badge>
                                 )}
-                                {state.testExecutionResult.cpu_time !== undefined && (
+                                {state.executionResult.cpu_time !== undefined && (
                                   <Badge size="sm" variant="light" color="blue">
-                                    CPU Time: {state.testExecutionResult.cpu_time}ms
+                                    CPU Time: {state.executionResult.cpu_time}ms
                                   </Badge>
                                 )}
-                                {state.testExecutionResult.dml_statements !== undefined && (
+                                {state.executionResult.dml_statements !== undefined && (
                                   <Badge size="sm" variant="light" color="cyan">
-                                    DML Statements: {state.testExecutionResult.dml_statements}
+                                    DML Statements: {state.executionResult.dml_statements}
                                   </Badge>
                                 )}
                               </Group>
                             </div>
 
-                            {state.testExecutionResult.debug_log && state.testExecutionResult.debug_log.length > 0 && (
+                            {state.executionResult.debug_log && state.executionResult.debug_log.length > 0 && (
                               <div>
                                 <Text size="sm" fw={500} mb="sm">Debug Log:</Text>
                                 <Paper p="sm" withBorder bg="gray.0">
                                   <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                    {state.testExecutionResult.debug_log}
+                                    {state.executionResult.debug_log}
                                   </Text>
                                 </Paper>
                               </div>
@@ -1611,7 +1613,7 @@ export const ApexTab: React.FC = () => {
                 </div>
 
                 {/* Right side - Test results panel */}
-                {state.showTestResultsPanel && state.testResults && (
+                {state.showTestResultsModal && state.testResults && (
                   <div className="apex-edit-panel">
                     <div className="apex-edit-header">
                       <Text size="md" fw={600}>
@@ -1620,7 +1622,7 @@ export const ApexTab: React.FC = () => {
                       <ActionIcon
                         variant="light"
                         color="gray"
-                        onClick={() => setState(prev => ({ ...prev, showTestResultsPanel: false }))}
+                        onClick={() => setState(prev => ({ ...prev, showTestResultsModal: false }))}
                       >
                         <IconX size={16} />
                       </ActionIcon>

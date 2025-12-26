@@ -80,6 +80,10 @@
 .apex-main {
   flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 .apex-panel {
@@ -94,6 +98,7 @@
   display: flex;
   gap: 16px;
   overflow: hidden;
+  min-height: 0;
 }
 
 .apex-items {
@@ -219,6 +224,8 @@
   border-left: 1px solid #e5e7eb;
   background: #f8fafc;
   overflow: hidden;
+  height: 100%;
+  min-height: 0;
 }
 
 .apex-edit-header {
@@ -233,18 +240,19 @@
 
 .apex-edit-content {
   flex: 1;
-  padding: 20px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
+  gap: 4px;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .apex-edit-compact-fields {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
 }
 
 .apex-edit-code-section {
@@ -252,6 +260,11 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  gap: 4px;
+}
+
+.apex-edit-code-section > .mantine-Text-root {
+  margin-bottom: 0 !important;
 }
 
 .apex-edit-code-section .mantine-Textarea-root {
@@ -263,6 +276,11 @@
 .apex-edit-code-section .mantine-Textarea-input {
   flex: 1;
   min-height: 400px !important;
+}
+
+/* Ensure button group at bottom doesn't shrink */
+.apex-edit-content .mantine-Group-root {
+  flex-shrink: 0;
 }
 
 /* ========================================
