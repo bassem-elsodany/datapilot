@@ -106,6 +106,7 @@ License: MIT License
 
 from functools import lru_cache
 from urllib.parse import quote
+import json
 
 from loguru import logger
 from typing import Dict, List, Any, Optional
@@ -930,15 +931,15 @@ class SalesforceService:
                 logger.info(f"   Keys: {list(result.keys()) if isinstance(result, dict) else 'N/A'}")
                 logger.info(f"   Full Response: {json.dumps(result, indent=2, default=str)}")
 
-            # Get debug log - Salesforce returns it in the 'logs' field as a string
-            # Try multiple field names that Salesforce might use
-            debug_log = result.get('logs', '') or result.get('debugLog', '') or result.get('log', '') if result else ''
-
-            # If still no logs, log all keys for debugging
-            if not debug_log and result:
-                logger.warning(f"No debug log found. Available keys in result: {list(result.keys())}")
-
-            debug_info = [debug_log] if debug_log else []
+            # Note: Salesforce's executeAnonymous endpoint does NOT return debug logs
+            # The response only contains compilation and execution status
+            # To get debug logs, you would need to:
+            # 1. Use ApexTestResult if executing test code
+            # 2. Query TraceFlag and DebugLog entities if debug logging is enabled
+            # 3. Use Tooling API with a separate debug log request
+            # For now, we return an empty debug_log since it's not available from executeAnonymous
+            debug_log = ''
+            debug_info = []
 
             # Map the response to a consistent format using snake_case
             response = {
