@@ -613,3 +613,50 @@ def toggle_favorite(
             request=http_request,
             locale=lang
         )
+
+
+@router.post("/{apex_uuid}/execute")
+def execute_saved_apex_endpoint(
+    http_request: Request,
+    apex_uuid: str = Path(..., description="UUID of the saved Apex code to execute"),
+    lang: str = Query("en", description="Language code for messages"),
+    connection_uuid: str = Query(description="Connection UUID for the Salesforce connection")
+):
+    """
+    Execute saved Apex code and track execution statistics
+
+    Args:
+        apex_uuid: UUID of the saved Apex code to execute
+        connection_uuid: Connection UUID for the Salesforce connection
+
+    Returns:
+        Execution result with updated saved Apex metadata
+    """
+    try:
+        logger.debug(f"Executing saved Apex code: {apex_uuid}")
+
+        result = saved_apex_service.execute_saved_apex(
+            apex_uuid=apex_uuid,
+            connection_uuid=connection_uuid
+        )
+
+        logger.debug(f"Executed saved Apex code: {apex_uuid}")
+        return result
+
+    except ValueError as e:
+        logger.debug(f"Validation error executing saved Apex code: {str(e)}")
+        ErrorService.raise_validation_error(
+            message="saved_apex.error.validation",
+            field_errors={"validation": str(e)},
+            request=http_request,
+            locale=lang
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        ErrorService.handle_generic_exception(
+            exception=e,
+            operation="executing saved Apex code",
+            request=http_request,
+            locale=lang
+        )

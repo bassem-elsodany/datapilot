@@ -2034,6 +2034,39 @@ export class ApiService {
     }
   }
 
+  async executeSavedApex(apex_uuid: string, connection_uuid: string): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(
+        this.addLangToUrl(`${this.getEndpointUrl('saved-apex')}/${encodeURIComponent(apex_uuid)}/execute?connection_uuid=${encodeURIComponent(connection_uuid)}`)
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to execute saved Apex code';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (detail.message && typeof detail.message === 'string') {
+          errorMessage = detail.message;
+        } else if (detail.error_code && typeof detail.error_code === 'string') {
+          errorMessage = detail.error_code;
+        } else {
+          errorMessage = JSON.stringify(detail);
+        }
+      } else if (typeof detail === 'string') {
+        errorMessage = detail;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
   /**
    * Run Apex tests
    */
