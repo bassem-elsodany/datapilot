@@ -1,6 +1,10 @@
 # DataPilot - Advanced Salesforce Data Platform
 <div align="center">
 <img src="imgs/logo/logo-large.png" alt="DataPilot Logo" width="550">
+
+[![CI](https://github.com/bassem-elsodany/datapilot/actions/workflows/ci.yml/badge.svg)](https://github.com/bassem-elsodany/datapilot/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Custom%20Non--Commercial-blue)](LICENSE)
+
 <img src="https://img.shields.io/badge/🤖-AI%20POWERED%20QUERIES-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Queries"> <img src="https://img.shields.io/badge/📊-VISUAL%20SCHEMA-4ECDC4?style=for-the-badge&logo=chart&logoColor=white" alt="VisualSchema"> <img src="https://img.shields.io/badge/⚡-SMART%20SOQL%20EDITOR-00D4AA?style=for-the-badge&logo=lightning&logoColor=white" alt="SmartSOQLEditor">
 
 </div>
@@ -85,6 +89,21 @@
 - **Bidirectional Integration**: Seamless schema canvas integration
 - **Multi-Hierarchy Results**: Advanced result visualization with 4-level nesting
 - **Real-time Validation**: Instant error detection and correction
+- **Inline Record Editing**: Edit field values directly in the results grid and save changes back to Salesforce
+---
+
+### **4. [Apex Code Management](docs/05-apex-code-management.md)**
+**APEX DEVELOPMENT ENVIRONMENT**
+
+- **Anonymous Apex Execution**: Run Apex code against your connected org and view debug logs
+- **Saved Apex Snippets**: Create, edit, and re-run saved Apex code
+- **Apex Class & Trigger Browser**: Load and inspect existing classes/triggers, compile packages and triggers
+- **Test Execution**: Run Apex tests and view results, including compile-and-test workflows
+
+---
+
+**Note on data writes**: DataPilot can already modify org data and metadata through inline record editing and Apex execution (both are direct, deliberate user actions). The AI Query Assistant itself is currently **read-only** — its tools only search, describe, and query Salesforce data; it does not yet perform inserts/updates/deletes on your behalf. See the [Roadmap](#roadmap) for planned AI-driven data updates.
+
 ---
 
 
@@ -123,7 +142,7 @@ graph LR
 - **[AI-Powered Query Assistant](docs/01-ai-powered-query-assistant.md)** - Natural language to SOQL conversion
 - **[Interactive Schema Explorer](docs/02-interactive-schema-explorer.md)** - Visual metadata exploration
 - **[Advanced SOQL Query Editor](docs/03-advanced-soql-query-editor.md)** - Intelligent code editor
-- **[Apex Code Management](docs/05-apex-code-management.md)** - Apex development tools (Under Development)
+- **[Apex Code Management](docs/05-apex-code-management.md)** - Apex development environment
 
 ---
 
@@ -141,6 +160,21 @@ graph LR
 - **Integration Setup**: API and external system connections
 - **Monitoring**: Usage monitoring
 
+### **Key Configuration & Seeded Credentials**
+
+The Docker Compose setup seeds default MongoDB credentials for local development. **Change these before exposing DataPilot beyond your own machine:**
+
+| Variable | Where | Default | Notes |
+|---|---|---|---|
+| `MONGO_USER` / `MONGO_PASS` | `docker/docker-compose.yml`, `docker/environment-configs/backend.env` | `datapilot` / `datapilot123` | Change immediately for any non-local deployment |
+| `LLM_API_KEY` | `docker/environment-configs/backend.env` | placeholder | Required for the AI Query Assistant; set your own OpenAI/Groq/Ollama key |
+| `LLM_PROVIDER` | `docker/environment-configs/backend.env` | `openai` | `openai`, `groq`, or `ollama` |
+| `LANGFUSE_*` | `docker/environment-configs/backend.env` | placeholder / disabled | Optional; enables LLM call tracing |
+| `VITE_API_BASE_URL` | `docker/environment-configs/dashboard.env` | `http://localhost:8001` | **Must be changed to your server's address for any deployment the browser doesn't run on the same machine as the backend** — `localhost` in a served frontend resolves to the viewer's machine, not your server |
+| `CORS_ALLOW_ORIGINS` | `docker/environment-configs/backend.env` | `["*"]` | Restrict for production use |
+
+See [Docker README](docker/README.md) for the full configuration walkthrough.
+
 ---
 
 ## **DEPLOYMENT & DEVELOPMENT DOCUMENTATION**
@@ -154,17 +188,13 @@ graph LR
 
 ### **🚀 Planned Features**
 
-#### **Apex Development Tools**
-- **Apex Code Management**: Basic Apex development environment
-- **Apex Testing**: Simple test execution capabilities
-
 #### **Enhanced Authentication**
 - **Salesforce Web-based Authentication**: Native Salesforce OAuth integration
 - **Multi-tenant Support**: Support for multiple Salesforce orgs
 
 #### **Data Modification Capabilities**
-- **Data Update Operations**: Basic insert, update, delete operations through UI
-- **AI-Powered Data Updates**: Natural language data modification through AI agent
+- **Record Insert & Delete**: The UI currently supports inline record *updates*; insert and delete operations through the UI are planned
+- **AI-Powered Data Updates**: Natural language data modification through the AI agent (the AI agent is currently read-only)
 - **Data Validation**: Simple data validation and error handling
 
 ---
