@@ -10,14 +10,6 @@ WORKDIR /app
 # Copy package files
 COPY dashboard/package*.json ./
 
-# Drop Electron-desktop-only packages before installing: this image only ever runs
-# the Vite web dev server, never the Electron shell, and none of these are imported
-# from any web-reachable source path. Electron's binary download and keytar's native
-# build are otherwise the dominant cost of this install (especially under QEMU
-# emulation for non-native architectures) despite being completely unused here.
-RUN npm pkg delete dependencies.keytar dependencies.electron-store \
-    devDependencies.electron devDependencies.electron-builder "devDependencies[@electron/asar]"
-
 # Install all dependencies (including dev dependencies for build)
 RUN npm install
 
