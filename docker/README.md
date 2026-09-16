@@ -29,7 +29,7 @@ graph TB
         end
         
         subgraph "Data Layer"
-            M[MongoDB Container<br/>Database<br/>Port: 27018]
+            M[MongoDB Container<br/>Database<br/>Port: 27918]
         end
         
         subgraph "Network Layer"
@@ -51,19 +51,36 @@ graph TB
 ### **📋 Prerequisites**
 - **Docker** and **Docker Compose** installed
 - **Git** installed
-- **Ports 3001, 8001, 27018** available
+- **Ports 3001, 8001, 27918** available
 
 > **⚠️ Port Conflicts?** If ports are in use, you'll need to change them in the configuration files (see [Port Configuration](#port-configuration) section).
 
-### **📥 1. Clone Repository**
+### **📥 1. Get the Configuration Files**
+
+You need `docker/` from the repository either way (compose file, MongoDB init scripts, and the environment config templates) — but the two options below differ in whether you also build the app images yourself or use the ones already published to GHCR.
+
 ```bash
-# Clone DataPilot repository
 git clone https://github.com/bassem-elsodany/datapilot.git
 cd datapilot/docker
 
-# Make start script executable
+# Make start script executable (build-from-source option only)
 chmod +x start.sh
 ```
+
+**Option A — Pre-built images (fastest, no build step):**
+Uses `docker-compose.ghcr.yml`, which pulls `ghcr.io/bassem-elsodany/datapilot-backend` and `ghcr.io/bassem-elsodany/datapilot-dashboard` (multi-arch: amd64 + arm64) directly instead of building locally.
+```bash
+docker compose -f docker-compose.ghcr.yml up -d
+```
+
+**Option B — Build from source:**
+Uses `docker-compose.yml`, which builds both images locally from the `Dockerfile.backend` / `Dockerfile.dashboard` in this directory. Use this if you're modifying the app itself.
+```bash
+docker compose up -d
+# or: ./start.sh start (see step 3 below)
+```
+
+Either way, continue with steps 2-5 below — configuration and verification are identical.
 
 ### **🔧 2. Configure Environment**
 
@@ -88,17 +105,25 @@ LOG_LEVEL=INFO
 ```
 
 ```bash
-# Edit frontend configuration  
+# Edit frontend configuration
 nano environment-configs/dashboard.env
 
-# REQUIRED: Set backend API URL
-VITE_API_BASE_URL=http://localhost:8001
-
-# For remote backend:
-# VITE_API_BASE_URL=http://your-server-ip:8001
+# OPTIONAL: VITE_API_BASE_URL is auto-detected at runtime (same host that
+# served the page, port 8001) - only set it for a split-host deployment
+# where the frontend and backend run on different hosts/domains:
+# VITE_API_BASE_URL=http://your-backend-host:8001
 ```
 
 ### **🚀 3. Start DataPilot**
+
+**If you used Option A (pre-built images):**
+```bash
+docker compose -f docker-compose.ghcr.yml up -d      # start
+docker compose -f docker-compose.ghcr.yml down       # stop
+docker compose -f docker-compose.ghcr.yml pull       # fetch newer :latest images
+```
+
+**If you used Option B (build from source):**
 ```bash
 # Production mode
 ./start.sh start
@@ -117,7 +142,7 @@ VITE_API_BASE_URL=http://localhost:8001
 - **Frontend**: http://localhost:3001
 - **Backend**: http://localhost:8001  
 - **API Docs**: http://localhost:8001/docs
-- **Database**: localhost:27018 (MongoDB)
+- **Database**: localhost:27918 (MongoDB)
 
 ### **✅ 5. Verify Installation**
 ```bash
@@ -137,7 +162,7 @@ curl http://localhost:8001/api/v1/health
 
 ## **PORT CONFIGURATION**
 
-If the default ports (3001, 8001, 27018) are already in use, you can change them:
+If the default ports (3001, 8001, 27918) are already in use, you can change them:
 
 ### **📝 Step 1: Update Docker Compose**
 ```bash
@@ -148,7 +173,7 @@ nano docker-compose.yml
 ports:
   - "3002:80"     # Frontend: 3002 instead of 3001
   - "8002:8000"   # Backend: 8002 instead of 8001
-  - "27019:27017" # MongoDB: 27019 instead of 27018
+  - "27019:27017" # MongoDB: 27019 instead of 27918
 ```
 
 ### **📝 Step 2: Update Frontend Configuration**
@@ -309,12 +334,12 @@ chmod +x start.sh
 # Check what's using the ports
 lsof -i :3001
 lsof -i :8001
-lsof -i :27018
+lsof -i :27918
 
 # Option 1: Stop conflicting services
 sudo kill -9 $(lsof -ti:3001)
 sudo kill -9 $(lsof -ti:8001)
-sudo kill -9 $(lsof -ti:27018)
+sudo kill -9 $(lsof -ti:27918)
 
 # Option 2: Change ports (see Port Configuration section above)
 # Edit docker-compose.yml and env files with new ports
@@ -371,15 +396,13 @@ docker-compose up --build -d
 |---------|------|------------|-------------|
 | **Frontend** | 3001 | React + TypeScript | User interface with hot reload |
 | **Backend** | 8001 | Python + FastAPI | AI API with auto-reload |
-| **Database** | 27018 | MongoDB 7.0 | Persistent data storage |
+| **Database** | 27918 | MongoDB 7.0 | Persistent data storage |
 
 ---
 
 ## **LICENSE**
 
-This project is licensed under the DataPilot License - see the [LICENSE](../LICENSE) file for details.
-
-**Commercial and Enterprise Use**: Requires prior written permission. Contact: [https://www.linkedin.com/in/bassem-elsodany/](https://www.linkedin.com/in/bassem-elsodany/)
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
 
 ---
 

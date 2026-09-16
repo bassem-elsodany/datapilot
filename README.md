@@ -3,7 +3,7 @@
 <img src="imgs/logo/logo-large.png" alt="DataPilot Logo" width="550">
 
 [![CI](https://github.com/bassem-elsodany/datapilot/actions/workflows/ci.yml/badge.svg)](https://github.com/bassem-elsodany/datapilot/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-Custom%20Non--Commercial-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 <img src="https://img.shields.io/badge/🤖-AI%20POWERED%20QUERIES-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Queries"> <img src="https://img.shields.io/badge/📊-VISUAL%20SCHEMA-4ECDC4?style=for-the-badge&logo=chart&logoColor=white" alt="VisualSchema"> <img src="https://img.shields.io/badge/⚡-SMART%20SOQL%20EDITOR-00D4AA?style=for-the-badge&logo=lightning&logoColor=white" alt="SmartSOQLEditor">
 
@@ -201,9 +201,7 @@ See [Docker README](docker/README.md) for the full configuration walkthrough.
 
 ## **LICENSE**
 
-This project is licensed under the DataPilot License - see the [LICENSE](../LICENSE) file for details.
-
-**Commercial and Enterprise Use**: Requires prior written permission. Contact: [https://www.linkedin.com/in/bassem-elsodany/](https://www.linkedin.com/in/bassem-elsodany/)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 

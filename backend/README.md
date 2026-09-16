@@ -314,9 +314,7 @@ curl -X POST http://localhost:8000/api/v1/salesforce/queries/execute \
 
 ## **LICENSE**
 
-This project is licensed under the DataPilot License - see the [LICENSE](../LICENSE) file for details.
-
-**Commercial and Enterprise Use**: Requires prior written permission. Contact: [https://www.linkedin.com/in/bassem-elsodany/](https://www.linkedin.com/in/bassem-elsodany/)
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
 
 ---
 
