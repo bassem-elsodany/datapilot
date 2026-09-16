@@ -35,27 +35,27 @@
 
 The **AI-Powered Query Assistant** is DataPilot's revolutionary **Agentic Agent** that transforms Salesforce data interaction through autonomous artificial intelligence. This sophisticated agent understands natural language, autonomously discovers Salesforce objects, builds optimized SOQL queries, and delivers real-time streaming responses with complete business context awareness.
 
-🚀 **Experience the Future of Salesforce Data Intelligence**
+**Experience the Future of Salesforce Data Intelligence**
 
 ### Autonomous Agentic Intelligence: ReAct (Reasoning + Acting)
 
 The **Agentic Agent** implements the cutting-edge **ReAct (Reasoning + Acting)** pattern, creating a truly autonomous AI that thinks, acts, and learns independently. This revolutionary approach enables the agent to:
 
-🧠 **Think**: Autonomously analyze complex user requests and strategize optimal actions
-⚡ **Act**: Execute sophisticated Salesforce operations using specialized AI tools
-👁️ **Observe**: Intelligently process results and adapt strategies in real-time
-🔄 **Iterate**: Continuously refine approaches until achieving perfect outcomes
+**Think**: Autonomously analyze complex user requests and strategize optimal actions
+**Act**: Execute sophisticated Salesforce operations using specialized AI tools
+**Observe**: Intelligently process results and adapt strategies in real-time
+**Iterate**: Continuously refine approaches until achieving perfect outcomes
 
 **The Result**: A truly autonomous agent that works independently, learns from interactions, and delivers intelligent solutions without human intervention.
 
-> **💡 Revolutionary Capability**: This isn't just an AI assistant—it's a fully autonomous agent that can independently discover, analyze, and solve complex Salesforce data challenges.
+> **Revolutionary Capability**: This isn't just an AI assistant—it's a fully autonomous agent that can independently discover, analyze, and solve complex Salesforce data challenges.
 
-> **💡 Performance Optimization Note**: The ReAct prompt can be fine-tuned to achieve lower latency and reduced token usage. Experimenting with prompt engineering techniques such as:
+> **Performance Optimization Note**: The ReAct prompt can be fine-tuned to achieve lower latency and reduced token usage. Experimenting with prompt engineering techniques such as:
 > - **Shorter reasoning chains**: Reducing verbose explanations in the reasoning phase
 > - **Tool selection optimization**: Streamlining tool selection logic
 > - **Context compression**: Minimizing context while maintaining accuracy
 > - **Response formatting**: Optimizing output structure for efficiency
-> 
+>
 > These optimizations can significantly improve response times while maintaining the same level of accuracy and functionality.
 
 ## Live Demo
@@ -74,31 +74,31 @@ The demo showcases:
 ## Revolutionary Agentic Capabilities
 
 ### Autonomous Natural Language Intelligence
-- **🤖 Self-Discovering Agent**: Automatically finds and maps Salesforce objects from natural language
-- **🧠 Context-Aware Reasoning**: Maintains sophisticated conversation context across complex interactions
-- **🎯 Intent Mastery**: Deeply understands user intent and business requirements autonomously
-- **🔄 Self-Improving Intelligence**: Iteratively refines approaches based on results and feedback
+- **Self-Discovering Agent**: Automatically finds and maps Salesforce objects from natural language
+- **Context-Aware Reasoning**: Maintains sophisticated conversation context across complex interactions
+- **Intent Mastery**: Deeply understands user intent and business requirements autonomously
+- **Self-Improving Intelligence**: Iteratively refines approaches based on results and feedback
 
 ### Real-time Autonomous Processing
-- **🚀 Live Agentic Streaming**: Real-time autonomous response generation with intelligent reasoning
-- **👁️ Progressive Intelligence**: Information revealed as the agent autonomously processes and reasons
-- **🧠 Persistent Memory**: Maintains sophisticated conversation state and learning across sessions
-- **🔄 Multi-turn Autonomy**: Complex multi-step query building with autonomous decision-making
+- **Live Agentic Streaming**: Real-time autonomous response generation with intelligent reasoning
+- **Progressive Intelligence**: Information revealed as the agent autonomously processes and reasons
+- **Persistent Memory**: Maintains sophisticated conversation state and learning across sessions
+- **Multi-turn Autonomy**: Complex multi-step query building with autonomous decision-making
 
 ### Salesforce Autonomous Operations
-- **🔍 Intelligent Discovery**: Autonomous metadata exploration and object structure analysis
-- **⚡ Smart Data Retrieval**: Autonomous SOQL query execution with intelligent optimization
-- **🔗 Relationship Intelligence**: Autonomous mapping of object connections and dependencies
-- **📊 Field Intelligence**: Autonomous analysis of field properties and business logic
+- **Intelligent Discovery**: Autonomous metadata exploration and object structure analysis
+- **Smart Data Retrieval**: Autonomous SOQL query execution with intelligent optimization
+- **Relationship Intelligence**: Autonomous mapping of object connections and dependencies
+- **Field Intelligence**: Autonomous analysis of field properties and business logic
 
 ### Revolutionary Agentic Architecture
-- **🤖 Autonomous ReAct Agent**: 100% custom-built agentic intelligence specifically designed for DataPilot's Salesforce operations
-- **⚡ Real-time Agentic Streaming**: Autonomous bidirectional streaming with intelligent chunked responses
-- **🧠 Persistent Agentic Memory**: Sophisticated conversation state persistence with MongoDB integration
-- **🛠️ Autonomous Salesforce Tools**: 5 specialized AI tools for comprehensive autonomous Salesforce operations
-- **🧠 Intelligent State Management**: Advanced TypedDict-based state with autonomous conversation context awareness
+- **Autonomous ReAct Agent**: 100% custom-built agentic intelligence specifically designed for DataPilot's Salesforce operations
+- **Real-time Agentic Streaming**: Autonomous bidirectional streaming with intelligent chunked responses
+- **Persistent Agentic Memory**: Sophisticated conversation state persistence with MongoDB integration
+- **Autonomous Salesforce Tools**: 5 specialized AI tools for comprehensive autonomous Salesforce operations
+- **Intelligent State Management**: Advanced TypedDict-based state with autonomous conversation context awareness
 
-> **🌟 Revolutionary Breakthrough**: This isn't just another AI tool—it's a fully autonomous agentic intelligence that works independently, learns continuously, and delivers unprecedented Salesforce data insights.
+> **Revolutionary Breakthrough**: This isn't just another AI tool—it's a fully autonomous agentic intelligence that works independently, learns continuously, and delivers unprecedented Salesforce data insights.
 
 ## Technical Architecture
 
@@ -452,7 +452,7 @@ The AI agent includes comprehensive observation capabilities through Langfuse in
 The Langfuse dashboard shows your AI agent's execution in real-time:
 
 - **Trace List**: Your recent AI conversations with timestamps
-- **Execution Tree**: Shows the agent's thinking process (agent → tools → agent → summary)
+- **Execution Tree**: Shows the agent's thinking process (agent tools agent summary)
 - **Performance**: 51.92s total time, $0.003648 cost, 19,421 tokens used
 - **Workflow Graph**: Visual flow of how the ReAct pattern works
 - **Debug Data**: Complete input/output for troubleshooting

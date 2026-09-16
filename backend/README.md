@@ -1,12 +1,12 @@
-# 🚀 DataPilot Backend - AI-Powered Salesforce Platform
+# DataPilot Backend - AI-Powered Salesforce Platform
 
 <div align="center">
 
-<img src="https://img.shields.io/badge/🤖-AI%20POWERED%20BACKEND-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Backend"> <img src="https://img.shields.io/badge/⚡-FASTAPI%20PERFORMANCE-00D4AA?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI Performance"> <img src="https://img.shields.io/badge/🧠-LANGGRAPH%20AI-4ECDC4?style=for-the-badge&logo=brain&logoColor=white" alt="LangGraph AI">
+<img src="https://img.shields.io/badge/-AI%20POWERED%20BACKEND-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Backend"> <img src="https://img.shields.io/badge/-FASTAPI%20PERFORMANCE-00D4AA?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI Performance"> <img src="https://img.shields.io/badge/-LANGGRAPH%20AI-4ECDC4?style=for-the-badge&logo=brain&logoColor=white" alt="LangGraph AI">
 
 ---
 
-## 🌟 **THE AI REVOLUTION FOR SALESFORCE BACKEND** 🌟
+## **THE AI REVOLUTION FOR SALESFORCE BACKEND**
 
 **Transform Salesforce operations with AI-powered backend intelligence, autonomous agents, and enterprise-grade security.**
 
@@ -14,20 +14,20 @@
 
 ---
 
-## 📋 **Table of Contents**
+## **Table of Contents**
 
-### **🏗️ Architecture**
+### **Architecture**
 - [Architecture Overview](#architecture-overview)
 - [High-Level Architecture](#high-level-architecture)
 - [AI Engine Architecture](#ai-engine-architecture)
 
-### **🚀 Getting Started**
+### **Getting Started**
 - [Quick Start](#quick-start)
 - [Prerequisites](#prerequisites)
 - [Installation & Setup](#installation--setup)
 - [Alternative Startup Methods](#alternative-startup-methods)
 
-### **📡 API Reference**
+### **API Reference**
 - [API Endpoints Overview](#api-endpoints-overview)
 - [Core Services](#core-services)
 - [AI & Intelligence](#ai--intelligence)
@@ -36,19 +36,19 @@
 - [Internationalization](#internationalization)
 - [Monitoring & Logging](#monitoring--logging)
 
-### **🛠️ Development**
+### **Development**
 - [Development Commands](#development-commands)
 - [Installation & Dependencies](#installation--dependencies)
 
-### **🧠 AI Capabilities**
+### **AI Capabilities**
 - [Autonomous AI Agent](#autonomous-ai-agent)
 - [AI Tools](#ai-tools)
 
-### **📊 Monitoring & Observability**
+### **Monitoring & Observability**
 - [Health Monitoring](#health-monitoring)
 - [Logging & Debugging](#logging--debugging)
 
-### **📚 API Documentation**
+### **API Documentation**
 - [Interactive Documentation](#interactive-documentation)
 - [API Examples](#api-examples)
 
@@ -320,7 +320,7 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 <div align="center">
 
-## 🚀 **GET STARTED NOW**
+## **GET STARTED NOW**
 
 **Ready to revolutionize your Salesforce operations with AI?**
 
@@ -329,12 +329,12 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 make install-dev && make run
 ```
 
-**🌐 Backend running at: http://localhost:8000**
-**📚 API Documentation: http://localhost:8000/docs**
+**Backend running at: http://localhost:8000**
+**API Documentation: http://localhost:8000/docs**
 
 ---
 
-**🤖 THE AI REVOLUTION FOR SALESFORCE BACKEND IS HERE 🤖**
+**THE AI REVOLUTION FOR SALESFORCE BACKEND IS HERE **
 
 *Transform your Salesforce operations with AI-powered intelligence, autonomous agents, and enterprise-grade security.*
 

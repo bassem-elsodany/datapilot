@@ -1,12 +1,12 @@
-# 🐳 DataPilot Docker Deployment
+# DataPilot Docker Deployment
 
 <div align="center">
 
-<img src="https://img.shields.io/badge/🐳-DOCKER%20DEPLOYMENT-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Deployment"> <img src="https://img.shields.io/badge/⚡-PRODUCTION%20READY-00D4AA?style=for-the-badge&logo=rocket&logoColor=white" alt="Production Ready"> <img src="https://img.shields.io/badge/🔧-DEVELOPMENT%20MODE-4ECDC4?style=for-the-badge&logo=tools&logoColor=white" alt="Development Mode">
+<img src="https://img.shields.io/badge/-DOCKER%20DEPLOYMENT-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Deployment"> <img src="https://img.shields.io/badge/-PRODUCTION%20READY-00D4AA?style=for-the-badge&logo=rocket&logoColor=white" alt="Production Ready"> <img src="https://img.shields.io/badge/-DEVELOPMENT%20MODE-4ECDC4?style=for-the-badge&logo=tools&logoColor=white" alt="Development Mode">
 
 ---
 
-## 🚀 **REVOLUTIONARY AI PLATFORM - DOCKER DEPLOYMENT**
+## **REVOLUTIONARY AI PLATFORM - DOCKER DEPLOYMENT**
 
 **Deploy DataPilot's revolutionary AI-powered Salesforce intelligence platform with enterprise-grade Docker containers.**
 
@@ -14,9 +14,9 @@
 
 ---
 
-## 🏗️ **ARCHITECTURE**
+## **ARCHITECTURE**
 
-### **📦 Container Architecture**
+### **Container Architecture**
 ```mermaid
 graph TB
     subgraph "DataPilot Docker Stack"
@@ -46,16 +46,16 @@ graph TB
 
 ---
 
-## ⚡ **QUICK START**
+## **QUICK START**
 
-### **📋 Prerequisites**
+### **Prerequisites**
 - **Docker** and **Docker Compose** installed
 - **Git** installed
 - **Ports 3001, 8001, 27918** available
 
-> **⚠️ Port Conflicts?** If ports are in use, you'll need to change them in the configuration files (see [Port Configuration](#port-configuration) section).
+> **Port Conflicts?** If ports are in use, you'll need to change them in the configuration files (see [Port Configuration](#port-configuration) section).
 
-### **📥 1. Get the Configuration Files**
+### **1. Get the Configuration Files**
 
 You need `docker/` from the repository either way (compose file, MongoDB init scripts, and the environment config templates) — but the two options below differ in whether you also build the app images yourself or use the ones already published to GHCR.
 
@@ -82,9 +82,9 @@ docker compose up -d
 
 Either way, continue with steps 2-5 below — configuration and verification are identical.
 
-### **🔧 2. Configure Environment**
+### **2. Configure Environment**
 
-> **⚠️ IMPORTANT**: AI Agent features are **OPTIONAL**! 
+> **IMPORTANT**: AI Agent features are **OPTIONAL**!
 > - **Without AI keys**: All tabs work normally except the AI Assistant tab
 > - **With AI keys**: Full AI-powered query assistance and reasoning
 > - **Other features**: Schema Explorer, Query Editor, Saved Queries work perfectly without AI
@@ -114,7 +114,7 @@ nano environment-configs/dashboard.env
 # VITE_API_BASE_URL=http://your-backend-host:8001
 ```
 
-### **🚀 3. Start DataPilot**
+### **3. Start DataPilot**
 
 **If you used Option A (pre-built images):**
 ```bash
@@ -138,13 +138,13 @@ docker compose -f docker-compose.ghcr.yml pull       # fetch newer :latest image
 ./start.sh reset
 ```
 
-### **🌐 4. Access Application**
+### **4. Access Application**
 - **Frontend**: http://localhost:3001
-- **Backend**: http://localhost:8001  
+- **Backend**: http://localhost:8001
 - **API Docs**: http://localhost:8001/docs
 - **Database**: localhost:27918 (MongoDB)
 
-### **✅ 5. Verify Installation**
+### **5. Verify Installation**
 ```bash
 # Check all services are running
 ./start.sh status
@@ -158,13 +158,13 @@ curl http://localhost:8001/api/v1/health
 
 ---
 
-## 🔧 **CONFIGURATION**
+## **CONFIGURATION**
 
 ## **PORT CONFIGURATION**
 
 If the default ports (3001, 8001, 27918) are already in use, you can change them:
 
-### **📝 Step 1: Update Docker Compose**
+### **Step 1: Update Docker Compose**
 ```bash
 # Edit docker-compose.yml
 nano docker-compose.yml
@@ -176,7 +176,7 @@ ports:
   - "27019:27017" # MongoDB: 27019 instead of 27918
 ```
 
-### **📝 Step 2: Update Frontend Configuration**
+### **Step 2: Update Frontend Configuration**
 ```bash
 # Edit environment-configs/dashboard.env
 nano environment-configs/dashboard.env
@@ -185,7 +185,7 @@ nano environment-configs/dashboard.env
 VITE_API_BASE_URL=http://localhost:8002
 ```
 
-### **📝 Step 3: Update Backend Configuration**
+### **Step 3: Update Backend Configuration**
 ```bash
 # Edit environment-configs/backend.env
 nano environment-configs/backend.env
@@ -195,14 +195,14 @@ MONGO_HOST=mongodb
 MONGO_PORT=27017  # Keep internal port same
 ```
 
-### **📝 Step 4: Restart Services**
+### **Step 4: Restart Services**
 ```bash
 # Stop and restart with new ports
 ./start.sh stop
 ./start.sh start
 ```
 
-### **🌐 New Access URLs**
+### **New Access URLs**
 - **Frontend**: http://localhost:3002
 - **Backend**: http://localhost:8002
 - **API Docs**: http://localhost:8002/docs
@@ -210,16 +210,16 @@ MONGO_PORT=27017  # Keep internal port same
 
 ---
 
-## 🤖 **AI MODEL CONFIGURATION**
+## **AI MODEL CONFIGURATION**
 
 DataPilot supports multiple AI providers and advanced reasoning models:
 
-### **🚀 Supported Providers**
+### **Supported Providers**
 - **OpenAI**: GPT-4o, GPT-4o-mini, GPT-4-turbo
 - **Groq**: Llama-3.3-70b-versatile, Mixtral-8x7b, Gemma-7b
 - **Ollama**: Local models (Llama, Qwen, Mistral, etc.)
 
-### **🧠 Advanced Reasoning Models**
+### **Advanced Reasoning Models**
 ```bash
 # OpenAI Models
 LLM_MODEL_NAME=gpt-4o                    # Most capable reasoning
@@ -237,7 +237,7 @@ LLM_MODEL_NAME=llama3:70b               # Meta's latest
 LLM_MODEL_NAME=mistral:7b              # Efficient reasoning
 ```
 
-### **⚙️ Model Configuration**
+### **Model Configuration**
 ```bash
 # Temperature (0.0-1.0): Controls creativity vs consistency
 LLM_TEMPERATURE=0.7                    # Balanced (recommended)
@@ -255,9 +255,9 @@ LLM_TIMEOUT_SECONDS=120                # For complex queries
 
 ---
 
-## 🔧 **CONFIGURATION**
+## **CONFIGURATION**
 
-### **🔑 Backend Settings** (`environment-configs/backend.env`)
+### **Backend Settings** (`environment-configs/backend.env`)
 ```bash
 # AI Configuration (OPTIONAL - skip if you don't want AI features)
 LLM_PROVIDER=openai                    # openai, groq, ollama
@@ -276,7 +276,7 @@ LOG_LEVEL=INFO                        # DEBUG, INFO, WARNING, ERROR
 DEBUG=false
 ```
 
-### **🌐 Frontend Settings** (`environment-configs/dashboard.env`)
+### **Frontend Settings** (`environment-configs/dashboard.env`)
 ```bash
 # API Connection (REQUIRED)
 VITE_API_BASE_URL=http://localhost:8001
@@ -293,7 +293,7 @@ VITE_ENABLE_SEARCH=true
 
 ---
 
-## 🛠️ **MANAGEMENT COMMANDS**
+## **MANAGEMENT COMMANDS**
 
 ```bash
 # Start commands
@@ -311,17 +311,17 @@ VITE_ENABLE_SEARCH=true
 
 ---
 
-## 🔧 **TROUBLESHOOTING**
+## **TROUBLESHOOTING**
 
-### **🚨 Common Issues**
+### **Common Issues**
 
-#### **❌ "Permission Denied" Error**
+#### **"Permission Denied" Error**
 ```bash
 # Fix: Make start script executable
 chmod +x start.sh
 ```
 
-#### **❌ "Docker Not Found" Error**
+#### **"Docker Not Found" Error**
 ```bash
 # Install Docker Desktop or Docker Engine
 # macOS: https://docs.docker.com/desktop/mac/install/
@@ -329,7 +329,7 @@ chmod +x start.sh
 # Windows: https://docs.docker.com/desktop/windows/install/
 ```
 
-#### **❌ "Port Already in Use" Error**
+#### **"Port Already in Use" Error**
 ```bash
 # Check what's using the ports
 lsof -i :3001
@@ -345,7 +345,7 @@ sudo kill -9 $(lsof -ti:27918)
 # Edit docker-compose.yml and env files with new ports
 ```
 
-#### **❌ "Container Won't Start" Error**
+#### **"Container Won't Start" Error**
 ```bash
 # Check Docker is running
 docker info
@@ -390,7 +390,7 @@ docker-compose up --build -d
 
 ---
 
-## 📋 **SERVICES**
+## **SERVICES**
 
 | Service | Port | Technology | Description |
 |---------|------|------------|-------------|
@@ -408,7 +408,7 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 <div align="center">
 
-**🌟 DEPLOY THE REVOLUTIONARY AI PLATFORM 🌟**
+**DEPLOY THE REVOLUTIONARY AI PLATFORM **
 
 *Transform your Salesforce experience with containerized AI intelligence*
 

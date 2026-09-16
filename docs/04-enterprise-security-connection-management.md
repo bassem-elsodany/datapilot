@@ -134,7 +134,7 @@ The connection management system provides comprehensive connection CRUD operatio
 Intelligent authentication orchestration with master key validation, connection selection, and session management.
 
 #### Key Features
-- **Smart Authentication States**: Checking → MasterKey → Sessions → Main
+- **Smart Authentication States**: Checking MasterKey Sessions Main
 - **Master Key Validation**: Secure master key validation and session management
 - **Connection Selection**: Visual saved connections interface
 - **Session Management**: Secure session creation and persistence

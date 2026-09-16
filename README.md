@@ -5,7 +5,7 @@
 [![CI](https://github.com/bassem-elsodany/datapilot/actions/workflows/ci.yml/badge.svg)](https://github.com/bassem-elsodany/datapilot/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-<img src="https://img.shields.io/badge/🤖-AI%20POWERED%20QUERIES-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Queries"> <img src="https://img.shields.io/badge/📊-VISUAL%20SCHEMA-4ECDC4?style=for-the-badge&logo=chart&logoColor=white" alt="VisualSchema"> <img src="https://img.shields.io/badge/⚡-SMART%20SOQL%20EDITOR-00D4AA?style=for-the-badge&logo=lightning&logoColor=white" alt="SmartSOQLEditor">
+<img src="https://img.shields.io/badge/-AI%20POWERED%20QUERIES-FF6B6B?style=for-the-badge&logo=robot&logoColor=white" alt="AI Powered Queries"> <img src="https://img.shields.io/badge/-VISUAL%20SCHEMA-4ECDC4?style=for-the-badge&logo=chart&logoColor=white" alt="VisualSchema"> <img src="https://img.shields.io/badge/-SMART%20SOQL%20EDITOR-00D4AA?style=for-the-badge&logo=lightning&logoColor=white" alt="SmartSOQLEditor">
 
 </div>
 
@@ -186,7 +186,7 @@ See [Docker README](docker/README.md) for the full configuration walkthrough.
 
 ## **ROADMAP**
 
-### **🚀 Planned Features**
+### **Planned Features**
 
 #### **Enhanced Authentication**
 - **Salesforce Web-based Authentication**: Native Salesforce OAuth integration

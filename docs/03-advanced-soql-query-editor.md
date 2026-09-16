@@ -33,7 +33,7 @@ The Advanced SOQL Query Editor is DataPilot's flagship query development interfa
 ## Key Features
 
 ### Intelligent Autocomplete
-- **5-Level Autocomplete**: Keywords → SObjects → Fields → Relationships → Nested Subqueries
+- **5-Level Autocomplete**: Keywords SObjects Fields Relationships Nested Subqueries
 - **AST-Based Context Detection**: Smart cursor position analysis
 - **Smart Subquery Generation**: Automatic subquery creation for relationships
 - **Syntax Highlighting**: Advanced SOQL syntax coloring
