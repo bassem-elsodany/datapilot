@@ -604,22 +604,23 @@ def execute_anonymous_apex(
         failure_message = i18n_service.get_translation_key(lang, 'apex.messages.execution_failed') or 'Apex execution failed'
         
         # Map the result to our response model
+        # Note: salesforce_service.execute_anonymous_apex() returns snake_case keys
         response = ApexExecutionResponse(
             success=result.get('success', False),
             compiled=result.get('compiled'),
             line=result.get('line'),
             column=result.get('column'),
-            compile_problem=result.get('compileProblem'),
-            exception_message=result.get('exceptionMessage'),
-            exception_stack_trace=result.get('exceptionStackTrace'),
-            debug_info=result.get('debugInfo'),
-            execution_time=result.get('executionTime'),
-            cpu_time=result.get('cpuTime'),
-            dml_rows=result.get('dmlRows'),
-            dml_statements=result.get('dmlStatements'),
-            soql_queries=result.get('soqlQueries'),
-            soql_rows_processed=result.get('soqlRowsProcessed'),
-            limit_exceptions=result.get('limitExceptions'),
+            compile_problem=result.get('compile_problem'),
+            exception_message=result.get('exception_message'),
+            exception_stack_trace=result.get('exception_stack_trace'),
+            debug_info=result.get('debug_info'),
+            execution_time=result.get('execution_time'),
+            cpu_time=result.get('cpu_time'),
+            dml_rows=result.get('dml_rows'),
+            dml_statements=result.get('dml_statements'),
+            soql_queries=result.get('soql_queries'),
+            soql_rows_processed=result.get('soql_rows_processed'),
+            limit_exceptions=result.get('limit_exceptions'),
             message=success_message if result.get('success') else failure_message
         )
         

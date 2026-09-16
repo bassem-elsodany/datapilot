@@ -245,7 +245,7 @@ const AppContent: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-        <Notifications position="top-right" />
+        <Notifications position="bottom-center" limit={3} />
         <div className="authentication-flow">
           <LoginPanel>
             <MasterKeyManager 
@@ -296,7 +296,7 @@ const AppContent: React.FC = () => {
       setShowSavedConnections(false);
       return (
         <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-          <Notifications position="top-right" />
+          <Notifications position="bottom-center" limit={3} />
           <div className="app-container">
             <LoginPanel>
               <SmartAuthenticationFlowWrapper 
@@ -320,7 +320,7 @@ const AppContent: React.FC = () => {
     
     return (
       <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-        <Notifications position="top-right" />
+        <Notifications position="bottom-center" limit={3} />
         <div className="app-header" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, height: '50px' }}>
           <AppHeader
             userInfo={null}
@@ -464,7 +464,7 @@ const AppContent: React.FC = () => {
     if (!isAuthenticated) {
       return (
         <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-          <Notifications position="top-right" />
+          <Notifications position="bottom-center" limit={3} />
           <div className="app-container">
             <LoginPanel>
               <MasterKeyManager 
@@ -495,7 +495,7 @@ const AppContent: React.FC = () => {
     // If we have session context but no userInfo, show saved connections
     return (
       <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-        <Notifications position="top-right" />
+        <Notifications position="bottom-center" limit={3} />
         <div className="app-header" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, height: '50px' }}>
           <AppHeader
             userInfo={null}
@@ -1377,8 +1377,9 @@ function MainApp({ userInfo, isConnected, onLogin, setUserInfo, setIsConnected, 
     <MantineProvider theme={mantineTheme} defaultColorScheme="light">
       <ContextMenuProvider>
         <ModalsProvider>
-          <Notifications 
-            position="top-right" 
+          <Notifications
+            position="bottom-center"
+            limit={3}
             zIndex={9999}
           />
         

@@ -329,6 +329,77 @@ i18n_service = I18nService()
 favorites_service = FavoritesService()
 
 
+class TestConnectionRequest(BaseModel):
+    """Request to test connection credentials without saving"""
+    connection_data: ConnectionData = Field(..., description="Connection credentials to test")
+
+class TestConnectionResponse(BaseModel):
+    """Response for connection test"""
+    success: bool
+    message: str
+    user_info: Optional[dict] = None
+
+
+@router.post("/test", response_model=TestConnectionResponse, status_code=status.HTTP_200_OK)
+def test_connection_credentials(
+    request: TestConnectionRequest,
+    http_request: Request,
+    x_master_key: Annotated[str, Header(alias="X-Master-Key", min_length=8)],
+    lang: str = Query("en", description="Language code for messages")
+):
+    """POST /connections/test - Validate credentials against Salesforce without saving"""
+    try:
+        # Validate master key
+        master_key_valid = master_key_service.set_master_key(x_master_key)
+        if not master_key_valid:
+            ErrorService.raise_authentication_error(
+                message="connections.errors.invalid_master_key",
+                auth_type="master_key",
+                request=http_request,
+                locale=lang
+            )
+
+        from app.services.salesforce_service import SalesforceService as _SF
+        test_sf = _SF()
+
+        test_password = request.connection_data.password
+        if request.connection_data.security_token:
+            test_password = f"{test_password}{request.connection_data.security_token}"
+
+        result = test_sf.initialize_connection(
+            username=request.connection_data.username,
+            password=test_password,
+            domain_url=request.connection_data.environment,
+            client_id=request.connection_data.client_id or request.connection_data.consumer_key,
+            client_secret=request.connection_data.client_secret or request.connection_data.consumer_secret
+        )
+
+        if result.get("success"):
+            return TestConnectionResponse(
+                success=True,
+                message="Connection successful",
+                user_info=result.get("user_info")
+            )
+        else:
+            return TestConnectionResponse(
+                success=False,
+                message=result.get("error", "Connection failed")
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(
+            f"Credential test endpoint failed: {type(e).__name__}: {e}"
+        )
+        ErrorService.handle_generic_exception(
+            exception=e,
+            operation="testing connection credentials",
+            request=http_request,
+            locale=lang
+        )
+
+
 @router.post("/", response_model=ConnectionCreateResponse, status_code=status.HTTP_201_CREATED)
 def create_connection(
     request: CreateConnectionRequest,
@@ -374,13 +445,18 @@ def create_connection(
             test_username = request.connection_data.username
             test_password = request.connection_data.password
             test_domain_url = request.connection_data.environment
-            test_client_id = request.connection_data.client_id
-            test_client_secret = request.connection_data.client_secret
+            test_client_id = request.connection_data.client_id or request.connection_data.consumer_key
+            test_client_secret = request.connection_data.client_secret or request.connection_data.consumer_secret
             
             # Handle security token for Salesforce Classic
             if request.connection_data.security_token:
                 test_password = f"{test_password}{request.connection_data.security_token}"
             
+            logger.info(
+                f"Create-connection credential test: username={test_username}, "
+                f"environment={test_domain_url!r}, has_client_id={bool(test_client_id)}, "
+                f"has_security_token={bool(request.connection_data.security_token)}"
+            )
             # Test the connection
             test_result = test_salesforce_service.initialize_connection(
                 username=test_username,
@@ -391,7 +467,9 @@ def create_connection(
             )
             
             if not test_result.get("success", False):
-                logger.error(f"Credential test failed: {test_result.get('error', 'Unknown error')}")
+                logger.error(
+                    f"Credential test failed during create: {test_result.get('error', 'Unknown error')}"
+                )
                 ErrorService.raise_validation_error(
                     message="connections.errors.credential_test_failed",
                     field_errors={"credentials": test_result.get("error", "Invalid credentials")},
@@ -401,8 +479,12 @@ def create_connection(
             
             logger.debug("Credential test passed, proceeding with connection save")
             
+        except HTTPException:
+            raise
         except Exception as e:
-            logger.error(f"Credential test failed with exception: {str(e)}")
+            logger.exception(
+                f"Credential test failed with exception during create: {type(e).__name__}: {e}"
+            )
             ErrorService.raise_validation_error(
                 message="connections.errors.credential_test_failed",
                 field_errors={"credentials": str(e)},
@@ -861,23 +943,76 @@ def update_connection(
                 locale=lang
             )
         
-        # Set master key in connection service for encryption
+        # Set master key in connection service for encryption/decryption
         connection_service.set_master_key(request.master_key)
-        
-        # Update connection display name
-        if request.display_name:
-            success = connection_service.update_connection(connection_uuid, request.display_name)
-            if not success:
 
-                ErrorService.raise_not_found_error(
-                    message="connections.errors.not_found",
-                    resource_type="connection",
-                    resource_id=connection_uuid,
+        # If credentials are being updated, validate them first
+        update_connection_data = None
+        if request.connection_data:
+            logger.debug("Validating updated credentials before saving")
+            try:
+                from app.services.salesforce_service import SalesforceService as _SF
+                test_sf = _SF()
+                test_password = request.connection_data.password
+                if request.connection_data.security_token:
+                    test_password = f"{test_password}{request.connection_data.security_token}"
+                test_result = test_sf.initialize_connection(
+                    username=request.connection_data.username,
+                    password=test_password,
+                    domain_url=request.connection_data.environment,
+                    client_id=request.connection_data.client_id or request.connection_data.consumer_key,
+                    client_secret=request.connection_data.client_secret or request.connection_data.consumer_secret
+                )
+                if not test_result.get("success", False):
+                    logger.error(
+                        f"Credential test failed during update: {test_result.get('error', 'Unknown error')}"
+                    )
+                    ErrorService.raise_validation_error(
+                        message="connections.errors.credential_test_failed",
+                        field_errors={"credentials": test_result.get("error", "Invalid credentials")},
+                        request=http_request,
+                        locale=lang
+                    )
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.exception(
+                    f"Credential test failed with exception during update: {type(e).__name__}: {e}"
+                )
+                ErrorService.raise_validation_error(
+                    message="connections.errors.credential_test_failed",
+                    field_errors={"credentials": str(e)},
                     request=http_request,
                     locale=lang
                 )
-        
-        # Get the updated connection for response (efficient single query)
+
+            update_connection_data = {
+                "username": request.connection_data.username,
+                "password": request.connection_data.password,
+                "environment": request.connection_data.environment,
+                "consumerKey": request.connection_data.consumer_key,
+                "consumerSecret": request.connection_data.consumer_secret,
+                "securityToken": request.connection_data.security_token,
+                "clientId": request.connection_data.client_id,
+                "clientSecret": request.connection_data.client_secret,
+            }
+
+        # Update connection (display name and/or credentials)
+        success = connection_service.update_connection_full(
+            connection_uuid,
+            display_name=request.display_name,
+            connection_data=update_connection_data
+        )
+        if not success:
+            ErrorService.raise_not_found_error(
+                message="connections.errors.not_found",
+                resource_type="connection",
+                resource_id=connection_uuid,
+                request=http_request,
+                locale=lang
+            )
+
+        # Get the updated connection for response
         updated_connection = connection_service.get_connection_with_credentials(connection_uuid)
         
         if not updated_connection:
