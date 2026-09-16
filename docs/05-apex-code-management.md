@@ -3,65 +3,46 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Planned Key Capabilities](#planned-key-capabilities)
-  - [Advanced Apex Execution](#advanced-apex-execution-partially-implemented)
-  - [Development Tools](#development-tools-under-development)
-  - [Testing and Debugging](#testing-and-debugging-planned)
-- [Current Implementation Status](#current-implementation-status)
-  - [Backend API](#backend-api-partially-implemented)
-  - [Frontend UI](#frontend-ui-under-development)
+- [Key Capabilities](#key-capabilities)
+  - [Apex Execution](#apex-execution)
+  - [Saved Apex & Debug Levels](#saved-apex--debug-levels)
+  - [Testing](#testing)
+- [Implementation Status](#implementation-status)
+  - [Backend API](#backend-api)
+  - [Frontend UI](#frontend-ui)
+- [Planned](#planned)
 
 ## Overview
 
-**🚧 Feature Under Development** - DataPilot's Apex Code Management system is currently under active development. Both the backend API infrastructure and frontend UI components are partially implemented and still being built. This documentation outlines our planned comprehensive Apex development capabilities with advanced code execution, compilation, testing, and debugging features.
+DataPilot's Apex Code Management gives you a Monaco-powered Apex editor backed by a full set of execution, compilation, and testing endpoints against your connected Salesforce org.
 
-**Current Status:**
-- 🚧 **Backend API**: Partially implemented - basic anonymous Apex execution and REST endpoints exist but need completion
-- 🚧 **Frontend UI**: Under development - ApexTab component exists but needs completion
-- 📋 **Planned Features**: Advanced code editor, testing framework, debugging tools, and collaboration features
+## Key Capabilities
 
-## Planned Key Capabilities
+### Apex Execution
+- **Anonymous Apex Execution**: Run Apex code against your org via the Salesforce Tooling API and view results/debug output
+- **Apex REST Integration**: Execute custom Apex REST endpoints
+- **Package & Trigger Compilation**: Compile Apex packages and triggers, and browse existing classes/triggers
 
-### Advanced Apex Execution (Partially Implemented)
-- **Anonymous Apex Execution**: 🚧 Basic implementation - Run Apex code directly in Salesforce
-- **Apex REST Integration**: 🚧 Basic implementation - Execute custom REST endpoints  
-- **Code Compilation**: 📋 Planned - Package and trigger compilation
-- **Test Execution**: 📋 Planned - Apex test coverage and debugging
-- **Debug Level Management**: 📋 Planned - Advanced debugging and logging
+### Saved Apex & Debug Levels
+- **Saved Apex Snippets**: Create, update, delete, and favorite reusable Apex snippets
+- **Debug Level Configuration**: Configure, validate, and inspect debug levels per saved snippet, with a dedicated debug-levels info endpoint
 
-### Development Tools (Under Development)
-- **Code Editor**: 🚧 In Progress - Advanced Apex code editor with syntax highlighting
-- **Code Templates**: 📋 Planned - Pre-built Apex code templates and snippets
-- **Version Control**: 📋 Planned - Track code changes and iterations
-- **Collaborative Development**: 📋 Planned - Team-based code development
+### Testing
+- **Test Execution**: Run Apex tests and view results
+- **Compile-and-Test Workflow**: Combined compile + test execution in a single call
 
-### Testing and Debugging (Planned)
-- **Test Execution**: 📋 Planned - Run Apex tests with coverage reporting
-- **Debug Logging**: 📋 Planned - Advanced debugging and log analysis
-- **Performance Monitoring**: 📋 Planned - Code execution performance tracking
-- **Error Analysis**: 📋 Planned - Comprehensive error detection and resolution
+## Implementation Status
 
-## Current Implementation Status
-
-### Backend API (Partially Implemented)
+### Backend API
 ```
 Code Input → Salesforce Tooling API → Execution → Result Processing → Response
 ```
+- Anonymous execution, REST integration, package/trigger compilation, test execution, and saved-Apex CRUD (including debug levels) are all implemented — see `backend/app/api/v1/endpoints/salesforce.py` and `backend/app/api/v1/endpoints/saved_apex.py`.
 
-**Partially Implemented Components:**
-- **Apex Executor**: 🚧 Basic anonymous Apex code execution via Salesforce Tooling API
-- **REST Integrator**: 🚧 Basic Apex REST endpoint execution with request/response handling
-- **Limits Monitor**: 📋 Planned - Apex governor limits tracking and monitoring
-- **Error Handling**: 🚧 Basic error detection and reporting
+### Frontend UI
+- **ApexTab**: Monaco Editor-based code editor, wired to execution/compile/test/saved-Apex endpoints (`dashboard/src/components/query-editor/ApexTab.tsx`)
 
-### Frontend UI (Under Development)
-**Current State:**
-- **ApexTab Component**: Basic structure exists but needs completion
-- **Code Editor**: Textarea placeholder - needs Monaco Editor integration
-- **Execution Interface**: UI framework ready but needs API integration
-- **Result Display**: Modal structure exists but needs result processing
-
----
-
-*This documentation outlines the planned Apex Code Management feature. The backend API infrastructure is complete, but the frontend UI is under development. This feature will provide comprehensive Apex development capabilities with advanced code execution, compilation, testing, and debugging features.*
-
+## Planned
+- **Apex Governor Limits Monitoring**: Surface governor limit usage during execution
+- **Code Templates**: Pre-built Apex snippets library
+- **Version History**: Track changes to saved Apex snippets over time
