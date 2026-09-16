@@ -23,6 +23,19 @@
 
 ---
 
+## Table of Contents
+
+- [Advanced Salesforce Data Platform](#advanced-salesforce-data-platform)
+- [Core Features](#core-features)
+- [Technical Architecture](#technical-architecture)
+- [Complete Documentation Suite](#complete-documentation-suite)
+- [Get Started with DataPilot](#get-started-with-datapilot)
+- [Deployment & Development Documentation](#deployment--development-documentation)
+- [Roadmap](#roadmap)
+- [License](#license)
+
+---
+
 ## **CORE FEATURES**
 
 > **Click on any feature below to explore detailed documentation and capabilities**

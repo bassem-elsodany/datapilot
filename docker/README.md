@@ -14,6 +14,21 @@
 
 ---
 
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Port Configuration](#port-configuration)
+- [AI Model Configuration](#ai-model-configuration)
+- [Configuration (Backend/Frontend Settings)](#configuration-1)
+- [Management Commands](#management-commands)
+- [Troubleshooting](#troubleshooting)
+- [Services](#services)
+- [License](#license)
+
+---
+
 ## **ARCHITECTURE**
 
 ### **Container Architecture**
