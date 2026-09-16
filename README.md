@@ -32,6 +32,7 @@
 - [Get Started with DataPilot](#get-started-with-datapilot)
 - [Deployment & Development Documentation](#deployment--development-documentation)
 - [Roadmap](#roadmap)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -209,6 +210,12 @@ See [Docker README](docker/README.md) for the full configuration walkthrough.
 - **Record Insert & Delete**: The UI currently supports inline record *updates*; insert and delete operations through the UI are planned
 - **AI-Powered Data Updates**: Natural language data modification through the AI agent (the AI agent is currently read-only)
 - **Data Validation**: Simple data validation and error handling
+
+---
+
+## **CONTRIBUTING**
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and guidelines. For security issues, see [SECURITY.md](SECURITY.md).
 
 ---
 
