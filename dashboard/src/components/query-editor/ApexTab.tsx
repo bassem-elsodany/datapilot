@@ -1078,6 +1078,15 @@ export const ApexTab: React.FC = () => {
                               // Ensure layout is recalculated after render
                               setTimeout(() => editor.layout(), 50);
                               setTimeout(() => editor.layout(), 150);
+
+                              // Add ResizeObserver to handle container resizing
+                              const container = editor.getDomNode();
+                              if (container && container.parentElement) {
+                                const resizeObserver = new ResizeObserver(() => {
+                                  editor.layout();
+                                });
+                                resizeObserver.observe(container.parentElement);
+                              }
                             }}
                             options={{
                               automaticLayout: false,
@@ -1406,8 +1415,8 @@ export const ApexTab: React.FC = () => {
             </Tabs.Panel>
 
             <Tabs.Panel value="classes" className="apex-panel">
-              <div className="apex-list">
-                <Group justify="space-between" mb="md" px="md" pt="md">
+              <div className="apex-list" style={{ flexDirection: 'column' }}>
+                <Group justify="space-between" mb="md" px="md" pt="md" style={{ flexShrink: 0 }}>
                   <TextInput
                     placeholder="Search classes..."
                     leftSection={<IconSearch size={16} />}
@@ -1426,19 +1435,20 @@ export const ApexTab: React.FC = () => {
                 </Group>
 
                 {state.isLoading && (
-                  <Flex justify="center" align="center" py="xl">
+                  <Flex justify="center" align="center" py="xl" style={{ flex: 1 }}>
                     <Loader size="sm" />
                   </Flex>
                 )}
 
                 {!state.isLoading && apexClasses.length === 0 && (
-                  <Text size="sm" c="dimmed" ta="center" py="xl">
+                  <Text size="sm" c="dimmed" ta="center" py="xl" style={{ flex: 1 }}>
                     No Apex classes found. Click "Load Classes" to fetch from your Salesforce org.
                   </Text>
                 )}
 
-                <ScrollArea h={600}>
-                  <div className="apex-items">
+                {!state.isLoading && apexClasses.length > 0 && (
+                  <ScrollArea style={{ flex: 1, overflow: 'hidden' }}>
+                    <div className="apex-items">
                     {apexClasses
                       .filter(cls =>
                         cls.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
@@ -1481,14 +1491,15 @@ export const ApexTab: React.FC = () => {
                           </Text>
                         </Paper>
                       ))}
-                  </div>
-                </ScrollArea>
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
             </Tabs.Panel>
 
             <Tabs.Panel value="triggers" className="apex-panel">
-              <div className="apex-list">
-                <Group justify="space-between" mb="md" px="md" pt="md">
+              <div className="apex-list" style={{ flexDirection: 'column' }}>
+                <Group justify="space-between" mb="md" px="md" pt="md" style={{ flexShrink: 0 }}>
                   <TextInput
                     placeholder="Search triggers..."
                     leftSection={<IconSearch size={16} />}
@@ -1507,19 +1518,20 @@ export const ApexTab: React.FC = () => {
                 </Group>
 
                 {state.isLoading && (
-                  <Flex justify="center" align="center" py="xl">
+                  <Flex justify="center" align="center" py="xl" style={{ flex: 1 }}>
                     <Loader size="sm" />
                   </Flex>
                 )}
 
                 {!state.isLoading && apexTriggers.length === 0 && (
-                  <Text size="sm" c="dimmed" ta="center" py="xl">
+                  <Text size="sm" c="dimmed" ta="center" py="xl" style={{ flex: 1 }}>
                     No Apex triggers found. Click "Load Triggers" to fetch from your Salesforce org.
                   </Text>
                 )}
 
-                <ScrollArea h={600}>
-                  <div className="apex-items">
+                {!state.isLoading && apexTriggers.length > 0 && (
+                  <ScrollArea style={{ flex: 1, overflow: 'hidden' }}>
+                    <div className="apex-items">
                     {apexTriggers
                       .filter(trigger =>
                         trigger.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
@@ -1580,8 +1592,9 @@ export const ApexTab: React.FC = () => {
                           </Paper>
                         );
                       })}
-                  </div>
-                </ScrollArea>
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
             </Tabs.Panel>
 

@@ -171,6 +171,53 @@ class SalesforceService:
             cls._instance = cls()
         return cls._instance
     
+    @staticmethod
+    def _resolve_salesforce_domain(domain_url: str) -> str:
+        """
+        Resolve the simple-salesforce `domain` argument.
+
+        Accepts environment labels (production/sandbox), login hosts
+        (login.salesforce.com / test.salesforce.com), or a custom My Domain
+        host/URL such as:
+          https://novartis-oncore--p01.sandbox.my.salesforce.com
+        -> novartis-oncore--p01.sandbox.my
+        """
+        from urllib.parse import urlparse
+
+        raw = (domain_url or "").strip()
+        if not raw:
+            return "login"
+
+        value = raw.lower()
+        if value in ("production", "prod", "login"):
+            return "login"
+        if value in ("sandbox", "test"):
+            return "test"
+
+        host = value
+        if "://" in raw:
+            host = (urlparse(raw).hostname or value).lower()
+        else:
+            host = value.split("/")[0].split("?")[0]
+
+        if host in ("login.salesforce.com", "www.salesforce.com"):
+            return "login"
+        if host == "test.salesforce.com":
+            return "test"
+
+        # Custom My Domain host → strip ".salesforce.com"
+        # e.g. novartis-oncore--p01.sandbox.my.salesforce.com
+        #   -> novartis-oncore--p01.sandbox.my
+        # simple-salesforce then calls https://{domain}.salesforce.com/...
+        if host.endswith(".salesforce.com"):
+            return host[: -len(".salesforce.com")]
+
+        # Already a domain fragment (e.g. company.my / company.sandbox.my)
+        if "." in host and "salesforce.com" not in host:
+            return host
+
+        return "test" if ("sandbox" in value or "test" in value) else "login"
+
     def initialize_connection(
         self,
         username: str,
@@ -180,11 +227,15 @@ class SalesforceService:
         client_secret: Optional[str] = None
     ) -> Dict[str, Any]:
         """Initialize Salesforce connection"""
+        domain = self._resolve_salesforce_domain(domain_url)
+        token_host = f"{domain}.salesforce.com"
         try:
-            # Determine domain
-            domain = 'test' if 'test' in domain_url or 'sandbox' in domain_url else None
-            
-            logger.debug(f"Attempting Salesforce connection with domain: {domain}")
+            logger.info(
+                f"Attempting Salesforce connection: username={username}, "
+                f"domain_url={domain_url!r}, resolved_domain={domain!r}, "
+                f"token_host={token_host}, has_client_id={bool(client_id)}, "
+                f"password_len={len(password) if password else 0}"
+            )
             
             # Create Salesforce connection
             self._connection = Salesforce(
@@ -227,11 +278,16 @@ class SalesforceService:
             
         except Exception as e:
             error_msg = str(e)
-            logger.error(f"Failed to connect to Salesforce: {error_msg}")
-            logger.error(f"Error type: {type(e).__name__}")
-            logger.error(f"Connection details: username={username}, domain={domain}, has_client_id={bool(client_id)}")
+            # Log full stacktrace (loguru includes traceback with exception())
+            logger.exception(
+                f"Failed to connect to Salesforce: {error_msg} | "
+                f"error_type={type(e).__name__} | username={username} | "
+                f"domain_url={domain_url!r} | resolved_domain={domain!r} | "
+                f"token_host={token_host} | has_client_id={bool(client_id)} | "
+                f"password_len={len(password) if password else 0}"
+            )
             # Preserve original error message for better debugging
-            raise ValueError(error_msg)
+            raise ValueError(error_msg) from e
     
     def get_sobject_list(self, connection_uuid: str) -> List[Dict[str, Any]]:
         """Get list of all SObjects with MongoDB-based persistent caching"""

@@ -211,7 +211,7 @@ export const defaultAppConfig: AppConfig = {
   
   api: {
     baseUrl: getEnvVar('VITE_API_BASE_URL', 'http://localhost:8001'),
-    timeout: getEnvNumber('VITE_API_TIMEOUT', 30000),
+    timeout: getEnvNumber('VITE_API_TIMEOUT', 120000),
     retries: getEnvNumber('VITE_API_RETRIES', 3),
     endpoints: {
       health: '/api/v1/health',

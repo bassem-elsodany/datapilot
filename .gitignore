@@ -176,3 +176,6 @@ tramp
 # Local development
 .local/
 .cache/
+
+# Graphify knowledge graph output (local tooling artifact)
+graphify-out/

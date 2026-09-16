@@ -114,7 +114,6 @@ export class ApiService {
   private onConnectionError?: () => void;
   private lastConnectionErrorTime: number = 0;
   private connectionErrorDebounceMs: number = 2000; // 2 seconds // Callback for connection errors
-  private translationsCache: Map<string, { data: any[], timestamp: number }> = new Map(); // Cache for translations
   private constructor() {
     // Get configuration from app config
     this.baseUrl = this.getBaseUrlFromConfig();
@@ -343,13 +342,6 @@ export class ApiService {
     return this.client.delete(url, config);
   }
 
-  /**
-   * Clear translations cache
-   */
-  clearTranslationsCache(): void {
-    this.translationsCache.clear();
-    logger.debug(' Translations cache cleared', 'ApiService');
-  }
 
   // ========================================
   // AVAILABILITY CHECK
@@ -801,234 +793,130 @@ export class ApiService {
   }
 
   /**
-   * Update connection display name (REST compliant)
+   * Test connection credentials without saving (REST compliant)
    */
-  async updateConnection(connectionUuid: string, displayName: string): Promise<any> {
+  async testConnectionCredentials(connectionData: {
+    username: string;
+    password: string;
+    environment: string;
+    consumerKey?: string;
+    consumerSecret?: string;
+    securityToken?: string;
+    clientId?: string;
+    clientSecret?: string;
+  }): Promise<{ success: boolean; message: string; user_info?: any }> {
     if (!this.isAvailable) {
       throw new Error('Python backend not available');
     }
 
     try {
-      // Get master key for authentication
       const masterKey = getMasterKeyFromSession();
 
-      const response = await this.client.put(this.addLangToUrl(`${this.getEndpointUrl('connections')}/${connectionUuid}`), {
+      const response = await this.client.post(
+        this.addLangToUrl(`${this.getEndpointUrl('connections')}/test`),
+        {
+          connection_data: {
+            username: connectionData.username,
+            password: connectionData.password,
+            environment: connectionData.environment,
+            consumer_key: connectionData.consumerKey || null,
+            consumer_secret: connectionData.consumerSecret || null,
+            security_token: connectionData.securityToken || null,
+            client_id: connectionData.clientId || null,
+            client_secret: connectionData.clientSecret || null,
+          }
+        },
+        { headers: { 'X-Master-Key': masterKey } }
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Connection test failed';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (typeof detail === 'object' && detail.message) {
+          errorMessage = detail.message;
+          if (detail.field_errors) {
+            const vals = Object.values(detail.field_errors);
+            if (vals.length > 0) errorMessage = String(vals[0]);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Update connection display name and/or credentials (REST compliant)
+   */
+  async updateConnection(
+    connectionUuid: string,
+    displayName: string,
+    connectionData?: {
+      username: string;
+      password: string;
+      environment: string;
+      consumerKey?: string;
+      consumerSecret?: string;
+      securityToken?: string;
+      clientId?: string;
+      clientSecret?: string;
+    }
+  ): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const masterKey = getMasterKeyFromSession();
+
+      const body: any = {
         display_name: displayName,
         master_key: masterKey
-      });
-      return response.data;
-    } catch (error: any) {
-      // Return the i18n key from the API response
-      const errorDetail = error.response?.data?.detail || 'Failed to update connection';
-      throw new Error(errorDetail);
-    }
-  }
+      };
 
-  // ========================================
-  // I18N ENDPOINTS
-  // ========================================
-
-  /**
-   * Get all languages (REST compliant)
-   */
-  async getAllLanguages(): Promise<any[]> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/languages`));
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to get languages');
-    }
-  }
-
-  /**
-   * Get all languages with optional filtering (REST compliant)
-   */
-  async getAllLanguagesWithFilter(isActive?: boolean): Promise<any[]> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      let url = `${this.getEndpointUrl('i18n')}/languages`;
-      if (isActive !== undefined) {
-        url += `?is_active=${isActive}`;
+      if (connectionData) {
+        body.connection_data = {
+          username: connectionData.username,
+          password: connectionData.password,
+          environment: connectionData.environment,
+          consumer_key: connectionData.consumerKey || null,
+          consumer_secret: connectionData.consumerSecret || null,
+          security_token: connectionData.securityToken || null,
+          client_id: connectionData.clientId || null,
+          client_secret: connectionData.clientSecret || null,
+        };
       }
-      
-      const response = await this.client.get(this.addLangToUrl(url));
+
+      const response = await this.client.put(
+        this.addLangToUrl(`${this.getEndpointUrl('connections')}/${connectionUuid}`),
+        body
+      );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to get languages');
-    }
-  }
-
-  /**
-   * Get available locales (REST compliant) - only active languages
-   */
-  async getAvailableLocales(): Promise<Array<{code: string, name: string}>> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      logger.debug('Loading available languages', 'ApiService');
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/languages?is_active=true&fields=code,name`));
-      logger.debug('Languages response received', 'ApiService', { count: response.data?.length });
-      return response.data;
-    } catch (error: any) {
-      logger.error('Error getting available locales', 'ApiService', error);
-      throw new Error(error.response?.data?.detail || 'Failed to get available locales');
-    }
-  }
-
-  /**
-   * Get translations by locale (REST compliant)
-   * This method gets all available pages first, then fetches translations for each page
-   * Uses caching to prevent repeated API calls
-   */
-  async getTranslationsByLocale(locale: string): Promise<any[]> {
-    // Force a fresh availability check instead of relying on cached flag
-    await this.checkAvailability();
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    // Check cache first (5 minute TTL)
-    const cacheKey = locale;
-    const cached = this.translationsCache.get(cacheKey);
-    const now = Date.now();
-    const cacheTTL = 5 * 60 * 1000; // 5 minutes
-
-    if (cached && (now - cached.timestamp) < cacheTTL) {
-      logger.debug(' Using cached translations', 'ApiService', { locale, cacheAge: now - cached.timestamp });
-      return cached.data;
-    }
-
-    try {
-      logger.debug(' Loading translations from API', 'ApiService', { locale });
-      
-      // First, get all available pages
-      const pagesResponse = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/pages`));
-      const availablePages = pagesResponse.data;
-      
-      // Then, get translations for each page
-      const allTranslations = [];
-      for (const pageName of availablePages) {
-        try {
-          const pageResponse = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/${locale}/${pageName}`));
-          if (pageResponse.data) {
-            allTranslations.push(pageResponse.data);
+      let errorMessage = 'Failed to update connection';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (typeof detail === 'object' && detail.message) {
+          errorMessage = detail.message;
+          if (detail.field_errors) {
+            const fieldErrors = Object.values(detail.field_errors);
+            if (fieldErrors.length > 0) errorMessage = String(fieldErrors[0]);
           }
-        } catch (pageError: any) {
-          // Log warning but continue with other pages
-          logger.warn(`Failed to load translations for page ${pageName}`, 'ApiService', pageError);
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
         }
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-      
-      // Cache the result
-      this.translationsCache.set(cacheKey, { data: allTranslations, timestamp: now });
-      logger.debug(' Cached translations', 'ApiService', { locale, count: allTranslations.length });
-      
-      return allTranslations;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to get translations by locale');
+      throw new Error(errorMessage);
     }
   }
 
-  /**
-   * Get translation by page (REST compliant)
-   */
-  async getTranslationByPage(locale: string, pageName: string): Promise<any> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/${locale}/${pageName}`));
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        return null;
-      }
-      throw new Error(error.response?.data?.detail || 'Failed to get translation by page');
-    }
-  }
-
-  /**
-   * Get translation key (REST compliant)
-   */
-  async getTranslationKey(locale: string, key: string): Promise<string | null> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/${locale}/key/${encodeURIComponent(key)}`));
-      return response.data.value;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        return null;
-      }
-      throw new Error(error.response?.data?.detail || 'Failed to get translation key');
-    }
-  }
-
-  /**
-   * Get available locale objects (REST compliant) - only active languages
-   */
-  async getAvailableLocaleObjects(): Promise<any[]> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      logger.debug('Loading locale objects', 'ApiService');
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/locales/objects?is_active=true`));
-      logger.debug('Locale objects response received', 'ApiService', { count: response.data?.length });
-      return response.data;
-    } catch (error: any) {
-      logger.error('Error getting available locale objects', 'ApiService', error);
-      throw new Error(error.response?.data?.detail || 'Failed to get available locale objects');
-    }
-  }
-
-  /**
-   * Set default language (REST compliant)
-   */
-  async setDefaultLanguage(languageUuid: string): Promise<any> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      logger.debug(`Calling PUT /i18n/languages/${languageUuid}/default`, 'ApiService');
-      const response = await this.client.put(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/languages/${languageUuid}/default`));
-      logger.debug('Response received', 'ApiService', response.data);
-      return response.data;
-    } catch (error: any) {
-      logger.error('Error setting default language', 'ApiService', error);
-      throw new Error(error.response?.data?.detail || 'Failed to set default language');
-    }
-  }
-
-  /**
-   * Get translation stats (REST compliant)
-   */
-  async getTranslationStats(): Promise<any> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/stats`));
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to get translation stats');
-    }
-  }
+  // I18N ENDPOINTS REMOVED — translations now served from local JSON files in src/i18n/
 
   // ========================================
   // AUTH PROVIDERS ENDPOINTS

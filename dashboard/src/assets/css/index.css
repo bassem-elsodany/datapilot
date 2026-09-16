@@ -57,20 +57,28 @@ button:focus-visible {
 /* Light theme only - no dark mode support */
 
 /* ========================================
-   NOTIFICATION POSITIONING FIXES
+   NOTIFICATION POSITIONING — bottom-center
    ======================================== */
-/* Force notifications to appear at top-right */
-.mantine-Notifications-root {
+.mantine-Notifications-root,
+[data-notifications-container],
+[class*="Notifications-root"] {
   position: fixed !important;
-  top: 20px !important;
-  right: 20px !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
   z-index: 9999 !important;
   pointer-events: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
 }
 
-.mantine-Notifications-root .mantine-Notification-root {
+.mantine-Notifications-root .mantine-Notification-root,
+[class*="Notifications-root"] [class*="Notification-root"] {
   pointer-events: auto !important;
-  margin-bottom: 10px !important;
+  margin-bottom: 8px !important;
 }
 
 /* ========================================
