@@ -31,12 +31,12 @@ lock:
 # Run the application (development mode)
 run:
 	@echo "🚀 Starting DataPilot Backend..."
-	uv run python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	uv run python run_server.py --dev --reload
 
 # Run the application (production mode)
 run-prod:
 	@echo "🚀 Starting DataPilot Backend (Production)..."
-	uv run python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+	uv run python run_server.py --prod --workers 4
 
 # Run tests
 test:

@@ -80,6 +80,7 @@ export interface AppConfig {
       authProviders: string;
       appSettings: string;
       savedQueries: string;
+      savedApex: string;
       aiAgents: string;
       datapilotAgent: string;
     };
@@ -127,6 +128,18 @@ export interface I18nConfig {
 
 const getEnvVar = (key: string, defaultValue: string): string => {
   return (import.meta as any).env[key] || defaultValue;
+};
+
+// Resolves the backend API host at runtime (in the browser) rather than baking it in
+// at build time. `localhost` baked into a built bundle resolves to the *viewer's* machine,
+// not the server that served the page - so this defaults to whatever host served this page,
+// on the documented backend port. VITE_API_BASE_URL remains available as an explicit
+// override for split-host setups (e.g. frontend and backend on different domains).
+const getDefaultApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    return `${window.location.protocol}//${window.location.hostname}:8001`;
+  }
+  return 'http://localhost:8001';
 };
 
 const getEnvBoolean = (key: string, defaultValue: boolean): boolean => {
@@ -209,8 +222,8 @@ export const defaultAppConfig: AppConfig = {
   },
   
   api: {
-    baseUrl: getEnvVar('VITE_API_BASE_URL', 'http://localhost:8001'),
-    timeout: getEnvNumber('VITE_API_TIMEOUT', 30000),
+    baseUrl: getEnvVar('VITE_API_BASE_URL', getDefaultApiBaseUrl()),
+    timeout: getEnvNumber('VITE_API_TIMEOUT', 120000),
     retries: getEnvNumber('VITE_API_RETRIES', 3),
     endpoints: {
       health: '/api/v1/health',
@@ -223,6 +236,7 @@ export const defaultAppConfig: AppConfig = {
       authProviders: '/api/v1/auth-providers',
       appSettings: '/api/v1/settings',
       savedQueries: '/api/v1/saved-queries',
+      savedApex: '/api/v1/saved-apex',
       aiAgents: '/api/v1/ai-agents',
       datapilotAgent: 'datapilot-agent'
     }

@@ -105,6 +105,8 @@ License: MIT License
 """
 
 from functools import lru_cache
+from urllib.parse import quote
+import json
 
 from loguru import logger
 from typing import Dict, List, Any, Optional
@@ -115,6 +117,7 @@ from datetime import datetime
 from app.services.i18n_service import I18nService
 from app.services.sobject_cache_service import get_sobject_cache_service
 from app.services.salesforce_tree_transformer import transform_query_result
+from app.core.config import settings
 
 
 class SalesforceService:
@@ -156,7 +159,11 @@ class SalesforceService:
     @property
     def i18n_service(self):
         return self._i18n_service
-    
+
+    def _get_api_version(self) -> str:
+        """Get the Salesforce API version from settings"""
+        return settings.SALESFORCE_API_VERSION
+
     @classmethod
     def get_instance(cls):
         """Get the singleton instance of SalesforceService"""
@@ -164,6 +171,53 @@ class SalesforceService:
             cls._instance = cls()
         return cls._instance
     
+    @staticmethod
+    def _resolve_salesforce_domain(domain_url: str) -> str:
+        """
+        Resolve the simple-salesforce `domain` argument.
+
+        Accepts environment labels (production/sandbox), login hosts
+        (login.salesforce.com / test.salesforce.com), or a custom My Domain
+        host/URL such as:
+          https://novartis-oncore--p01.sandbox.my.salesforce.com
+        -> novartis-oncore--p01.sandbox.my
+        """
+        from urllib.parse import urlparse
+
+        raw = (domain_url or "").strip()
+        if not raw:
+            return "login"
+
+        value = raw.lower()
+        if value in ("production", "prod", "login"):
+            return "login"
+        if value in ("sandbox", "test"):
+            return "test"
+
+        host = value
+        if "://" in raw:
+            host = (urlparse(raw).hostname or value).lower()
+        else:
+            host = value.split("/")[0].split("?")[0]
+
+        if host in ("login.salesforce.com", "www.salesforce.com"):
+            return "login"
+        if host == "test.salesforce.com":
+            return "test"
+
+        # Custom My Domain host → strip ".salesforce.com"
+        # e.g. novartis-oncore--p01.sandbox.my.salesforce.com
+        #   -> novartis-oncore--p01.sandbox.my
+        # simple-salesforce then calls https://{domain}.salesforce.com/...
+        if host.endswith(".salesforce.com"):
+            return host[: -len(".salesforce.com")]
+
+        # Already a domain fragment (e.g. company.my / company.sandbox.my)
+        if "." in host and "salesforce.com" not in host:
+            return host
+
+        return "test" if ("sandbox" in value or "test" in value) else "login"
+
     def initialize_connection(
         self,
         username: str,
@@ -173,11 +227,15 @@ class SalesforceService:
         client_secret: Optional[str] = None
     ) -> Dict[str, Any]:
         """Initialize Salesforce connection"""
+        domain = self._resolve_salesforce_domain(domain_url)
+        token_host = f"{domain}.salesforce.com"
         try:
-            # Determine domain
-            domain = 'test' if 'test' in domain_url or 'sandbox' in domain_url else None
-            
-            logger.debug(f"Attempting Salesforce connection with domain: {domain}")
+            logger.info(
+                f"Attempting Salesforce connection: username={username}, "
+                f"domain_url={domain_url!r}, resolved_domain={domain!r}, "
+                f"token_host={token_host}, has_client_id={bool(client_id)}, "
+                f"password_len={len(password) if password else 0}"
+            )
             
             # Create Salesforce connection
             self._connection = Salesforce(
@@ -219,10 +277,17 @@ class SalesforceService:
             }
             
         except Exception as e:
-            logger.error(f"Failed to connect to Salesforce: {str(e)}")
-            logger.error(f"Error type: {type(e).__name__}")
-            logger.error(f"Connection details: username={username}, domain={domain}, has_client_id={bool(client_id)}")
-            raise ValueError("salesforce.error.connection_failed")
+            error_msg = str(e)
+            # Log full stacktrace (loguru includes traceback with exception())
+            logger.exception(
+                f"Failed to connect to Salesforce: {error_msg} | "
+                f"error_type={type(e).__name__} | username={username} | "
+                f"domain_url={domain_url!r} | resolved_domain={domain!r} | "
+                f"token_host={token_host} | has_client_id={bool(client_id)} | "
+                f"password_len={len(password) if password else 0}"
+            )
+            # Preserve original error message for better debugging
+            raise ValueError(error_msg) from e
     
     def get_sobject_list(self, connection_uuid: str) -> List[Dict[str, Any]]:
         """Get list of all SObjects with MongoDB-based persistent caching"""
@@ -877,10 +942,10 @@ class SalesforceService:
     def execute_anonymous_apex(self, apex_code: str, connection_uuid: str) -> Dict[str, Any]:
         """
         Execute anonymous Apex code using Salesforce Tooling API
-        
+
         Args:
             apex_code (str): The Apex code to execute
-            
+
         Returns:
             Dict containing execution results including:
             - success: Boolean indicating if execution was successful
@@ -894,54 +959,106 @@ class SalesforceService:
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
-            # Use the Tooling API to execute anonymous Apex
+            # Salesforce Tooling API executeAnonymous only accepts GET method
+            # URL-encode the Apex code using quote() to preserve special characters
+            # Example from docs: /services/data/v65.0/tooling/executeAnonymous/?anonymousBody=System.debug('Test')%3B
+            encoded_apex = quote(apex_code, safe='')
+            endpoint = f'tooling/executeAnonymous/?anonymousBody={encoded_apex}'
+
+            logger.debug(f"Calling Salesforce Tooling API executeAnonymous")
+            logger.debug(f"Endpoint: {endpoint[:100]}...")
+            logger.debug(f"Apex code length: {len(apex_code)} characters")
+
             result = self.connection.restful(
-                'services/data/v64.0/tooling/executeAnonymous',
-                method='POST',
-                json={'anonymousBody': apex_code}
+                endpoint,
+                method='GET'
             )
-            
+
+            logger.debug(f"Apex execution result: {result}")
             logger.debug("Executed anonymous Apex code")
             logger.debug(f"Apex execution completed")
-            
-            # Map the response to a consistent format
+
+            # Log full response structure for debugging
+            if result:
+                logger.info(f"🔍 FULL SALESFORCE RESPONSE:")
+                logger.info(f"   Type: {type(result)}")
+                logger.info(f"   Keys: {list(result.keys()) if isinstance(result, dict) else 'N/A'}")
+                logger.info(f"   Full Response: {json.dumps(result, indent=2, default=str)}")
+
+            # Note: Salesforce's executeAnonymous endpoint does NOT return debug logs
+            # The response only contains compilation and execution status
+            # To get debug logs, you would need to:
+            # 1. Use ApexTestResult if executing test code
+            # 2. Query TraceFlag and DebugLog entities if debug logging is enabled
+            # 3. Use Tooling API with a separate debug log request
+            # For now, we return an empty debug_log since it's not available from executeAnonymous
+            debug_log = ''
+            debug_info = []
+
+            # Map the response to a consistent format using snake_case
             response = {
                 'success': result.get('success', False) if result else False,
                 'compiled': result.get('compiled', False) if result else False,
                 'line': result.get('line') if result else None,
                 'column': result.get('column') if result else None,
-                'compileProblem': result.get('compileProblem') if result else None,
-                'exceptionMessage': result.get('exceptionMessage') if result else None,
-                'exceptionStackTrace': result.get('exceptionStackTrace') if result else None,
-                'debugInfo': result.get('debugInfo', []) if result else [],
-                'executionTime': result.get('executionTime') if result else None,
-                'cpuTime': result.get('cpuTime') if result else None,
-                'dmlRows': result.get('dmlRows') if result else None,
-                'dmlStatements': result.get('dmlStatements') if result else None,
-                'soqlQueries': result.get('soqlQueries') if result else None,
-                'soqlRowsProcessed': result.get('soqlRowsProcessed') if result else None,
-                'queryLocatorRows': result.get('queryLocatorRows') if result else None,
-                'aggregateQueries': result.get('aggregateQueries') if result else None,
-                'limitExceptions': result.get('limitExceptions') if result else None,
-                'emailInvocations': result.get('emailInvocations') if result else None,
-                'futureCalls': result.get('futureCalls') if result else None,
-                'queueableJobs': result.get('queueableJobs') if result else None,
-                'mobilePushApexCalls': result.get('mobilePushApexCalls') if result else None,
-                'soslQueries': result.get('soslQueries') if result else None
+                'compile_problem': result.get('compileProblem') if result else None,
+                'exception_message': result.get('exceptionMessage') if result else None,
+                'exception_stack_trace': result.get('exceptionStackTrace') if result else None,
+                'debug_info': debug_info,
+                'debug_log': debug_log,
+                'execution_time': result.get('totalTime') if result else None,  # Salesforce returns 'totalTime' not 'executionTime'
+                'cpu_time': result.get('cpuTime') if result else None,
+                'dml_rows': result.get('dmlRows') if result else None,
+                'dml_statements': result.get('dmlStatements') if result else None,
+                'soql_queries': result.get('soqlQueries') if result else None,
+                'soql_rows_processed': result.get('soqlRowsProcessed') if result else None,
+                'query_locator_rows': result.get('queryLocatorRows') if result else None,
+                'aggregate_queries': result.get('aggregateQueries') if result else None,
+                'limit_exceptions': result.get('limitExceptions') if result else None,
+                'email_invocations': result.get('emailInvocations') if result else None,
+                'future_calls': result.get('futureCalls') if result else None,
+                'queueable_jobs': result.get('queueableJobs') if result else None,
+                'mobile_push_apex_calls': result.get('mobilePushApexCalls') if result else None,
+                'sosl_queries': result.get('soslQueries') if result else None
             }
             
             if response['success']:
                 logger.debug("Apex code executed successfully")
             else:
-                logger.warning(f"Apex code execution failed: {response.get('compileProblem') or response.get('exceptionMessage')}")
+                logger.warning(f"Apex code execution failed: {response.get('compile_problem') or response.get('exception_message')}")
             
             return response
             
         except Exception as e:
             logger.error(f"Failed to execute anonymous Apex: {str(e)}")
-            raise ValueError("salesforce.error.apex_execution_failed")
+            # Return error response instead of raising
+            return {
+                'success': False,
+                'compiled': False,
+                'line': None,
+                'column': None,
+                'compile_problem': None,
+                'exception_message': str(e),
+                'exception_stack_trace': None,
+                'debug_info': [],
+                'debug_log': '',
+                'execution_time': None,
+                'cpu_time': None,
+                'dml_rows': None,
+                'dml_statements': None,
+                'soql_queries': None,
+                'soql_rows_processed': None,
+                'query_locator_rows': None,
+                'aggregate_queries': None,
+                'limit_exceptions': None,
+                'email_invocations': None,
+                'future_calls': None,
+                'queueable_jobs': None,
+                'mobile_push_apex_calls': None,
+                'sosl_queries': None
+            }
 
     def execute_apex_rest(self, endpoint: str, connection_uuid: str, method: str = 'GET', data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -978,34 +1095,34 @@ class SalesforceService:
     def compile_packages(self, package_names: List[str], connection_uuid: str) -> Dict[str, Any]:
         """
         Compile Apex packages using Salesforce Tooling API
-        
+
         Args:
             package_names (List[str]): List of package names to compile
-            
+
         Returns:
             Dict containing compilation results
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
-            # Use Tooling API to compile packages
-            result = self.connection.toolingexecute(
-                'services/data/v64.0/tooling/compilePackages',
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/compilePackages',
                 method='POST',
-                data={'packageNames': package_names}
+                json={'packageNames': package_names}
             )
-            
+
             logger.debug(f"Compiled packages: {package_names}")
             logger.debug("Package compilation completed")
-            
+
             return {
                 'success': True,
                 'packages': package_names,
                 'result': result,
                 'message': f"Successfully compiled {len(package_names)} packages"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to compile packages: {str(e)}")
             raise ValueError("salesforce.error.package_compilation_failed")
@@ -1013,34 +1130,34 @@ class SalesforceService:
     def compile_triggers(self, trigger_names: List[str], connection_uuid: str) -> Dict[str, Any]:
         """
         Compile Apex triggers using Salesforce Tooling API
-        
+
         Args:
             trigger_names (List[str]): List of trigger names to compile
-            
+
         Returns:
             Dict containing compilation results
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
-            # Use Tooling API to compile triggers
-            result = self.connection.toolingexecute(
-                'services/data/v64.0/tooling/compileTriggers',
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/compileTriggers',
                 method='POST',
-                data={'triggerNames': trigger_names}
+                json={'triggerNames': trigger_names}
             )
-            
+
             logger.debug(f"Compiled triggers: {trigger_names}")
             logger.debug(f"Trigger compilation completed")
-            
+
             return {
                 'success': True,
                 'triggers': trigger_names,
                 'result': result,
                 'message': f"Successfully compiled {len(trigger_names)} triggers"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to compile triggers: {str(e)}")
             raise ValueError("salesforce.error.trigger_compilation_failed")
@@ -1048,17 +1165,17 @@ class SalesforceService:
     def run_tests(self, connection_uuid: str, test_classes: Optional[List[str]] = None, test_methods: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Run Apex tests using Salesforce Tooling API
-        
+
         Args:
             test_classes (List[str], optional): List of test class names to run
             test_methods (List[str], optional): List of specific test method names to run
-            
+
         Returns:
             Dict containing test execution results
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
             # Prepare test data
             test_data = {}
@@ -1066,17 +1183,17 @@ class SalesforceService:
                 test_data['testClasses'] = test_classes
             if test_methods:
                 test_data['testMethods'] = test_methods
-            
-            # Use Tooling API to run tests
-            result = self.connection.toolingexecute(
-                'services/data/v64.0/tooling/runTests',
+
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/runTests',
                 method='POST',
-                data=test_data
+                json=test_data
             )
-            
+
             logger.debug(f"Ran tests: classes={test_classes}, methods={test_methods}")
             logger.debug(f"Test execution completed")
-            
+
             return {
                 'success': True,
                 'test_classes': test_classes,
@@ -1084,7 +1201,7 @@ class SalesforceService:
                 'result': result,
                 'message': f"Successfully ran tests"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to run tests: {str(e)}")
             raise ValueError("salesforce.error.test_execution_failed")
@@ -1110,23 +1227,23 @@ class SalesforceService:
             }
             if test_classes:
                 test_data['testClasses'] = test_classes
-            
-            # Use Tooling API to compile and test
-            result = self.connection.toolingexecute(
-                'services/data/v64.0/tooling/compileAndTest',
+
+            # Use simple_salesforce SDK's restful method for Tooling API
+            result = self.connection.restful(
+                'tooling/compileAndTest',
                 method='POST',
-                data=test_data
+                json=test_data
             )
-            
+
             logger.debug(f"Compiled and tested Apex code")
             logger.debug(f"Compile and test completed")
-            
+
             return {
                 'success': True,
                 'result': result,
                 'message': "Successfully compiled and tested Apex code"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to compile and test: {str(e)}")
             raise ValueError("salesforce.error.compile_test_failed")
@@ -1134,33 +1251,115 @@ class SalesforceService:
     def get_compilation_status(self, compilation_id: str, connection_uuid: str) -> Dict[str, Any]:
         """
         Get the status of a compilation operation
-        
+
         Args:
             compilation_id (str): The compilation ID to check
-            
+
         Returns:
             Dict containing compilation status
         """
         if not self.connection:
             raise ValueError("No active Salesforce connection available")
-        
+
         try:
-            # Use Tooling API to get compilation status
+            # Use simple_salesforce SDK's toolingexecute method for Tooling API
             result = self.connection.toolingexecute(
-                f'services/data/v64.0/tooling/compilationStatus/{compilation_id}',
+                f'compilationStatus/{compilation_id}',
                 method='GET'
             )
-            
+
             logger.debug(f"Retrieved compilation status for ID: {compilation_id}")
             logger.debug(f"Compilation status retrieved")
-            
+
             return {
                 'success': True,
                 'compilation_id': compilation_id,
                 'result': result,
                 'message': "Successfully retrieved compilation status"
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to get compilation status: {str(e)}")
             raise ValueError("salesforce.error.compilation_status_failed")
+
+    def get_apex_classes(self, connection_uuid: str) -> Dict[str, Any]:
+        """
+        Get list of Apex classes from Salesforce org using Tooling API
+
+        Args:
+            connection_uuid (str): The connection UUID
+
+        Returns:
+            Dict containing list of Apex classes with metadata
+        """
+        if not self.connection:
+            raise ValueError("No active Salesforce connection available")
+
+        try:
+            # Query ApexClass using Tooling API
+            # Using restful method with proper SOQL endpoint
+            query = "SELECT Id, Name, Body, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexClass ORDER BY Name"
+            result = self.connection.restful(
+                f'tooling/query?q={quote(query, safe="")}',
+                method='GET'
+            )
+
+            logger.debug(f"Retrieved {len(result.get('records', []))} Apex classes")
+
+            return {
+                'success': True,
+                'records': result.get('records', []),
+                'total_size': result.get('totalSize', 0),
+                'message': "Successfully retrieved Apex classes"
+            }
+
+        except Exception as e:
+            logger.warning(f"Failed to get Apex classes: {str(e)}")
+            # Return empty result instead of failing - some orgs may not have access to ApexClass
+            return {
+                'success': False,
+                'records': [],
+                'total_size': 0,
+                'message': f"Unable to retrieve Apex classes: {str(e)}. Your Salesforce org may not have access to this data."
+            }
+
+    def get_apex_triggers(self, connection_uuid: str) -> Dict[str, Any]:
+        """
+        Get list of Apex triggers from Salesforce org using Tooling API
+
+        Args:
+            connection_uuid (str): The connection UUID
+
+        Returns:
+            Dict containing list of Apex triggers with metadata
+        """
+        if not self.connection:
+            raise ValueError("No active Salesforce connection available")
+
+        try:
+            # Query ApexTrigger using Tooling API
+            # Using restful method with proper SOQL endpoint
+            query = "SELECT Id, Name, Body, TableEnumOrId, Status, ApiVersion, CreatedDate, LastModifiedDate FROM ApexTrigger ORDER BY Name"
+            result = self.connection.restful(
+                f'tooling/query?q={quote(query, safe="")}',
+                method='GET'
+            )
+
+            logger.debug(f"Retrieved {len(result.get('records', []))} Apex triggers")
+
+            return {
+                'success': True,
+                'records': result.get('records', []),
+                'total_size': result.get('totalSize', 0),
+                'message': "Successfully retrieved Apex triggers"
+            }
+
+        except Exception as e:
+            logger.warning(f"Failed to get Apex triggers: {str(e)}")
+            # Return empty result instead of failing - some orgs may not have access to ApexTrigger
+            return {
+                'success': False,
+                'records': [],
+                'total_size': 0,
+                'message': f"Unable to retrieve Apex triggers: {str(e)}. Your Salesforce org may not have access to this data."
+            }

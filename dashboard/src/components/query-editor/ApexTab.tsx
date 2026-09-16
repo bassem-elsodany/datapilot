@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { logger } from '../../services/Logger';
-import { Paper, Title, Text, Textarea, Button, Group, Badge, Tabs, TextInput, Switch, Modal, ScrollArea, Flex, ActionIcon, Tooltip, Stack, Alert, Loader } from '@mantine/core';
+import { Paper, Title, Text, Button, Group, Badge, Tabs, TextInput, Switch, Modal, ScrollArea, Flex, ActionIcon, Tooltip, Stack, Alert, Loader, Select } from '@mantine/core';
 import { IconCode, IconDatabase, IconFile, IconSearch, IconDownload, IconUpload, IconPlayerPlay, IconStar, IconStarFilled, IconEdit, IconTrash, IconCopy, IconInfoCircle, IconBug, IconPlus, IconRefresh, IconX } from '@tabler/icons-react';
 import { useTranslation, i18nService } from '../../services/I18nService';
 import { notifications } from '@mantine/notifications';
+import { ApiService } from '../../services/ApiService';
+import { useSessionContext } from '../../contexts/SessionContext';
+import Editor from '@monaco-editor/react';
 import '../../assets/css/components/query-editor/ApexTab.css';
+import '../../assets/css/components/query-editor/ApexCreateModal.css';
 
 // ========================================
 // INTERFACES REFLECTING BACKEND MODELS
@@ -28,7 +32,7 @@ export type ExecutionStatus = 'success' | 'error' | 'compilation_error' | 'runti
 
 // Saved Apex Code (from backend SavedApex model)
 export interface SavedApex {
-  saved_apex_uuid: string;
+  uuid: string;
   connection_uuid: string;
   name: string;
   description?: string;
@@ -58,13 +62,21 @@ export interface ApexExecutionResponse {
   exception_message?: string;
   exception_stack_trace?: string;
   debug_info?: any[];
+  debug_log?: string;
   execution_time?: number;
   cpu_time?: number;
   dml_rows?: number;
   dml_statements?: number;
   soql_queries?: number;
   soql_rows_processed?: number;
+  query_locator_rows?: number;
+  aggregate_queries?: number;
   limit_exceptions?: any[];
+  email_invocations?: number;
+  future_calls?: number;
+  queueable_jobs?: number;
+  mobile_push_apex_calls?: number;
+  sosl_queries?: number;
   message?: string;
 }
 
@@ -130,7 +142,7 @@ export interface SalesforceApexTrigger {
 // ========================================
 
 interface ApexTabState {
-  activeTab: 'saved' | 'classes' | 'triggers';
+  activeTab: 'saved' | 'classes' | 'triggers' | 'tests';
   selectedClass: SalesforceApexClass | null;
   selectedTrigger: SalesforceApexTrigger | null;
   searchTerm: string;
@@ -144,6 +156,9 @@ interface ApexTabState {
   showCreateModal: boolean;
   showEditModal: boolean;
   showEditPanel: boolean;
+  isRunningTests: boolean;
+  testResults: any;
+  showTestResultsModal: boolean;
 }
 
 interface ApexFormData {
@@ -179,6 +194,9 @@ export const ApexTab: React.FC = () => {
     showCreateModal: false,
     showEditModal: false,
     showEditPanel: false,
+    isRunningTests: false,
+    testResults: null,
+    showTestResultsModal: false,
   });
 
   // Data state
@@ -203,8 +221,16 @@ export const ApexTab: React.FC = () => {
     },
     is_favorite: false
   });
-  
+
   const [editingApex, setEditingApex] = useState<SavedApex | null>(null);
+  const [isCreateModalClosing, setIsCreateModalClosing] = useState(false);
+
+  // Debug log viewer state
+  const [debugLogSearch, setDebugLogSearch] = useState('');
+
+  // Test runner state
+  const [testInput, setTestInput] = useState('');
+  const [testRunning, setTestRunning] = useState(false);
 
   // Load data on component mount
   useEffect(() => {
@@ -213,6 +239,22 @@ export const ApexTab: React.FC = () => {
     // loadSalesforceApexData();
   }, []);
 
+  // Reload data when tab changes to ensure fresh data from database
+  useEffect(() => {
+    if (state.activeTab === 'saved') {
+      loadSavedApexData();
+    } else if (state.activeTab === 'classes') {
+      loadApexClasses();
+    } else if (state.activeTab === 'triggers') {
+      loadApexTriggers();
+    }
+    // Note: 'tests' tab doesn't need auto-load as it's for manual test input
+  }, [state.activeTab]);
+
+  // Get context
+  const { currentConnectionUuid } = useSessionContext();
+  const apiService = ApiService.getInstance();
+
   // ========================================
   // DATA LOADING FUNCTIONS
   // ========================================
@@ -220,72 +262,112 @@ export const ApexTab: React.FC = () => {
   const loadSavedApexData = async () => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/v1/saved-apex?connection_uuid=...');
-      // const data = await response.json();
-      // setSavedApexList(data.saved_apex_list);
+      if (!currentConnectionUuid) {
+        throw new Error('No active connection');
+      }
 
-      // Mock data for now
-      const mockData: SavedApex[] = [
-        {
-          saved_apex_uuid: '1',
-          connection_uuid: 'conn-1',
-          name: 'Account Service Helper',
-          description: 'Helper class for Account operations',
-          tags: 'account,service,helper',
-          apex_code: 'public class AccountServiceHelper {\n  public static void updateAccount(Account acc) {\n    // Implementation\n  }\n}',
-          code_type: 'class',
-          debug_levels: {
-            DB: 'NONE',
-            Workflow: 'NONE',
-            Validation: 'NONE',
-            Callouts: 'NONE',
-            Apex_Code: 'DEBUG',
-            Apex_Profiling: 'NONE'
-          },
-          is_favorite: true,
-          execution_count: 5,
-          last_executed: '2024-01-15T10:30:00Z',
-          last_execution_status: 'success',
-          last_execution_time: 150,
-          created_at: '2024-01-10T09:00:00Z',
-          updated_at: '2024-01-15T10:30:00Z',
-          created_by: 'admin@example.com',
-          updated_by: 'admin@example.com',
-          version: 1
-        },
-        {
-          saved_apex_uuid: '2',
-          connection_uuid: 'conn-1',
-          name: 'Contact Trigger Handler',
-          description: 'Trigger handler for Contact operations',
-          tags: 'contact,trigger,handler',
-          apex_code: 'trigger ContactTrigger on Contact (before insert, before update) {\n  ContactTriggerHandler.handle(Trigger.new, Trigger.oldMap);\n}',
-          code_type: 'trigger',
-          debug_levels: {
-            DB: 'NONE',
-            Workflow: 'NONE',
-            Validation: 'NONE',
-            Callouts: 'NONE',
-            Apex_Code: 'INFO',
-            Apex_Profiling: 'NONE'
-          },
-          is_favorite: false,
-          execution_count: 3,
-          last_executed: '2024-01-12T14:20:00Z',
-          last_execution_status: 'success',
-          last_execution_time: 200,
-          created_at: '2024-01-08T11:00:00Z',
-          updated_at: '2024-01-12T14:20:00Z',
-          created_by: 'admin@example.com',
-          updated_by: 'admin@example.com',
-          version: 1
-        }
-      ];
-
-      setSavedApexList(mockData);
+      const apexList = await apiService.getSavedApexList(currentConnectionUuid);
+      setSavedApexList(apexList);
     } catch (error) {
       logger.error('Failed to load saved Apex data', 'ApexTab', null, error as Error);
+      notifications.show({
+        title: 'Failed to load Apex code',
+        message: (error as Error).message,
+        color: 'red',
+        icon: <IconBug size={16} />
+      });
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const loadApexClasses = async () => {
+    setState(prev => ({ ...prev, isLoading: true }));
+    try {
+      if (!currentConnectionUuid) {
+        throw new Error('No active connection');
+      }
+
+      const response = await apiService.getApexClasses(currentConnectionUuid);
+      const classes = response.records || [];
+
+      // Transform the response to match our interface
+      const transformedClasses: SalesforceApexClass[] = classes.map((cls: any) => ({
+        id: cls.Id,
+        name: cls.Name,
+        body: cls.Body || '',
+        status: cls.Status || 'Active',
+        isTest: cls.Body ? cls.Body.toLowerCase().includes('@istest') : false,
+        lastModifiedDate: cls.LastModifiedDate,
+        createdDate: cls.CreatedDate,
+        createdBy: { id: '', name: '' },
+        lastModifiedBy: { id: '', name: '' },
+        lengthWithoutComments: (cls.Body || '').length,
+        metadata: {
+          apiVersion: cls.ApiVersion || 64,
+          status: cls.Status || 'Active'
+        }
+      }));
+
+      setApexClasses(transformedClasses);
+    } catch (error) {
+      logger.error('Failed to load Apex classes', 'ApexTab', null, error as Error);
+      notifications.show({
+        title: 'Failed to load Apex classes',
+        message: (error as Error).message,
+        color: 'red',
+        icon: <IconBug size={16} />
+      });
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const loadApexTriggers = async () => {
+    setState(prev => ({ ...prev, isLoading: true }));
+    try {
+      if (!currentConnectionUuid) {
+        throw new Error('No active connection');
+      }
+
+      const response = await apiService.getApexTriggers(currentConnectionUuid);
+      const triggers = response.records || [];
+
+      // Transform the response to match our interface
+      const transformedTriggers: SalesforceApexTrigger[] = triggers.map((trigger: any) => ({
+        id: trigger.Id,
+        name: trigger.Name,
+        body: trigger.Body || '',
+        status: trigger.Status || 'Active',
+        tableEnumOrId: trigger.TableEnumOrId || '',
+        usageBeforeInsert: trigger.Body ? trigger.Body.toLowerCase().includes('before insert') : false,
+        usageAfterInsert: trigger.Body ? trigger.Body.toLowerCase().includes('after insert') : false,
+        usageBeforeUpdate: trigger.Body ? trigger.Body.toLowerCase().includes('before update') : false,
+        usageAfterUpdate: trigger.Body ? trigger.Body.toLowerCase().includes('after update') : false,
+        usageBeforeDelete: trigger.Body ? trigger.Body.toLowerCase().includes('before delete') : false,
+        usageAfterDelete: trigger.Body ? trigger.Body.toLowerCase().includes('after delete') : false,
+        usageIsBulk: true,
+        usageIsAfterUndelete: trigger.Body ? trigger.Body.toLowerCase().includes('after undelete') : false,
+        lastModifiedDate: trigger.LastModifiedDate,
+        createdDate: trigger.CreatedDate,
+        createdBy: { id: '', name: '' },
+        lastModifiedBy: { id: '', name: '' },
+        lengthWithoutComments: (trigger.Body || '').length,
+        metadata: {
+          apiVersion: trigger.ApiVersion || 64,
+          status: trigger.Status || 'Active'
+        }
+      }));
+
+      setApexTriggers(transformedTriggers);
+    } catch (error) {
+      logger.error('Failed to load Apex triggers', 'ApexTab', null, error as Error);
+      notifications.show({
+        title: 'Failed to load Apex triggers',
+        message: (error as Error).message,
+        color: 'red',
+        icon: <IconBug size={16} />
+      });
     } finally {
       setState(prev => ({ ...prev, isLoading: false }));
     }
@@ -315,62 +397,74 @@ export const ApexTab: React.FC = () => {
   // ========================================
 
   const handleExecuteApex = async (apex: SavedApex) => {
+    console.log('🚀 Opening Apex execution modal');
     setState(prev => ({ ...prev, isExecuting: true, showExecutionModal: true }));
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/v1/saved-apex/${apex.saved_apex_uuid}/execute`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ connection_uuid: apex.connection_uuid })
-      // });
-      // const result = await response.json();
+      if (!currentConnectionUuid) {
+        throw new Error('No active connection');
+      }
 
-      // Mock execution result
-      const mockResult: ApexExecutionResponse = {
-        success: true,
-        compiled: true,
-        execution_time: 150,
-        cpu_time: 120,
-        dml_rows: 0,
-        dml_statements: 0,
-        soql_queries: 1,
-        soql_rows_processed: 5,
-        message: 'Apex code executed successfully'
-      };
+      const result = await apiService.executeSavedApex(apex.uuid, currentConnectionUuid);
 
-      setState(prev => ({ 
-        ...prev, 
-        executionResult: mockResult,
-        isExecuting: false 
+      console.log('✅ Apex execution result:', result);
+      setState(prev => ({
+        ...prev,
+        executionResult: result.execution_result,
+        isExecuting: false
       }));
+
+      // Reload saved apex list to reflect updated execution_count and last_executed timestamp
+      await loadSavedApexData();
     } catch (error) {
+      const errorMessage = (error as Error).message;
       logger.error('Failed to execute Apex code', 'ApexTab', null, error as Error);
-      setState(prev => ({ 
-        ...prev, 
+
+      // Show error notification
+      notifications.show({
+        title: 'Apex Execution Failed',
+        message: errorMessage,
+        color: 'red',
+        autoClose: false,
+      });
+
+      setState(prev => ({
+        ...prev,
         executionResult: {
           success: false,
-          message: 'Failed to execute Apex code'
+          compiled: false,
+          message: errorMessage,
+          exception_message: errorMessage
         },
-        isExecuting: false 
+        isExecuting: false
       }));
     }
   };
 
   const handleToggleFavorite = async (apex: SavedApex) => {
     try {
-      // TODO: Replace with actual API call
-      // await fetch(`/api/v1/saved-apex/${apex.saved_apex_uuid}/toggle-favorite`, {
-      //   method: 'POST'
-      // });
+      await apiService.toggleApexFavorite(apex.uuid);
 
-      // Update local state
-      setSavedApexList(prev => prev.map(item => 
-        item.saved_apex_uuid === apex.saved_apex_uuid 
+      // Update local state optimistically
+      setSavedApexList(prev => prev.map(item =>
+        item.uuid === apex.uuid
           ? { ...item, is_favorite: !item.is_favorite }
           : item
       ));
+
+      notifications.show({
+        title: apex.is_favorite ? 'Removed from favorites' : 'Added to favorites',
+        message: `"${apex.name}" ${apex.is_favorite ? 'removed from' : 'added to'} favorites`,
+        color: 'green',
+        autoClose: 2000,
+      });
     } catch (error) {
       logger.error('Failed to toggle favorite', 'ApexTab', null, error as Error);
+      notifications.show({
+        title: 'Failed',
+        message: (error as Error).message,
+        color: 'red',
+        autoClose: 2000,
+      });
     }
   };
 
@@ -425,38 +519,44 @@ export const ApexTab: React.FC = () => {
 
   const handleCreateApex = async () => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/v1/saved-apex', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     connection_uuid: 'conn-1', // Get from context
-      //     ...formData
-      //   })
-      // });
+      if (!currentConnectionUuid) {
+        throw new Error('No active connection');
+      }
 
-      // Mock creation
-      const newApex: SavedApex = {
-        saved_apex_uuid: Date.now().toString(),
-        connection_uuid: 'conn-1',
+      if (!formData.name.trim()) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Please enter a name for the Apex code',
+          color: 'yellow',
+          autoClose: 3000,
+        });
+        return;
+      }
+
+      if (!formData.apex_code.trim()) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Please enter Apex code',
+          color: 'yellow',
+          autoClose: 3000,
+        });
+        return;
+      }
+
+      await apiService.createSavedApex({
+        connection_uuid: currentConnectionUuid,
         name: formData.name,
-        description: formData.description,
-        tags: formData.tags,
         apex_code: formData.apex_code,
         code_type: formData.code_type,
-        debug_levels: formData.debug_levels,
+        description: formData.description,
+        tags: formData.tags,
         is_favorite: formData.is_favorite,
-        execution_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        created_by: 'user',
-        updated_by: 'user',
-        version: 1
-      };
+        debug_levels: formData.debug_levels
+      });
 
-      setSavedApexList(prev => [newApex, ...prev]);
       setState(prev => ({ ...prev, showCreateModal: false }));
       resetForm();
+      await loadSavedApexData();
 
       notifications.show({
         title: 'Apex Code Created',
@@ -468,7 +568,7 @@ export const ApexTab: React.FC = () => {
       logger.error('Failed to create Apex code', 'ApexTab', null, error as Error);
       notifications.show({
         title: 'Creation Failed',
-        message: 'Failed to create Apex code',
+        message: (error as Error).message,
         color: 'red',
         autoClose: 3000,
       });
@@ -479,29 +579,40 @@ export const ApexTab: React.FC = () => {
     if (!editingApex) return;
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/v1/saved-apex/${editingApex.saved_apex_uuid}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
+      if (!formData.name.trim()) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Please enter a name for the Apex code',
+          color: 'yellow',
+          autoClose: 3000,
+        });
+        return;
+      }
 
-      // Mock update
-      setSavedApexList(prev => prev.map(apex => 
-        apex.saved_apex_uuid === editingApex.saved_apex_uuid 
-          ? { 
-              ...apex, 
-              ...formData,
-              updated_at: new Date().toISOString(),
-              updated_by: 'user',
-              version: apex.version + 1
-            }
-          : apex
-      ));
+      if (!formData.apex_code.trim()) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Please enter Apex code',
+          color: 'yellow',
+          autoClose: 3000,
+        });
+        return;
+      }
+
+      await apiService.updateSavedApex(editingApex.uuid, {
+        name: formData.name,
+        apex_code: formData.apex_code,
+        code_type: formData.code_type,
+        description: formData.description,
+        tags: formData.tags,
+        is_favorite: formData.is_favorite,
+        debug_levels: formData.debug_levels
+      });
 
       setState(prev => ({ ...prev, showEditPanel: false }));
       setEditingApex(null);
       resetForm();
+      await loadSavedApexData();
 
       notifications.show({
         title: 'Apex Code Updated',
@@ -513,7 +624,7 @@ export const ApexTab: React.FC = () => {
       logger.error('Failed to update Apex code', 'ApexTab', null, error as Error);
       notifications.show({
         title: 'Update Failed',
-        message: 'Failed to update Apex code',
+        message: (error as Error).message,
         color: 'red',
         autoClose: 3000,
       });
@@ -522,13 +633,8 @@ export const ApexTab: React.FC = () => {
 
   const handleDeleteApex = async (apex: SavedApex) => {
     try {
-      // TODO: Replace with actual API call
-      // await fetch(`/api/v1/saved-apex/${apex.saved_apex_uuid}`, {
-      //   method: 'DELETE'
-      // });
-
-      // Mock deletion
-      setSavedApexList(prev => prev.filter(item => item.saved_apex_uuid !== apex.saved_apex_uuid));
+      await apiService.deleteSavedApex(apex.uuid);
+      await loadSavedApexData();
 
       notifications.show({
         title: 'Apex Code Deleted',
@@ -540,11 +646,81 @@ export const ApexTab: React.FC = () => {
       logger.error('Failed to delete Apex code', 'ApexTab', null, error as Error);
       notifications.show({
         title: 'Deletion Failed',
-        message: 'Failed to delete Apex code',
+        message: (error as Error).message,
         color: 'red',
         autoClose: 3000,
       });
     }
+  };
+
+  const handleRunTests = async () => {
+    try {
+      if (!currentConnectionUuid) {
+        throw new Error('No active connection');
+      }
+
+      if (!testInput.trim()) {
+        notifications.show({
+          title: 'Validation Error',
+          message: 'Please enter test class names (comma-separated)',
+          color: 'yellow',
+          autoClose: 3000,
+        });
+        return;
+      }
+
+      setTestRunning(true);
+
+      // Parse test class names (comma-separated)
+      const testClasses = testInput
+        .split(',')
+        .map(cls => cls.trim())
+        .filter(cls => cls.length > 0);
+
+      const result = await apiService.runApexTests(currentConnectionUuid, {
+        test_classes: testClasses
+      });
+
+      setState(prev => ({
+        ...prev,
+        testResults: result,
+        showTestResultsPanel: true
+      }));
+
+      notifications.show({
+        title: 'Tests Completed',
+        message: 'Test execution completed successfully',
+        color: 'green',
+        autoClose: 3000,
+      });
+    } catch (error) {
+      logger.error('Failed to run tests', 'ApexTab', null, error as Error);
+      notifications.show({
+        title: 'Test Execution Failed',
+        message: (error as Error).message,
+        color: 'red',
+        autoClose: 3000,
+      });
+    } finally {
+      setTestRunning(false);
+    }
+  };
+
+  // ========================================
+  // HELPER FUNCTIONS
+  // ========================================
+
+  const getFilteredDebugLogs = (): string[] => {
+    if (!state.executionResult?.debug_info) return [];
+
+    if (!debugLogSearch.trim()) {
+      return state.executionResult.debug_info;
+    }
+
+    const searchLower = debugLogSearch.toLowerCase();
+    return state.executionResult.debug_info.filter(log =>
+      typeof log === 'string' ? log.toLowerCase().includes(searchLower) : JSON.stringify(log).toLowerCase().includes(searchLower)
+    );
   };
 
   // ========================================
@@ -553,7 +729,7 @@ export const ApexTab: React.FC = () => {
 
   const renderSavedApexItem = (apex: SavedApex) => (
     <div
-      key={apex.saved_apex_uuid}
+      key={apex.uuid}
       className="apex-item"
     >
       <div className="apex-item-row apex-item-row-1">
@@ -647,29 +823,20 @@ export const ApexTab: React.FC = () => {
   // ========================================
 
   return (
-    <div className="apex-tab">
-      <div className="apex-tab-header">
-        <div className="apex-tab-title">
-          <IconCode size={20} className="apex-tab-icon" />
-          <span>{tSync('apex.title')}</span>
+    <>
+      <div className="apex-tab">
+        <div className="apex-tab-header">
+          <div className="apex-tab-title">
+            <IconCode size={20} className="apex-tab-icon" />
+            <span>{tSync('apex.title')}</span>
+          </div>
+          <div className="apex-tab-subtitle">
+            {tSync('apex.subtitle')}
+          </div>
         </div>
-        <div className="apex-tab-subtitle">
-          {tSync('apex.subtitle')}
-        </div>
-      </div>
 
       <div className="apex-tab-content">
-        <Alert 
-          color="blue" 
-          title={tSync('apex.coming_soon.title', 'Coming in Next Release')}
-          icon={<IconInfoCircle size={16} />}
-          style={{ marginBottom: '20px' }}
-        >
-          <Text size="sm">
-            {tSync('apex.coming_soon.message', 'The Apex functionality is currently under development and will be available in the next release. This will include Apex code execution, saved Apex management, and Salesforce metadata integration.')}
-          </Text>
-        </Alert>
-        <div className="apex-controls" style={{ opacity: 0.5, pointerEvents: 'none' }}>
+        <div className="apex-controls">
           <div className="apex-search">
             <TextInput
               placeholder={tSync('apex.search.placeholder')}
@@ -677,7 +844,6 @@ export const ApexTab: React.FC = () => {
               onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.currentTarget.value }))}
               leftSection={<IconSearch size={16} />}
               size="sm"
-              disabled
             />
           </div>
           
@@ -685,7 +851,6 @@ export const ApexTab: React.FC = () => {
             <select
               value={state.filterStatus}
               onChange={(e) => setState(prev => ({ ...prev, filterStatus: e.target.value }))}
-              disabled
               style={{
                 padding: '8px 12px',
                 border: '1px solid #ced4da',
@@ -704,7 +869,6 @@ export const ApexTab: React.FC = () => {
             <select
               value={state.filterCodeType}
               onChange={(e) => setState(prev => ({ ...prev, filterCodeType: e.target.value }))}
-              disabled
               style={{
                 padding: '8px 12px',
                 border: '1px solid #ced4da',
@@ -732,7 +896,6 @@ export const ApexTab: React.FC = () => {
               size="xs"
               onClick={loadSavedApexData}
               loading={state.isLoading}
-              disabled
               className="query-tab-page-button"
               style={{ 
                 padding: '6px 12px', 
@@ -749,10 +912,9 @@ export const ApexTab: React.FC = () => {
               leftSection={<IconPlus size={14} />}
               size="xs"
               onClick={openCreateModal}
-              disabled
               className="query-tab-save-button"
-              style={{ 
-                padding: '6px 12px', 
+              style={{
+                padding: '6px 12px',
                 minHeight: '28px',
                 fontSize: '11px',
                 fontWeight: 600,
@@ -762,54 +924,23 @@ export const ApexTab: React.FC = () => {
             >
               {tSync('saved_apex.actions.create', 'Create Apex')}
             </Button>
-            <Button
-              leftSection={<IconUpload size={14} />}
-              variant="light"
-              size="xs"
-              disabled
-              className="query-tab-page-button"
-              style={{ 
-                padding: '6px 12px', 
-                minHeight: '28px',
-                fontSize: '11px',
-                fontWeight: 600,
-                borderRadius: '6px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {tSync('saved_apex.actions.execute')}
-            </Button>
-            <Button
-              leftSection={<IconDownload size={14} />}
-              variant="light"
-              size="xs"
-              disabled
-              className="query-tab-page-button"
-              style={{ 
-                padding: '6px 12px', 
-                minHeight: '28px',
-                fontSize: '11px',
-                fontWeight: 600,
-                borderRadius: '6px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {tSync('common.actions.export')}
-            </Button>
           </div>
         </div>
 
-        <div className="apex-main" style={{ opacity: 0.5, pointerEvents: 'none' }}>
+        <div className="apex-main">
           <Tabs value={state.activeTab} onChange={(value) => setState(prev => ({ ...prev, activeTab: value as any || 'saved' }))}>
             <Tabs.List>
-              <Tabs.Tab value="saved" leftSection={<IconCode size={16} />} disabled>
+              <Tabs.Tab value="saved" leftSection={<IconCode size={16} />}>
                 {tSync('saved_apex.tabs.all', { count: filteredSavedApex.length })}
               </Tabs.Tab>
-              <Tabs.Tab value="classes" leftSection={<IconFile size={16} />} disabled>
+              <Tabs.Tab value="classes" leftSection={<IconFile size={16} />}>
                 {tSync('saved_apex.filter.type.class', { count: apexClasses.length })}
               </Tabs.Tab>
-              <Tabs.Tab value="triggers" leftSection={<IconCode size={16} />} disabled>
+              <Tabs.Tab value="triggers" leftSection={<IconCode size={16} />}>
                 {tSync('saved_apex.filter.type.trigger', { count: apexTriggers.length })}
+              </Tabs.Tab>
+              <Tabs.Tab value="tests" leftSection={<IconPlayerPlay size={16} />}>
+                Test Runner
               </Tabs.Tab>
             </Tabs.List>
 
@@ -819,107 +950,166 @@ export const ApexTab: React.FC = () => {
                   {filteredSavedApex.map(renderSavedApexItem)}
                 </div>
                 
-                {state.showEditPanel && editingApex && (
+                {state.showEditPanel && (editingApex || state.selectedClass || state.selectedTrigger) && (
                   <div className="apex-edit-panel">
                     <div className="apex-edit-header">
-                      <Text size="md" fw={600}>Edit Apex Code</Text>
+                      <Text size="md" fw={600}>
+                        {editingApex ? 'Edit Apex Code' : state.selectedClass ? `View Class: ${state.selectedClass.name}` : `View Trigger: ${state.selectedTrigger?.name}`}
+                      </Text>
                       <ActionIcon
                         variant="light"
                         color="gray"
-                        onClick={() => setState(prev => ({ ...prev, showEditPanel: false }))}
+                        onClick={() => setState(prev => ({ ...prev, showEditPanel: false, selectedClass: null, selectedTrigger: null }))}
                       >
                         <IconX size={16} />
                       </ActionIcon>
                     </div>
                     
                     <div className="apex-edit-content">
-                                            <div className="apex-edit-compact-fields">
-                        <Group gap="md">
-                          <TextInput
-                            label={tSync('apex.form.name', 'Name')}
-                            placeholder={tSync('apex.form.namePlaceholder', 'Enter Apex code name')}
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            required
-                            style={{ flex: 1 }}
-                          />
-                          
-                          <TextInput
-                            label={tSync('apex.form.description', 'Description')}
-                            placeholder={tSync('apex.form.descriptionPlaceholder', 'Optional description')}
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            style={{ flex: 1 }}
-                          />
-                          
-                          <TextInput
-                            label={tSync('apex.form.tags', 'Tags')}
-                            placeholder={tSync('apex.form.tagsPlaceholder', 'Comma-separated tags')}
-                            value={formData.tags}
-                            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                            style={{ flex: 1 }}
-                          />
-                        </Group>
-                        
-                        <Group gap="md" align="center">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '0 0 120px' }}>
-                            <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>Code Type</Text>
-                            <select
-                              value={formData.code_type}
-                              onChange={(e) => setFormData({ ...formData, code_type: e.target.value as ApexCodeType })}
-                              style={{
-                                padding: '8px 12px',
-                                border: '1px solid #ced4da',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                backgroundColor: 'white',
-                                flex: 1
-                              }}
-                            >
-                              <option value="anonymous">Anonymous</option>
-                              <option value="class">Class</option>
-                              <option value="trigger">Trigger</option>
-                              <option value="interface">Interface</option>
-                              <option value="enum">Enum</option>
-                              <option value="test_class">Test Class</option>
-                            </select>
-                          </div>
-                          
-                          <Switch
-                            label={tSync('apex.form.favorite', 'Favorite')}
-                            checked={formData.is_favorite}
-                            onChange={(e) => setFormData({ ...formData, is_favorite: e.target.checked })}
-                          />
-                        </Group>
-                      </div>
-                      
-                      <div className="apex-edit-code-section">
-                        <Text size="sm" fw={500} mb="xs">Apex Code</Text>
-                        <Textarea
-                          placeholder={tSync('apex.form.codePlaceholder', 'Enter your Apex code here')}
-                          value={formData.apex_code}
-                          onChange={(e) => setFormData({ ...formData, apex_code: e.target.value })}
-                          minRows={20}
-                          maxRows={35}
-                          styles={{
-                            input: {
+                      {editingApex && (
+                        <div className="apex-edit-compact-fields">
+                          <Group gap="xs">
+                            <TextInput
+                              label={tSync('apex.form.name', 'Name')}
+                              placeholder={tSync('apex.form.namePlaceholder', 'Enter Apex code name')}
+                              value={formData.name}
+                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                              required
+                              style={{ flex: 1 }}
+                            />
+
+                            <TextInput
+                              label={tSync('apex.form.description', 'Description')}
+                              placeholder={tSync('apex.form.descriptionPlaceholder', 'Optional description')}
+                              value={formData.description}
+                              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                              style={{ flex: 1 }}
+                            />
+
+                            <TextInput
+                              label={tSync('apex.form.tags', 'Tags')}
+                              placeholder={tSync('apex.form.tagsPlaceholder', 'Comma-separated tags')}
+                              value={formData.tags}
+                              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                              style={{ flex: 1 }}
+                            />
+                          </Group>
+
+                          <Group gap="xs" align="center">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '0 0 120px' }}>
+                              <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>Code Type</Text>
+                              <select
+                                value={formData.code_type}
+                                onChange={(e) => setFormData({ ...formData, code_type: e.target.value as ApexCodeType })}
+                                style={{
+                                  padding: '8px 12px',
+                                  border: '1px solid #ced4da',
+                                  borderRadius: '6px',
+                                  fontSize: '14px',
+                                  backgroundColor: 'white',
+                                  flex: 1
+                                }}
+                              >
+                                <option value="anonymous">Anonymous</option>
+                                <option value="class">Class</option>
+                                <option value="trigger">Trigger</option>
+                                <option value="interface">Interface</option>
+                                <option value="enum">Enum</option>
+                                <option value="test_class">Test Class</option>
+                              </select>
+                            </div>
+
+                            <Switch
+                              label={tSync('apex.form.favorite', 'Favorite')}
+                              checked={formData.is_favorite}
+                              onChange={(e) => setFormData({ ...formData, is_favorite: e.target.checked })}
+                            />
+                          </Group>
+                        </div>
+                      )}
+
+                      {/* Debug Levels - Compact */}
+                      {editingApex && (
+                        <div style={{ flexShrink: 0, paddingTop: '2px', borderTop: '1px solid #e9ecef', marginBottom: '2px' }}>
+                          <Group gap="xs" grow>
+                            {(['DB', 'Workflow', 'Validation', 'Callouts', 'Apex_Code', 'Apex_Profiling'] as const).map(level => (
+                              <div key={level} style={{ minWidth: 0 }}>
+                                <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, marginBottom: '2px', color: '#475569', textTransform: 'uppercase' }}>
+                                  {level.replace('_', ' ')}
+                                </label>
+                                <select
+                                  value={formData.debug_levels[level]}
+                                  onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, [level]: e.target.value } })}
+                                  style={{ width: '100%', padding: '4px 4px', border: '1px solid #cbd5e1', borderRadius: '3px', fontSize: '11px', backgroundColor: 'white' }}
+                                >
+                                  <option value="NONE">NONE</option>
+                                  <option value="ERROR">ERROR</option>
+                                  <option value="WARN">WARN</option>
+                                  <option value="INFO">INFO</option>
+                                  <option value="DEBUG">DEBUG</option>
+                                  {(level === 'DB' || level === 'Apex_Code') && (
+                                    <>
+                                      <option value="FINE">FINE</option>
+                                      <option value="FINER">FINER</option>
+                                      <option value="FINEST">FINEST</option>
+                                    </>
+                                  )}
+                                </select>
+                              </div>
+                            ))}
+                          </Group>
+                        </div>
+                      )}
+
+                      {/* Code Editor Section - Grows to fill space */}
+                      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}>
+                        <Text size="sm" fw={500} style={{ flexShrink: 0, marginBottom: '4px' }}>Apex Code {!editingApex && '(Read-only)'}</Text>
+                        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', width: '100%', height: '100%' }}>
+                          <Editor
+                            key={editingApex ? `edit-${editingApex.uuid}` : `view-${state.selectedClass?.id || state.selectedTrigger?.id || 'empty'}`}
+                            height="100%"
+                            width="100%"
+                            defaultLanguage="apex"
+                            value={editingApex ? formData.apex_code : (state.selectedClass?.body || state.selectedTrigger?.body || '')}
+                            onChange={(value) => editingApex && setFormData({ ...formData, apex_code: value || '' })}
+                            onMount={(editor) => {
+                              // Force editor to recalculate dimensions
+                              editor.layout();
+                              // Ensure layout is recalculated after render
+                              setTimeout(() => editor.layout(), 50);
+                              setTimeout(() => editor.layout(), 150);
+
+                              // Add ResizeObserver to handle container resizing
+                              const container = editor.getDomNode();
+                              if (container && container.parentElement) {
+                                const resizeObserver = new ResizeObserver(() => {
+                                  editor.layout();
+                                });
+                                resizeObserver.observe(container.parentElement);
+                              }
+                            }}
+                            options={{
+                              automaticLayout: false,
+                              minimap: { enabled: false },
+                              lineNumbers: 'on',
+                              fontSize: 13,
                               fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                              fontSize: '13px',
-                              lineHeight: '1.5',
-                              resize: 'vertical',
-                              minHeight: '400px'
-                            }
-                          }}
-                        />
+                              tabSize: 2,
+                              wordWrap: 'on',
+                              readOnly: !editingApex,
+                              scrollBeyondLastLine: false
+                            }}
+                          />
+                        </div>
                       </div>
-                      
-                      <Group justify="flex-end" gap="sm">
+
+                      <Group justify="flex-end" gap="xs" style={{ flexShrink: 0, marginTop: '8px' }}>
                         <Button
                           variant="light"
                           size="xs"
-                          onClick={() => setState(prev => ({ ...prev, showEditPanel: false }))}
-                          style={{ 
-                            padding: '6px 12px', 
+                          onClick={() => setState(prev => ({ ...prev, showEditPanel: false, selectedClass: null, selectedTrigger: null }))}
+                          style={{
+                            padding: '6px 12px',
                             minHeight: '28px',
                             fontSize: '11px',
                             fontWeight: 600,
@@ -927,24 +1117,297 @@ export const ApexTab: React.FC = () => {
                             transition: 'all 0.2s ease'
                           }}
                         >
-                          Cancel
+                          {editingApex ? 'Cancel' : 'Close'}
                         </Button>
-                        <Button
-                          size="xs"
-                          onClick={handleUpdateApex}
-                          className="query-tab-save-button"
-                          style={{ 
-                            padding: '6px 12px', 
-                            minHeight: '28px',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            borderRadius: '6px',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          Update Apex Code
-                        </Button>
+                        {editingApex && (
+                          <>
+                            <Button
+                              size="xs"
+                              variant="light"
+                              onClick={() => {
+                                setState(prev => ({ ...prev, isExecuting: true, showTestResultsModal: true, showExecutionModal: false }));
+                                const testExecute = async () => {
+                                  try {
+                                    const result = await apiService.executeAnonymousApex(currentConnectionUuid, {
+                                      apex_code: formData.apex_code,
+                                      debug_levels: formData.debug_levels
+                                    });
+                                    setState(prev => ({
+                                      ...prev,
+                                      executionResult: result,
+                                      isExecuting: false
+                                    }));
+                                  } catch (error) {
+                                    logger.error('Failed to execute test', 'ApexTab', null, error as Error);
+                                    setState(prev => ({
+                                      ...prev,
+                                      executionResult: {
+                                        success: false,
+                                        message: 'Execution failed',
+                                        compile_problem: (error as Error).message
+                                      },
+                                      isExecuting: false
+                                    }));
+                                  }
+                                };
+                                testExecute();
+                              }}
+                              leftSection={<IconPlayerPlay size={14} />}
+                              style={{
+                                padding: '6px 12px',
+                                minHeight: '28px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                borderRadius: '6px',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              Test
+                            </Button>
+                            <Button
+                              size="xs"
+                              onClick={handleUpdateApex}
+                              className="query-tab-save-button"
+                              style={{
+                                padding: '6px 12px',
+                                minHeight: '28px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                borderRadius: '6px',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              Update Apex Code
+                            </Button>
+                          </>
+                        )}
                       </Group>
+                    </div>
+                  </div>
+                )}
+
+                {/* Execution Results Panel - Show loading or results */}
+                {state.showExecutionModal && (
+                  <div className="apex-edit-panel">
+                    <div className="apex-edit-header">
+                      <Text size="md" fw={600}>
+                        Apex Execution Results
+                      </Text>
+                      {!state.isExecuting && (
+                        <ActionIcon
+                          variant="light"
+                          color="gray"
+                          onClick={() => setState(prev => ({ ...prev, showExecutionModal: false, executionResult: null }))}
+                        >
+                          <IconX size={16} />
+                        </ActionIcon>
+                      )}
+                    </div>
+
+                    <div className="apex-edit-content">
+                      {state.isExecuting ? (
+                        <Stack align="center" justify="center" gap="md" style={{ height: '100%' }}>
+                          <Loader size="lg" />
+                          <Text size="md" fw={500} c="dimmed">Executing Apex code...</Text>
+                        </Stack>
+                      ) : state.executionResult ? (
+                        <ScrollArea>
+                          <Stack gap="md">
+                            <Group>
+                              <Badge
+                                size="lg"
+                                color={state.executionResult.success ? 'green' : 'red'}
+                                leftSection={state.executionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
+                              >
+                                {state.executionResult.success ? 'Execution Successful' : 'Execution Failed'}
+                              </Badge>
+                            </Group>
+
+                            {state.executionResult.message && (
+                              <Text size="sm">{state.executionResult.message}</Text>
+                            )}
+
+                            {state.executionResult.compile_problem && (
+                              <Paper p="md" bg="red.0" c="red.8">
+                                <Text size="sm" fw={500} mb="xs">Compilation Error:</Text>
+                                <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                  {state.executionResult.compile_problem}
+                                </Text>
+                                {state.executionResult.line && (
+                                  <Text size="xs" c="red.8" mt="xs">
+                                    Line {state.executionResult.line}, Column {state.executionResult.column}
+                                  </Text>
+                                )}
+                              </Paper>
+                            )}
+
+                            {state.executionResult.exception_message && (
+                              <Paper p="md" bg="red.0" c="red.8">
+                                <Text size="sm" fw={500} mb="xs">Exception:</Text>
+                                <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                  {state.executionResult.exception_message}
+                                </Text>
+                              </Paper>
+                            )}
+
+                            {state.executionResult.limit_exceptions && state.executionResult.limit_exceptions.length > 0 && (
+                              <Paper p="md" bg="yellow.0" c="yellow.8">
+                                <Text size="sm" fw={500}>Governor Limit Warnings:</Text>
+                                <Stack gap="xs" mt="sm">
+                                  {state.executionResult.limit_exceptions.map((limit, index) => (
+                                    <Text key={index} size="sm">{limit}</Text>
+                                  ))}
+                                </Stack>
+                              </Paper>
+                            )}
+
+                            <div>
+                              <Text size="sm" fw={500} mb="sm">Performance Metrics:</Text>
+                              <Group gap="md" wrap="wrap">
+                                {state.executionResult.execution_time !== undefined && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    Execution Time: {state.executionResult.execution_time}ms
+                                  </Badge>
+                                )}
+                                {state.executionResult.cpu_time !== undefined && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    CPU Time: {state.executionResult.cpu_time}ms
+                                  </Badge>
+                                )}
+                                {state.executionResult.dml_statements !== undefined && (
+                                  <Badge size="sm" variant="light" color="cyan">
+                                    DML Statements: {state.executionResult.dml_statements}
+                                  </Badge>
+                                )}
+                              </Group>
+                            </div>
+
+                            {state.executionResult.debug_log && state.executionResult.debug_log.length > 0 && (
+                              <div>
+                                <Text size="sm" fw={500} mb="sm">Debug Log:</Text>
+                                <Paper p="sm" withBorder bg="gray.0">
+                                  <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                    {state.executionResult.debug_log}
+                                  </Text>
+                                </Paper>
+                              </div>
+                            )}
+                          </Stack>
+                        </ScrollArea>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
+
+                {/* Test Results Panel - Show during edit when test is executed */}
+                {state.showEditPanel && editingApex && state.showTestResultsModal && (
+                  <div className="apex-edit-panel">
+                    <div className="apex-edit-header">
+                      <Text size="md" fw={600}>
+                        Test Results
+                      </Text>
+                      {!state.isExecuting && (
+                        <ActionIcon
+                          variant="light"
+                          color="gray"
+                          onClick={() => setState(prev => ({ ...prev, showTestResultsModal: false, executionResult: null }))}
+                        >
+                          <IconX size={16} />
+                        </ActionIcon>
+                      )}
+                    </div>
+
+                    <div className="apex-edit-content">
+                      {state.isExecuting ? (
+                        <Stack align="center" justify="center" gap="md" style={{ height: '100%' }}>
+                          <Loader size="lg" />
+                          <Text size="md" fw={500} c="dimmed">Executing test...</Text>
+                        </Stack>
+                      ) : state.executionResult ? (
+                        <ScrollArea>
+                          <Stack gap="md">
+                            <Group>
+                              <Badge
+                                size="lg"
+                                color={state.executionResult.success ? 'green' : 'red'}
+                                leftSection={state.executionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
+                              >
+                                {state.executionResult.success ? 'Test Passed' : 'Test Failed'}
+                              </Badge>
+                            </Group>
+
+                            {state.executionResult.message && (
+                              <Text size="sm">{state.executionResult.message}</Text>
+                            )}
+
+                            {state.executionResult.compile_problem && (
+                              <Paper p="md" bg="red.0" c="red.8">
+                                <Text size="sm" fw={500} mb="xs">Compilation Error:</Text>
+                                <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                  {state.executionResult.compile_problem}
+                                </Text>
+                                {state.executionResult.line && (
+                                  <Text size="xs" c="red.8" mt="xs">
+                                    Line {state.executionResult.line}, Column {state.executionResult.column}
+                                  </Text>
+                                )}
+                              </Paper>
+                            )}
+
+                            {state.executionResult.exception_message && (
+                              <Paper p="md" bg="red.0" c="red.8">
+                                <Text size="sm" fw={500} mb="xs">Exception:</Text>
+                                <Text size="sm" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                  {state.executionResult.exception_message}
+                                </Text>
+                              </Paper>
+                            )}
+
+                            {state.executionResult.limit_exceptions && state.executionResult.limit_exceptions.length > 0 && (
+                              <Paper p="md" bg="yellow.0" c="yellow.8">
+                                <Text size="sm" fw={500}>Governor Limit Warnings:</Text>
+                                <Stack gap="xs" mt="sm">
+                                  {state.executionResult.limit_exceptions.map((limit, index) => (
+                                    <Text key={index} size="sm">{limit}</Text>
+                                  ))}
+                                </Stack>
+                              </Paper>
+                            )}
+
+                            <div>
+                              <Text size="sm" fw={500} mb="sm">Performance Metrics:</Text>
+                              <Group gap="md" wrap="wrap">
+                                {state.executionResult.execution_time !== undefined && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    Execution Time: {state.executionResult.execution_time}ms
+                                  </Badge>
+                                )}
+                                {state.executionResult.cpu_time !== undefined && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    CPU Time: {state.executionResult.cpu_time}ms
+                                  </Badge>
+                                )}
+                                {state.executionResult.dml_statements !== undefined && (
+                                  <Badge size="sm" variant="light" color="cyan">
+                                    DML Statements: {state.executionResult.dml_statements}
+                                  </Badge>
+                                )}
+                              </Group>
+                            </div>
+
+                            {state.executionResult.debug_log && state.executionResult.debug_log.length > 0 && (
+                              <div>
+                                <Text size="sm" fw={500} mb="sm">Debug Log:</Text>
+                                <Paper p="sm" withBorder bg="gray.0">
+                                  <Text size="xs" ff="monospace" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                    {state.executionResult.debug_log}
+                                  </Text>
+                                </Paper>
+                              </div>
+                            )}
+                          </Stack>
+                        </ScrollArea>
+                      ) : null}
                     </div>
                   </div>
                 )}
@@ -952,221 +1415,577 @@ export const ApexTab: React.FC = () => {
             </Tabs.Panel>
 
             <Tabs.Panel value="classes" className="apex-panel">
-              <div className="apex-list">
-                <div className="apex-items">
-                  <Text size="sm" c="dimmed" ta="center" py="xl">
-                    Salesforce metadata integration coming soon
+              <div className="apex-list" style={{ flexDirection: 'column' }}>
+                <Group justify="space-between" mb="md" px="md" pt="md" style={{ flexShrink: 0 }}>
+                  <TextInput
+                    placeholder="Search classes..."
+                    leftSection={<IconSearch size={16} />}
+                    value={state.searchTerm}
+                    onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.currentTarget.value }))}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    onClick={loadApexClasses}
+                    loading={state.isLoading}
+                    leftSection={<IconRefresh size={16} />}
+                    variant="light"
+                  >
+                    Load Classes
+                  </Button>
+                </Group>
+
+                {state.isLoading && (
+                  <Flex justify="center" align="center" py="xl" style={{ flex: 1 }}>
+                    <Loader size="sm" />
+                  </Flex>
+                )}
+
+                {!state.isLoading && apexClasses.length === 0 && (
+                  <Text size="sm" c="dimmed" ta="center" py="xl" style={{ flex: 1 }}>
+                    No Apex classes found. Click "Load Classes" to fetch from your Salesforce org.
                   </Text>
-                </div>
+                )}
+
+                {!state.isLoading && apexClasses.length > 0 && (
+                  <ScrollArea style={{ flex: 1, overflow: 'hidden' }}>
+                    <div className="apex-items">
+                    {apexClasses
+                      .filter(cls =>
+                        cls.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+                        cls.body.toLowerCase().includes(state.searchTerm.toLowerCase())
+                      )
+                      .map((apexClass) => (
+                        <Paper key={apexClass.id} p="md" mb="sm" className="apex-item" radius="md">
+                          <Group justify="space-between" mb="xs">
+                            <div>
+                              <Text fw={600} size="sm">{apexClass.name}</Text>
+                              <Group gap="xs" mt={4}>
+                                <Badge size="sm" variant="light" color={apexClass.status === 'Active' ? 'green' : 'gray'}>
+                                  {apexClass.status}
+                                </Badge>
+                                {apexClass.isTest && (
+                                  <Badge size="sm" variant="light" color="blue">
+                                    Test Class
+                                  </Badge>
+                                )}
+                                <Badge size="sm" variant="light" color="cyan">
+                                  {apexClass.lengthWithoutComments} chars
+                                </Badge>
+                              </Group>
+                            </div>
+                            <Tooltip label="View code">
+                              <ActionIcon
+                                variant="light"
+                                onClick={() => setState(prev => ({
+                                  ...prev,
+                                  selectedClass: apexClass,
+                                  showEditPanel: true
+                                }))}
+                              >
+                                <IconFile size={16} />
+                              </ActionIcon>
+                            </Tooltip>
+                          </Group>
+                          <Text size="xs" c="dimmed">
+                            {new Date(apexClass.lastModifiedDate).toLocaleString()}
+                          </Text>
+                        </Paper>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
             </Tabs.Panel>
 
             <Tabs.Panel value="triggers" className="apex-panel">
-              <div className="apex-list">
-                <div className="apex-items">
-                  <Text size="sm" c="dimmed" ta="center" py="xl">
-                    Salesforce metadata integration coming soon
+              <div className="apex-list" style={{ flexDirection: 'column' }}>
+                <Group justify="space-between" mb="md" px="md" pt="md" style={{ flexShrink: 0 }}>
+                  <TextInput
+                    placeholder="Search triggers..."
+                    leftSection={<IconSearch size={16} />}
+                    value={state.searchTerm}
+                    onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.currentTarget.value }))}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    onClick={loadApexTriggers}
+                    loading={state.isLoading}
+                    leftSection={<IconRefresh size={16} />}
+                    variant="light"
+                  >
+                    Load Triggers
+                  </Button>
+                </Group>
+
+                {state.isLoading && (
+                  <Flex justify="center" align="center" py="xl" style={{ flex: 1 }}>
+                    <Loader size="sm" />
+                  </Flex>
+                )}
+
+                {!state.isLoading && apexTriggers.length === 0 && (
+                  <Text size="sm" c="dimmed" ta="center" py="xl" style={{ flex: 1 }}>
+                    No Apex triggers found. Click "Load Triggers" to fetch from your Salesforce org.
                   </Text>
+                )}
+
+                {!state.isLoading && apexTriggers.length > 0 && (
+                  <ScrollArea style={{ flex: 1, overflow: 'hidden' }}>
+                    <div className="apex-items">
+                    {apexTriggers
+                      .filter(trigger =>
+                        trigger.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+                        trigger.tableEnumOrId.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+                        trigger.body.toLowerCase().includes(state.searchTerm.toLowerCase())
+                      )
+                      .map((trigger) => {
+                        const events = [];
+                        if (trigger.usageBeforeInsert) events.push('before insert');
+                        if (trigger.usageAfterInsert) events.push('after insert');
+                        if (trigger.usageBeforeUpdate) events.push('before update');
+                        if (trigger.usageAfterUpdate) events.push('after update');
+                        if (trigger.usageBeforeDelete) events.push('before delete');
+                        if (trigger.usageAfterDelete) events.push('after delete');
+                        if (trigger.usageIsAfterUndelete) events.push('after undelete');
+
+                        return (
+                          <Paper key={trigger.id} p="md" mb="sm" className="apex-item" radius="md">
+                            <Group justify="space-between" mb="xs">
+                              <div>
+                                <Text fw={600} size="sm">{trigger.name}</Text>
+                                <Text size="xs" c="dimmed" mt={2}>
+                                  SObject: {trigger.tableEnumOrId}
+                                </Text>
+                                <Group gap="xs" mt={4}>
+                                  <Badge size="sm" variant="light" color={trigger.status === 'Active' ? 'green' : 'gray'}>
+                                    {trigger.status}
+                                  </Badge>
+                                  <Badge size="sm" variant="light" color="violet">
+                                    {events.length} events
+                                  </Badge>
+                                  <Badge size="sm" variant="light" color="cyan">
+                                    {trigger.lengthWithoutComments} chars
+                                  </Badge>
+                                </Group>
+                                {events.length > 0 && (
+                                  <Text size="xs" c="dimmed" mt={4}>
+                                    Events: {events.join(', ')}
+                                  </Text>
+                                )}
+                              </div>
+                              <Tooltip label="View code">
+                                <ActionIcon
+                                  variant="light"
+                                  onClick={() => setState(prev => ({
+                                    ...prev,
+                                    selectedTrigger: trigger,
+                                    showEditPanel: true
+                                  }))}
+                                >
+                                  <IconFile size={16} />
+                                </ActionIcon>
+                              </Tooltip>
+                            </Group>
+                            <Text size="xs" c="dimmed">
+                              {new Date(trigger.lastModifiedDate).toLocaleString()}
+                            </Text>
+                          </Paper>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
+            </Tabs.Panel>
+
+            <Tabs.Panel value="tests" className="apex-panel">
+              <div className="apex-list">
+                {/* Left side - Test input */}
+                <div style={{ flex: '0 0 400px', padding: '16px', borderRight: '1px solid #e5e7eb', overflowY: 'auto' }}>
+                  <Stack gap="md">
+                    <div>
+                      <Text size="sm" fw={500} mb="sm">Test Classes (comma-separated)</Text>
+                      <textarea
+                        placeholder="Example: MyTestClass, AnotherTestClass"
+                        value={testInput}
+                        onChange={(e) => setTestInput(e.target.value)}
+                        style={{
+                          width: '100%',
+                          minHeight: '150px',
+                          padding: '12px',
+                          border: '1px solid #ced4da',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+                          resize: 'vertical'
+                        }}
+                      />
+                    </div>
+
+                    <Button
+                      onClick={handleRunTests}
+                      loading={testRunning}
+                      leftSection={<IconPlayerPlay size={16} />}
+                      className="query-tab-save-button"
+                      disabled={testRunning || testInput.trim().length === 0}
+                    >
+                      Run Tests
+                    </Button>
+                  </Stack>
                 </div>
+
+                {/* Right side - Test results panel */}
+                {state.showTestResultsModal && state.testResults && (
+                  <div className="apex-edit-panel">
+                    <div className="apex-edit-header">
+                      <Text size="md" fw={600}>
+                        Test Execution Results
+                      </Text>
+                      <ActionIcon
+                        variant="light"
+                        color="gray"
+                        onClick={() => setState(prev => ({ ...prev, showTestResultsModal: false }))}
+                      >
+                        <IconX size={16} />
+                      </ActionIcon>
+                    </div>
+
+                    <div className="apex-edit-content">
+                      <ScrollArea>
+                        <Stack gap="md">
+                          {/* Summary */}
+                          <div>
+                            <Group mb="md">
+                              <Badge
+                                size="lg"
+                                color={state.testResults.success ? 'green' : 'red'}
+                                leftSection={state.testResults.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
+                              >
+                                {state.testResults.success ? 'Tests Passed' : 'Tests Failed'}
+                              </Badge>
+                            </Group>
+
+                            {state.testResults.tests_run !== undefined && (
+                              <Group gap="md" mb="md">
+                                <Badge size="sm" variant="light" color="blue">
+                                  Total Tests: {state.testResults.tests_run}
+                                </Badge>
+                                {state.testResults.tests_passed !== undefined && (
+                                  <Badge size="sm" variant="light" color="green">
+                                    Passed: {state.testResults.tests_passed}
+                                  </Badge>
+                                )}
+                                {state.testResults.tests_failed !== undefined && (
+                                  <Badge size="sm" variant="light" color="red">
+                                    Failed: {state.testResults.tests_failed}
+                                  </Badge>
+                                )}
+                              </Group>
+                            )}
+
+                            {state.testResults.code_coverage !== undefined && (
+                              <Badge size="sm" variant="light" color="cyan">
+                                Code Coverage: {state.testResults.code_coverage}%
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Test Results */}
+                          {state.testResults.test_results && state.testResults.test_results.length > 0 && (
+                            <div>
+                              <Text fw={600} mb="xs">Test Details</Text>
+                              <Stack gap="xs">
+                                {state.testResults.test_results.map((test: any, index: number) => (
+                                  <Paper
+                                    key={index}
+                                    p="sm"
+                                    withBorder
+                                    style={{
+                                      borderColor: test.outcome === 'Pass' ? '#51cf66' : '#ff6b6b',
+                                      backgroundColor: test.outcome === 'Pass' ? '#f0fdf4' : '#fef2f2'
+                                    }}
+                                  >
+                                    <Group justify="space-between" align="flex-start" mb="xs">
+                                      <div>
+                                        <Text size="sm" fw={500}>{test.method_name || test.name}</Text>
+                                        {test.class_name && <Text size="xs" c="dimmed">{test.class_name}</Text>}
+                                      </div>
+                                      <Badge
+                                        color={test.outcome === 'Pass' ? 'green' : 'red'}
+                                        size="sm"
+                                      >
+                                        {test.outcome || 'Unknown'}
+                                      </Badge>
+                                    </Group>
+                                    {test.stack_trace && (
+                                      <Text size="xs" c="red" style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                        {test.stack_trace}
+                                      </Text>
+                                    )}
+                                  </Paper>
+                                ))}
+                              </Stack>
+                            </div>
+                          )}
+
+                          {state.testResults.message && (
+                            <Text size="sm" c="dimmed">{state.testResults.message}</Text>
+                          )}
+                        </Stack>
+                      </ScrollArea>
+                    </div>
+                  </div>
+                )}
               </div>
             </Tabs.Panel>
           </Tabs>
         </div>
       </div>
-
-      {/* Execution Result Modal */}
-      <Modal
-        opened={state.showExecutionModal}
-        onClose={() => setState(prev => ({ ...prev, showExecutionModal: false }))}
-        title={tSync('apex.execution.results', 'Apex Execution Results')}
-        size="lg"
-      >
-        {state.executionResult && (
-          <ScrollArea h={400}>
-            <Stack gap="md">
-              <Group>
-                <Badge 
-                  size="lg" 
-                  color={state.executionResult.success ? 'green' : 'red'}
-                  leftSection={state.executionResult.success ? <IconPlayerPlay size={16} /> : <IconBug size={16} />}
-                >
-                  {state.executionResult.success ? tSync('apex.success.execution') : tSync('apex.error.execution_failed')}
-                </Badge>
-              </Group>
-
-              {state.executionResult.message && (
-                <Text size="sm">{state.executionResult.message}</Text>
-              )}
-
-              {state.executionResult.compile_problem && (
-                <Paper p="md" bg="red.0" c="red.7">
-                  <Text size="sm" fw={500}>Compilation Error:</Text>
-                  <Text size="sm">{state.executionResult.compile_problem}</Text>
-                </Paper>
-              )}
-
-              {state.executionResult.exception_message && (
-                <Paper p="md" bg="red.0" c="red.7">
-                  <Text size="sm" fw={500}>Runtime Error:</Text>
-                  <Text size="sm">{state.executionResult.exception_message}</Text>
-                </Paper>
-              )}
-
-              <Group gap="md">
-                {state.executionResult.execution_time && (
-                  <Badge size="sm" variant="light">
-                    Execution Time: {state.executionResult.execution_time}ms
-                  </Badge>
-                )}
-                {state.executionResult.cpu_time && (
-                  <Badge size="sm" variant="light">
-                    CPU Time: {state.executionResult.cpu_time}ms
-                  </Badge>
-                )}
-                {state.executionResult.dml_statements && (
-                  <Badge size="sm" variant="light">
-                    DML Statements: {state.executionResult.dml_statements}
-                  </Badge>
-                )}
-                {state.executionResult.soql_queries && (
-                  <Badge size="sm" variant="light">
-                    SOQL Queries: {state.executionResult.soql_queries}
-                  </Badge>
-                )}
-              </Group>
-
-              {state.executionResult.debug_info && state.executionResult.debug_info.length > 0 && (
-                <div>
-                  <Text size="sm" fw={500} mb="xs">Debug Information:</Text>
-                  <ScrollArea h={200}>
-                    <Stack gap="xs">
-                      {state.executionResult.debug_info.map((log, index) => (
-                        <Paper key={index} p="xs" withBorder>
-                          <Text size="xs" ff="monospace">{log}</Text>
-                        </Paper>
-                      ))}
-                    </Stack>
-                  </ScrollArea>
-                </div>
-              )}
-            </Stack>
-          </ScrollArea>
-        )}
-      </Modal>
-
-      {/* Create Modal */}
-      <Modal
-        opened={state.showCreateModal}
-        onClose={() => setState(prev => ({ ...prev, showCreateModal: false }))}
-        title="Create New Apex Code"
-        size="lg"
-      >
-        <Stack gap="md">
-          <TextInput
-            label={tSync('apex.form.name', 'Name')}
-            placeholder={tSync('apex.form.namePlaceholder', 'Enter Apex code name')}
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          
-          <Textarea
-            label="Apex Code"
-            placeholder="Enter your Apex code here"
-            value={formData.apex_code}
-            onChange={(e) => setFormData({ ...formData, apex_code: e.target.value })}
-            minRows={15}
-            maxRows={25}
-            required
-            styles={{
-              input: {
-                fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                fontSize: '13px',
-                lineHeight: '1.5',
-                resize: 'vertical'
-              }
-            }}
-          />
-          
-          <TextInput
-            label={tSync('apex.form.description', 'Description')}
-            placeholder={tSync('apex.form.descriptionPlaceholder', 'Optional description')}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          
-          <TextInput
-            label={tSync('apex.form.tags', 'Tags')}
-            placeholder={tSync('apex.form.tagsPlaceholder', 'Comma-separated tags')}
-            value={formData.tags}
-            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-          />
-          
-          <div>
-            <Text size="sm" fw={500} mb="xs">Code Type</Text>
-            <select
-              value={formData.code_type}
-              onChange={(e) => setFormData({ ...formData, code_type: e.target.value as ApexCodeType })}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid #ced4da',
-                borderRadius: '6px',
-                fontSize: '14px',
-                backgroundColor: 'white'
-              }}
-            >
-              <option value="anonymous">Anonymous</option>
-              <option value="class">Class</option>
-              <option value="trigger">Trigger</option>
-              <option value="interface">Interface</option>
-              <option value="enum">Enum</option>
-              <option value="test_class">Test Class</option>
-            </select>
-          </div>
-          
-          <Switch
-            label="Mark as Favorite"
-            checked={formData.is_favorite}
-            onChange={(e) => setFormData({ ...formData, is_favorite: e.target.checked })}
-          />
-          
-          <Group justify="flex-end" gap="sm">
-            <Button
-              variant="light"
-              size="xs"
-              onClick={() => setState(prev => ({ ...prev, showCreateModal: false }))}
-              style={{ 
-                padding: '6px 12px', 
-                minHeight: '28px',
-                fontSize: '11px',
-                fontWeight: 600,
-                borderRadius: '6px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              size="xs"
-              onClick={handleCreateApex}
-              className="query-tab-save-button"
-              style={{ 
-                padding: '6px 12px', 
-                minHeight: '28px',
-                fontSize: '11px',
-                fontWeight: 600,
-                borderRadius: '6px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Create Apex Code
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-
-
     </div>
+
+    {/* Create Modal */}
+    {state.showCreateModal && (
+        <div
+          className={`apex-create-modal-overlay${isCreateModalClosing ? ' closing' : ''}`}
+          onClick={() => {
+            setIsCreateModalClosing(true);
+            setTimeout(() => {
+              setState(prev => ({ ...prev, showCreateModal: false }));
+              setIsCreateModalClosing(false);
+            }, 350);
+          }}
+        >
+          <div
+            className={`apex-create-modal${isCreateModalClosing ? ' closing' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="apex-create-modal-header">
+              <h3>Create New Apex Code</h3>
+              <button
+                className="apex-create-modal-close"
+                onClick={() => {
+                  setIsCreateModalClosing(true);
+                  setTimeout(() => {
+                    setState(prev => ({ ...prev, showCreateModal: false }));
+                    setIsCreateModalClosing(false);
+                  }, 350);
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="apex-create-modal-content">
+              {/* Top Section - Basic Info */}
+              <div className="apex-create-modal-info">
+                <TextInput
+                  label={tSync('apex.form.name', 'Name')}
+                  placeholder={tSync('apex.form.namePlaceholder', 'Enter Apex code name')}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+                <div>
+                  <Text size="sm" fw={500} mb="xs">Code Type</Text>
+                  <select
+                    value={formData.code_type}
+                    onChange={(e) => setFormData({ ...formData, code_type: e.target.value as ApexCodeType })}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      backgroundColor: 'white'
+                    }}
+                  >
+                    <option value="anonymous">Anonymous</option>
+                    <option value="class">Class</option>
+                    <option value="trigger">Trigger</option>
+                    <option value="interface">Interface</option>
+                    <option value="enum">Enum</option>
+                    <option value="test_class">Test Class</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Main Body - Editor Left, Settings Right */}
+              <div className="apex-create-modal-body">
+                {/* Left Column - Code Editor */}
+                <div className="apex-create-modal-editor">
+                  <label>
+                    Apex Code
+                    <span>*</span>
+                  </label>
+                  <Editor
+                    height="450px"
+                    defaultLanguage="apex"
+                    value={formData.apex_code}
+                    onChange={(value) => setFormData({ ...formData, apex_code: value || '' })}
+                    options={{
+                      minimap: { enabled: false },
+                      lineNumbers: 'on',
+                      fontSize: 13,
+                      fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+                      tabSize: 2,
+                      wordWrap: 'on'
+                    }}
+                  />
+                </div>
+
+                {/* Right Column - Settings Sidebar */}
+                <div className="apex-create-modal-sidebar">
+                  {/* Description & Tags */}
+                  <div className="apex-create-modal-section">
+                    <div className="apex-create-modal-section-title">Info</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <TextInput
+                        label="Description"
+                        placeholder="Optional description"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        size="sm"
+                      />
+                      <TextInput
+                        label="Tags"
+                        placeholder="Comma-separated"
+                        value={formData.tags}
+                        onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Debug Levels */}
+                  <div className="apex-create-modal-section">
+                    <div className="apex-create-modal-section-title">Debug Levels</div>
+                    <div className="apex-create-modal-debug-grid">
+                      <div className="apex-create-modal-debug-item">
+                        <label>DB</label>
+                        <select
+                          value={formData.debug_levels.DB}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, DB: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                          <option value="FINE">FINE</option>
+                          <option value="FINER">FINER</option>
+                          <option value="FINEST">FINEST</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Workflow</label>
+                        <select
+                          value={formData.debug_levels.Workflow}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Workflow: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Validation</label>
+                        <select
+                          value={formData.debug_levels.Validation}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Validation: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Callouts</label>
+                        <select
+                          value={formData.debug_levels.Callouts}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Callouts: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Apex Code</label>
+                        <select
+                          value={formData.debug_levels.Apex_Code}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Apex_Code: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                          <option value="FINE">FINE</option>
+                          <option value="FINER">FINER</option>
+                          <option value="FINEST">FINEST</option>
+                        </select>
+                      </div>
+                      <div className="apex-create-modal-debug-item">
+                        <label>Apex Profiling</label>
+                        <select
+                          value={formData.debug_levels.Apex_Profiling}
+                          onChange={(e) => setFormData({ ...formData, debug_levels: { ...formData.debug_levels, Apex_Profiling: e.target.value } })}
+                        >
+                          <option value="NONE">NONE</option>
+                          <option value="ERROR">ERROR</option>
+                          <option value="WARN">WARN</option>
+                          <option value="INFO">INFO</option>
+                          <option value="DEBUG">DEBUG</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Favorite & Options */}
+                  <div className="apex-create-modal-section">
+                    <Switch
+                      label="Mark as Favorite"
+                      checked={formData.is_favorite}
+                      onChange={(e) => setFormData({ ...formData, is_favorite: e.target.checked })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="apex-create-modal-footer">
+              <Button
+                variant="light"
+                size="sm"
+                onClick={() => {
+                  setIsCreateModalClosing(true);
+                  setTimeout(() => {
+                    setState(prev => ({ ...prev, showCreateModal: false }));
+                    setIsCreateModalClosing(false);
+                  }, 350);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleCreateApex}
+                className="query-tab-save-button"
+              >
+                Create Apex Code
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </>
   );
 };

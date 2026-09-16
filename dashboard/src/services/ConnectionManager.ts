@@ -124,43 +124,55 @@ export class ConnectionManager {
   }
 
   /**
-   * Get all saved connections from Python backend
+   * Get all saved connections from Python backend (lightweight version)
+   * Uses the new optimized /connections/lightweight endpoint for better performance
    */
   async getAllConnections(): Promise<SavedConnection[]> {
     try {
-      logger.debug(' Loading all connections from Python backend', 'ConnectionManager');
-      
-      const apiConnections = await apiService.getAllConnections();
+      logger.debug('Loading lightweight connections from Python backend', 'ConnectionManager');
+
+      // Use lightweight endpoint for first page with default size
+      // This is all we need for the UI without credentials
+      const response = await apiService.getAllConnectionsLightweight(1, 50);
+      const apiConnections = response.connections;
       const savedConnections: SavedConnection[] = [];
-      
+
       for (const apiConnection of apiConnections) {
         try {
-          // Transform API response to SavedConnection format
+          // Parse lastUsed date from backend-formatted string (ISO date format)
+          let lastUsedTime = Date.now();
+          if (apiConnection.last_used) {
+            lastUsedTime = new Date(apiConnection.last_used).getTime();
+          }
+
+          // Transform lightweight API response to SavedConnection format
+          // Note: credentials are NOT included - they'll be loaded on-demand
           const savedConnection: SavedConnection = {
             id: apiConnection.connection_uuid?.replace(/^"(.*)"$/, '$1'), // Strip quotes if present
-            oauthType: apiConnection.auth_provider_id === 'auth-provider-sf-classic-001' ? OAuthType.SALESFORCE_CLASSIC : OAuthType.OAUTH_STANDARD,
-            username: apiConnection.connection_data.username,
-            environment: apiConnection.connection_data.environment as 'production' | 'sandbox',
+            oauthType: OAuthType.OAUTH_STANDARD, // Will be determined from auth_provider_uuid if needed
+            username: apiConnection.username || 'Unknown', // Username from lightweight response
+            environment: (apiConnection.environment as 'production' | 'sandbox') || 'production',
             displayName: apiConnection.display_name,
-            lastUsed: new Date(apiConnection.updated_at).getTime(),
-            isActive: true, // All connections from API are active
-            consumerKey: apiConnection.connection_data.consumer_key,
-            consumerSecret: apiConnection.connection_data.consumer_secret,
-            securityToken: apiConnection.connection_data.security_token,
-            clientId: apiConnection.connection_data.client_id,
-            clientSecret: apiConnection.connection_data.client_secret
+            lastUsed: lastUsedTime,
+            isActive: apiConnection.is_connection_active,
+            // Credentials not included in lightweight response
+            consumerKey: undefined,
+            consumerSecret: undefined,
+            securityToken: undefined,
+            clientId: undefined,
+            clientSecret: undefined
           };
-          
+
           savedConnections.push(savedConnection);
         } catch (error) {
-          logger.error('Failed to transform connection data', 'ConnectionManager', { connectionUuid: apiConnection.connection_uuid }, error as Error);
+          logger.error('Failed to transform lightweight connection data', 'ConnectionManager', { connectionUuid: apiConnection.connection_uuid }, error as Error);
         }
       }
-      
+
       return savedConnections;
-      
+
     } catch (error) {
-      logger.error('Failed to load connections from API', 'ConnectionManager', null, error as Error);
+      logger.error('Failed to load lightweight connections from API', 'ConnectionManager', null, error as Error);
       throw error;
     }
   }
@@ -201,6 +213,27 @@ export class ConnectionManager {
   }
 
 
+
+  /**
+   * Clear sensitive credentials from a connection object
+   * Call this after using credentials to free up memory
+   */
+  clearCredentials(connection: SavedConnectionWithCredentials): SavedConnection {
+    return {
+      id: connection.id,
+      oauthType: connection.oauthType,
+      username: connection.username,
+      environment: connection.environment,
+      displayName: connection.displayName,
+      lastUsed: connection.lastUsed,
+      isActive: connection.isActive,
+      consumerKey: undefined,
+      consumerSecret: undefined,
+      securityToken: undefined,
+      clientId: undefined,
+      clientSecret: undefined
+    };
+  }
 
   /**
    * Delete a connection via Python backend

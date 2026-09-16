@@ -154,7 +154,7 @@ const AppContent: React.FC = () => {
     loadAvailableLocales();
   }, []);
 
-  // Handle locale change - both frontend and backend
+  // Handle locale change - persisted locally via I18nService
   const handleLocaleChange = async (languageUuid: string) => {
     try {
       // Find the language object for the selected UUID
@@ -163,15 +163,11 @@ const AppContent: React.FC = () => {
         logger.warn(`Language not found for UUID: ${languageUuid}`, 'App');
         return;
       }
-      
+
       // Set frontend locale using the language code
       await setLocale(selectedLanguage.code);
-      
-      // Call backend to set as default language
-      const { apiService } = await import('./services/ApiService');
-      await apiService.setDefaultLanguage(languageUuid);
       logger.debug(`Set default language to ${selectedLanguage.code} (UUID: ${languageUuid})`, 'App');
-      
+
       // Force page reload to reflect the new language
       window.location.reload();
     } catch (error) {
@@ -245,7 +241,7 @@ const AppContent: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-        <Notifications position="top-right" />
+        <Notifications position="bottom-center" limit={3} />
         <div className="authentication-flow">
           <LoginPanel>
             <MasterKeyManager 
@@ -296,7 +292,7 @@ const AppContent: React.FC = () => {
       setShowSavedConnections(false);
       return (
         <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-          <Notifications position="top-right" />
+          <Notifications position="bottom-center" limit={3} />
           <div className="app-container">
             <LoginPanel>
               <SmartAuthenticationFlowWrapper 
@@ -320,7 +316,7 @@ const AppContent: React.FC = () => {
     
     return (
       <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-        <Notifications position="top-right" />
+        <Notifications position="bottom-center" limit={3} />
         <div className="app-header" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, height: '50px' }}>
           <AppHeader
             userInfo={null}
@@ -464,7 +460,7 @@ const AppContent: React.FC = () => {
     if (!isAuthenticated) {
       return (
         <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-          <Notifications position="top-right" />
+          <Notifications position="bottom-center" limit={3} />
           <div className="app-container">
             <LoginPanel>
               <MasterKeyManager 
@@ -495,7 +491,7 @@ const AppContent: React.FC = () => {
     // If we have session context but no userInfo, show saved connections
     return (
       <MantineProvider theme={mantineTheme} defaultColorScheme="light">
-        <Notifications position="top-right" />
+        <Notifications position="bottom-center" limit={3} />
         <div className="app-header" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, height: '50px' }}>
           <AppHeader
             userInfo={null}
@@ -667,7 +663,7 @@ function MainApp({ userInfo, isConnected, onLogin, setUserInfo, setIsConnected, 
   
   const { tSync, setLocale, getCurrentLocale, getAvailableLocales, waitForReady } = useTranslation();
   
-  // Handle locale change - both frontend and backend
+  // Handle locale change - persisted locally via I18nService
   const handleLocaleChange = async (languageUuid: string) => {
     try {
       // Find the language object for the selected UUID
@@ -676,13 +672,9 @@ function MainApp({ userInfo, isConnected, onLogin, setUserInfo, setIsConnected, 
         logger.warn(`Language not found for UUID: ${languageUuid}`, 'App');
         return;
       }
-      
+
       // Set frontend locale using the language code
       await setLocale(selectedLanguage.code);
-      
-      // Call backend to set as default language
-      const { apiService } = await import('./services/ApiService');
-      await apiService.setDefaultLanguage(languageUuid);
       logger.debug(`Set default language to ${selectedLanguage.code} (UUID: ${languageUuid})`, 'App');
     } catch (error) {
       logger.error('Failed to change locale:', error);
@@ -1377,8 +1369,9 @@ function MainApp({ userInfo, isConnected, onLogin, setUserInfo, setIsConnected, 
     <MantineProvider theme={mantineTheme} defaultColorScheme="light">
       <ContextMenuProvider>
         <ModalsProvider>
-          <Notifications 
-            position="top-right" 
+          <Notifications
+            position="bottom-center"
+            limit={3}
             zIndex={9999}
           />
         
@@ -1559,6 +1552,15 @@ function MainApp({ userInfo, isConnected, onLogin, setUserInfo, setIsConnected, 
                 }}
                 onShowSavedConnections={handleShowSavedConnections}
                 isOnSavedConnectionsPage={showSavedConnections}
+                isConnected={isConnected}
+                currentConnectionUuid={currentConnectionUuid}
+                onDisconnect={async () => {
+                  // Disconnect from current connection and cleanup
+                  setIsConnected(false);
+                  setCurrentConnectionUuid(null);
+                  // Clear user info
+                  setUserInfo(null);
+                }}
               />
             </AppShell.Header>
 

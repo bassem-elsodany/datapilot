@@ -9,9 +9,9 @@ from pydantic import BaseModel, Field
 
 class SavedApex(BaseModel):
     """MongoDB model for saved Apex code"""
-    
+
     id: Optional[str] = Field(default=None, alias="_id")
-    saved_apex_uuid: str = Field(description="Unique Apex identifier")
+    uuid: str = Field(description="Unique Apex identifier")
     connection_uuid: str = Field(description="Connection identifier")
     name: str = Field(description="Apex name")
     code_text: str = Field(description="Apex code text")
@@ -32,7 +32,7 @@ class SavedApex(BaseModel):
         populate_by_name = True
         json_schema_extra = {
             "example": {
-                "saved_apex_uuid": "770e8400-e29b-41d4-a716-446655440002",
+                "uuid": "770e8400-e29b-41d4-a716-446655440002",
                 "connection_uuid": "550e8400-e29b-41d4-a716-446655440000",
                 "name": "Account Trigger",
                 "code_text": "trigger AccountTrigger on Account (before insert) { ... }",
@@ -70,7 +70,7 @@ class SavedApexUpdate(BaseModel):
 class SavedApexResponse(BaseModel):
     """Model for saved Apex responses"""
     id: str = Field(description="Apex ID")
-    saved_apex_uuid: str = Field(description="Unique Apex identifier")
+    uuid: str = Field(description="Unique Apex identifier")
     connection_uuid: str = Field(description="Connection identifier")
     name: str = Field(description="Apex name")
     code_text: str = Field(description="Apex code text")

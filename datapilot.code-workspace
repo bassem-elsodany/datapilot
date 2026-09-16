@@ -1,0 +1,371 @@
+{
+  "folders": [
+
+    {
+      "name": "backend",
+      "path": "./backend"
+    },
+    {
+      "name": "dashboard",
+      "path": "./dashboard"
+    },
+    {
+      "name": "docker",
+      "path": "./docker"
+    },
+    {
+      "name": "docs",
+      "path": "./docs"
+    }
+  ],
+  "settings": {
+    // Python settings
+    "python.defaultInterpreterPath": "${workspaceFolder:Backend}/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python.venvPath": "${workspaceFolder:Backend}",
+    "python.venvFolders": [
+      ".venv"
+    ],
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.diagnosticMode": "workspace",
+    "python.formatting.provider": "black",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.ruffEnabled": true,
+    "python.linting.ruffPath": "${workspaceFolder:Backend}/.venv/bin/ruff",
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+      },
+      "editor.rulers": [120]
+    },
+
+    // TypeScript/JavaScript settings
+    "typescript.tsdk": "${workspaceFolder:Dashboard}/node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+        "source.organizeImports": "explicit"
+      }
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+        "source.organizeImports": "explicit"
+      }
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+
+    // General editor settings
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.trimAutoWhitespace": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.exclude": {
+      "**/__pycache__": true,
+      "**/*.pyc": true,
+      "**/.pytest_cache": true,
+      "**/.mypy_cache": true,
+      "**/.ruff_cache": true,
+      "**/node_modules": true,
+      "**/.venv": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/*.egg-info": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/__pycache__": true,
+      "**/.venv": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/*.egg-info": true,
+      "**/logs": true
+    },
+
+    // File associations
+    "files.associations": {
+      "*.env.example": "properties",
+      "*.properties": "properties"
+    },
+
+    // Terminal settings
+    "terminal.integrated.cwd": "${workspaceFolder}",
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.shellIntegration.enabled": true,
+    // Note: Python extension handles venv activation automatically via python.terminal.activateEnvironment
+
+    // Git settings
+    "git.ignoreLimitWarning": true,
+    "git.autofetch": true,
+
+    // Language-specific settings
+    "[markdown]": {
+      "editor.wordWrap": "on",
+      "editor.quickSuggestions": {
+        "comments": "off",
+        "strings": "off",
+        "other": "off"
+      }
+    },
+    "[yaml]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[dockerfile]": {
+      "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      // Python
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "ms-python.black-formatter",
+      "charliermarsh.ruff",
+
+      // TypeScript/JavaScript
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+
+      // Docker
+      "ms-azuretools.vscode-docker",
+
+      // Git
+      "eamodio.gitlens",
+
+      // General
+      "ms-vscode.vscode-json",
+      "redhat.vscode-yaml",
+      "ms-vscode.makefile-tools",
+
+      // Markdown
+      "yzhang.markdown-all-in-one",
+
+      // MongoDB
+      "mongodb.mongodb-vscode"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Backend: Install Dependencies",
+        "type": "shell",
+        "command": "cd backend && python -m pip install -e .",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Backend: Run Server",
+        "type": "shell",
+        "command": "cd backend && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Backend: Run Tests",
+        "type": "shell",
+        "command": "cd backend && python -m pytest",
+        "group": "test",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Backend: Format Code",
+        "type": "shell",
+        "command": "cd backend && black .",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Backend: Lint Code",
+        "type": "shell",
+        "command": "cd backend && ruff check .",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Dashboard: Install Dependencies",
+        "type": "shell",
+        "command": "cd dashboard && npm install",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Dashboard: Run Dev Server",
+        "type": "shell",
+        "command": "cd dashboard && npm run dev",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Dashboard: Build",
+        "type": "shell",
+        "command": "cd dashboard && npm run build",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Dashboard: Lint",
+        "type": "shell",
+        "command": "cd dashboard && npm run lint",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Docker: Start Services",
+        "type": "shell",
+        "command": "cd docker && docker-compose up -d",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Docker: Stop Services",
+        "type": "shell",
+        "command": "cd docker && docker-compose down",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Docker: View Logs",
+        "type": "shell",
+        "command": "cd docker && docker-compose logs -f",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Python: FastAPI Backend",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": [
+          "app.main:app",
+          "--reload",
+          "--host",
+          "0.0.0.0",
+          "--port",
+          "8000"
+        ],
+        "jinja": true,
+        "justMyCode": false,
+        "cwd": "${workspaceFolder:Backend}",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder:Backend}"
+        },
+        "python": "${workspaceFolder:Backend}/.venv/bin/python",
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "Python: Current File",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${file}",
+        "console": "integratedTerminal",
+        "cwd": "${workspaceFolder:Backend}",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder:Backend}"
+        },
+        "python": "${workspaceFolder:Backend}/.venv/bin/python"
+      },
+      {
+        "name": "Python: Pytest",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "pytest",
+        "args": [
+          "${file}",
+          "-v"
+        ],
+        "console": "integratedTerminal",
+        "cwd": "${workspaceFolder:Backend}",
+        "env": {
+          "PYTHONPATH": "${workspaceFolder:Backend}"
+        },
+        "python": "${workspaceFolder:Backend}/.venv/bin/python"
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Full Stack: Backend + Frontend",
+        "configurations": [
+          "Python: FastAPI Backend"
+        ],
+        "preLaunchTask": "Dashboard: Run Dev Server"
+      }
+    ]
+  }
+}
+

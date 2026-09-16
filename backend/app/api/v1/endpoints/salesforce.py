@@ -133,6 +133,7 @@ from loguru import logger
 from app.services.salesforce_service import SalesforceService
 from app.services.i18n_service import I18nService
 from app.services.error_service import ErrorService
+from app.services.connection_service import ConnectionService
 from app.utils.i18n_utils import translate_message, format_message_with_params
 
 router = APIRouter()
@@ -231,6 +232,10 @@ class CompileAndTestRequest(BaseModel):
 # Global service instances
 salesforce_service = SalesforceService()
 i18n_service = I18nService()
+
+# Initialize connection service with master key
+connection_service = ConnectionService()
+connection_service.set_master_key("adminadmin")
 
 
 @router.get("/sobjects/list", response_model=SObjectListResponse)
@@ -536,22 +541,51 @@ def execute_anonymous_apex(
 ):
     """
     Execute anonymous Apex code
-    
+
     This endpoint allows you to execute anonymous Apex code in Salesforce.
     The code will be compiled and executed in the context of the connected user.
-    
+
     Args:
         request: ExecuteAnonymousRequest containing the Apex code to execute
         http_request: FastAPI request object
         lang: Language code for messages
-        
+
     Returns:
         ApexExecutionResponse with execution results and statistics
     """
     try:
         logger.debug(f"Executing anonymous Apex code")
         logger.debug(f"Apex code length: {len(request.apex_code)} characters")
-        
+
+        # Initialize Salesforce connection from database using connection_uuid
+        try:
+            connection_data = connection_service.get_connection_with_credentials(connection_uuid)
+            if not connection_data or not connection_data.get('connectionData'):
+                raise ValueError("Connection credentials not found")
+
+            creds = connection_data.get('connectionData', {})
+
+            # Determine domain URL based on environment
+            environment = creds.get('environment', 'production').lower()
+            domain_url = 'https://test.salesforce.com' if 'sandbox' in environment or 'test' in environment else 'https://login.salesforce.com'
+
+            # Initialize the Salesforce service with the connection credentials
+            salesforce_service.initialize_connection(
+                username=creds.get('username'),
+                password=creds.get('password'),
+                domain_url=domain_url,
+                client_id=creds.get('clientId'),
+                client_secret=creds.get('clientSecret')
+            )
+        except Exception as init_error:
+            logger.error(f"Failed to initialize Salesforce connection: {str(init_error)}")
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.connection_failed",
+                details=f"Failed to initialize connection: {str(init_error)}",
+                request=http_request,
+                locale=lang
+            )
+
         # Check if connected
         if not salesforce_service.is_connected():
 
@@ -570,22 +604,23 @@ def execute_anonymous_apex(
         failure_message = i18n_service.get_translation_key(lang, 'apex.messages.execution_failed') or 'Apex execution failed'
         
         # Map the result to our response model
+        # Note: salesforce_service.execute_anonymous_apex() returns snake_case keys
         response = ApexExecutionResponse(
             success=result.get('success', False),
             compiled=result.get('compiled'),
             line=result.get('line'),
             column=result.get('column'),
-            compile_problem=result.get('compileProblem'),
-            exception_message=result.get('exceptionMessage'),
-            exception_stack_trace=result.get('exceptionStackTrace'),
-            debug_info=result.get('debugInfo'),
-            execution_time=result.get('executionTime'),
-            cpu_time=result.get('cpuTime'),
-            dml_rows=result.get('dmlRows'),
-            dml_statements=result.get('dmlStatements'),
-            soql_queries=result.get('soqlQueries'),
-            soql_rows_processed=result.get('soqlRowsProcessed'),
-            limit_exceptions=result.get('limitExceptions'),
+            compile_problem=result.get('compile_problem'),
+            exception_message=result.get('exception_message'),
+            exception_stack_trace=result.get('exception_stack_trace'),
+            debug_info=result.get('debug_info'),
+            execution_time=result.get('execution_time'),
+            cpu_time=result.get('cpu_time'),
+            dml_rows=result.get('dml_rows'),
+            dml_statements=result.get('dml_statements'),
+            soql_queries=result.get('soql_queries'),
+            soql_rows_processed=result.get('soql_rows_processed'),
+            limit_exceptions=result.get('limit_exceptions'),
             message=success_message if result.get('success') else failure_message
         )
         
@@ -625,7 +660,36 @@ def execute_apex_rest(
     """
     try:
         logger.debug(f"Executing Apex REST endpoint: {request.method} {request.endpoint}")
-        
+
+        # Initialize Salesforce connection from database using connection_uuid
+        try:
+            connection_data = connection_service.get_connection_with_credentials(connection_uuid)
+            if not connection_data or not connection_data.get('connectionData'):
+                raise ValueError("Connection credentials not found")
+
+            creds = connection_data.get('connectionData', {})
+
+            # Determine domain URL based on environment
+            environment = creds.get('environment', 'production').lower()
+            domain_url = 'https://test.salesforce.com' if 'sandbox' in environment or 'test' in environment else 'https://login.salesforce.com'
+
+            # Initialize the Salesforce service with the connection credentials
+            salesforce_service.initialize_connection(
+                username=creds.get('username'),
+                password=creds.get('password'),
+                domain_url=domain_url,
+                client_id=creds.get('clientId'),
+                client_secret=creds.get('clientSecret')
+            )
+        except Exception as init_error:
+            logger.error(f"Failed to initialize Salesforce connection: {str(init_error)}")
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.connection_failed",
+                details=f"Failed to initialize connection: {str(init_error)}",
+                request=http_request,
+                locale=lang
+            )
+
         # Check if connected
         if not salesforce_service.is_connected():
 
@@ -676,7 +740,36 @@ def get_apex_limits(
     """
     try:
         logger.debug(f"Getting Apex execution limits")
-        
+
+        # Initialize Salesforce connection from database using connection_uuid
+        try:
+            connection_data = connection_service.get_connection_with_credentials(connection_uuid)
+            if not connection_data or not connection_data.get('connectionData'):
+                raise ValueError("Connection credentials not found")
+
+            creds = connection_data.get('connectionData', {})
+
+            # Determine domain URL based on environment
+            environment = creds.get('environment', 'production').lower()
+            domain_url = 'https://test.salesforce.com' if 'sandbox' in environment or 'test' in environment else 'https://login.salesforce.com'
+
+            # Initialize the Salesforce service with the connection credentials
+            salesforce_service.initialize_connection(
+                username=creds.get('username'),
+                password=creds.get('password'),
+                domain_url=domain_url,
+                client_id=creds.get('clientId'),
+                client_secret=creds.get('clientSecret')
+            )
+        except Exception as init_error:
+            logger.error(f"Failed to initialize Salesforce connection: {str(init_error)}")
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.connection_failed",
+                details=f"Failed to initialize connection: {str(init_error)}",
+                request=http_request,
+                locale=lang
+            )
+
         # Check if connected
         if not salesforce_service.is_connected():
 
@@ -743,7 +836,36 @@ def compile_packages(
     """
     try:
         logger.debug(f"Compiling packages: {request.package_names}")
-        
+
+        # Initialize Salesforce connection from database using connection_uuid
+        try:
+            connection_data = connection_service.get_connection_with_credentials(connection_uuid)
+            if not connection_data or not connection_data.get('connectionData'):
+                raise ValueError("Connection credentials not found")
+
+            creds = connection_data.get('connectionData', {})
+
+            # Determine domain URL based on environment
+            environment = creds.get('environment', 'production').lower()
+            domain_url = 'https://test.salesforce.com' if 'sandbox' in environment or 'test' in environment else 'https://login.salesforce.com'
+
+            # Initialize the Salesforce service with the connection credentials
+            salesforce_service.initialize_connection(
+                username=creds.get('username'),
+                password=creds.get('password'),
+                domain_url=domain_url,
+                client_id=creds.get('clientId'),
+                client_secret=creds.get('clientSecret')
+            )
+        except Exception as init_error:
+            logger.error(f"Failed to initialize Salesforce connection: {str(init_error)}")
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.connection_failed",
+                details=f"Failed to initialize connection: {str(init_error)}",
+                request=http_request,
+                locale=lang
+            )
+
         # Check if connected
         if not salesforce_service.is_connected():
 
@@ -793,7 +915,36 @@ def compile_triggers(
     """
     try:
         logger.debug(f"Compiling triggers: {request.trigger_names}")
-        
+
+        # Initialize Salesforce connection from database using connection_uuid
+        try:
+            connection_data = connection_service.get_connection_with_credentials(connection_uuid)
+            if not connection_data or not connection_data.get('connectionData'):
+                raise ValueError("Connection credentials not found")
+
+            creds = connection_data.get('connectionData', {})
+
+            # Determine domain URL based on environment
+            environment = creds.get('environment', 'production').lower()
+            domain_url = 'https://test.salesforce.com' if 'sandbox' in environment or 'test' in environment else 'https://login.salesforce.com'
+
+            # Initialize the Salesforce service with the connection credentials
+            salesforce_service.initialize_connection(
+                username=creds.get('username'),
+                password=creds.get('password'),
+                domain_url=domain_url,
+                client_id=creds.get('clientId'),
+                client_secret=creds.get('clientSecret')
+            )
+        except Exception as init_error:
+            logger.error(f"Failed to initialize Salesforce connection: {str(init_error)}")
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.connection_failed",
+                details=f"Failed to initialize connection: {str(init_error)}",
+                request=http_request,
+                locale=lang
+            )
+
         # Check if connected
         if not salesforce_service.is_connected():
 
@@ -830,20 +981,49 @@ def run_tests(
 ):
     """
     Run Apex tests
-    
+
     This endpoint allows you to run Apex tests in Salesforce.
-    
+
     Args:
         request: RunTestsRequest containing the test classes and methods to run
         http_request: FastAPI request object
         lang: Language code for messages
-        
+
     Returns:
         Dict containing test execution results
     """
     try:
         logger.debug(f"Running tests: classes={request.test_classes}, methods={request.test_methods}")
-        
+
+        # Initialize Salesforce connection from database using connection_uuid
+        try:
+            connection_data = connection_service.get_connection_with_credentials(connection_uuid)
+            if not connection_data or not connection_data.get('connectionData'):
+                raise ValueError("Connection credentials not found")
+
+            creds = connection_data.get('connectionData', {})
+
+            # Determine domain URL based on environment
+            environment = creds.get('environment', 'production').lower()
+            domain_url = 'https://test.salesforce.com' if 'sandbox' in environment or 'test' in environment else 'https://login.salesforce.com'
+
+            # Initialize the Salesforce service with the connection credentials
+            salesforce_service.initialize_connection(
+                username=creds.get('username'),
+                password=creds.get('password'),
+                domain_url=domain_url,
+                client_id=creds.get('clientId'),
+                client_secret=creds.get('clientSecret')
+            )
+        except Exception as init_error:
+            logger.error(f"Failed to initialize Salesforce connection: {str(init_error)}")
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.connection_failed",
+                details=f"Failed to initialize connection: {str(init_error)}",
+                request=http_request,
+                locale=lang
+            )
+
         # Check if connected
         if not salesforce_service.is_connected():
 
@@ -853,14 +1033,14 @@ def run_tests(
                 request=http_request,
                 locale=lang
             )
-        
+
         # Run the tests
         result = salesforce_service.run_tests(
+            connection_uuid=connection_uuid,
             test_classes=request.test_classes,
-            test_methods=request.test_methods,
-            connection_uuid=connection_uuid
+            test_methods=request.test_methods
         )
-        
+
         logger.debug(f"Test execution completed successfully")
         return result
         
@@ -884,21 +1064,50 @@ def compile_and_test(
 ):
     """
     Compile and test Apex code
-    
+
     This endpoint allows you to compile and test Apex code in one operation.
-    
+
     Args:
         request: CompileAndTestRequest containing the Apex code and test classes
         http_request: FastAPI request object
         lang: Language code for messages
-        
+
     Returns:
         Dict containing compilation and test results
     """
     try:
         logger.debug(f"Compiling and testing Apex code")
         logger.debug(f"Apex code length: {len(request.apex_code)} characters")
-        
+
+        # Initialize Salesforce connection from database using connection_uuid
+        try:
+            connection_data = connection_service.get_connection_with_credentials(connection_uuid)
+            if not connection_data or not connection_data.get('connectionData'):
+                raise ValueError("Connection credentials not found")
+
+            creds = connection_data.get('connectionData', {})
+
+            # Determine domain URL based on environment
+            environment = creds.get('environment', 'production').lower()
+            domain_url = 'https://test.salesforce.com' if 'sandbox' in environment or 'test' in environment else 'https://login.salesforce.com'
+
+            # Initialize the Salesforce service with the connection credentials
+            salesforce_service.initialize_connection(
+                username=creds.get('username'),
+                password=creds.get('password'),
+                domain_url=domain_url,
+                client_id=creds.get('clientId'),
+                client_secret=creds.get('clientSecret')
+            )
+        except Exception as init_error:
+            logger.error(f"Failed to initialize Salesforce connection: {str(init_error)}")
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.connection_failed",
+                details=f"Failed to initialize connection: {str(init_error)}",
+                request=http_request,
+                locale=lang
+            )
+
         # Check if connected
         if not salesforce_service.is_connected():
 
@@ -908,14 +1117,14 @@ def compile_and_test(
                 request=http_request,
                 locale=lang
             )
-        
+
         # Compile and test the Apex code
         result = salesforce_service.compile_and_test(
             apex_code=request.apex_code,
             test_classes=request.test_classes,
             connection_uuid=connection_uuid
         )
-        
+
         logger.debug(f"Compile and test operation completed successfully")
         return result
         
@@ -976,6 +1185,160 @@ def get_compilation_status(
         ErrorService.handle_generic_exception(
             exception=e,
             operation="getting compilation status",
+            request=http_request,
+            locale=lang
+        )
+
+@router.get("/apex/classes")
+def get_apex_classes(
+    http_request: Request,
+    lang: str = Query("en", description="Language code for messages"),
+    connection_uuid: str = Query(description="Connection UUID for the Salesforce connection")
+):
+    """
+    Get list of Apex classes from Salesforce org
+
+    This endpoint retrieves all Apex classes from the connected Salesforce organization
+    using the Tooling API. Returns class metadata including name, status, API version, etc.
+
+    Args:
+        http_request: FastAPI request object
+        lang: Language code for messages
+        connection_uuid: Connection UUID for the Salesforce connection
+
+    Returns:
+        Dict containing list of Apex classes with metadata
+    """
+    try:
+        logger.debug("Fetching Apex classes from Salesforce")
+
+        # Initialize Salesforce connection from database using connection_uuid
+        try:
+            connection_data = connection_service.get_connection_with_credentials(connection_uuid)
+            if not connection_data or not connection_data.get('connectionData'):
+                raise ValueError("Connection credentials not found")
+
+            creds = connection_data.get('connectionData', {})
+
+            # Determine domain URL based on environment
+            environment = creds.get('environment', 'production').lower()
+            domain_url = 'https://test.salesforce.com' if 'sandbox' in environment or 'test' in environment else 'https://login.salesforce.com'
+
+            # Initialize the Salesforce service with the connection credentials
+            salesforce_service.initialize_connection(
+                username=creds.get('username'),
+                password=creds.get('password'),
+                domain_url=domain_url,
+                client_id=creds.get('clientId'),
+                client_secret=creds.get('clientSecret')
+            )
+        except Exception as init_error:
+            logger.error(f"Failed to initialize Salesforce connection: {str(init_error)}")
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.connection_failed",
+                details=f"Failed to initialize connection: {str(init_error)}",
+                request=http_request,
+                locale=lang
+            )
+
+        # Check if connected
+        if not salesforce_service.is_connected():
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.no_connection",
+                details="No active Salesforce connection available",
+                request=http_request,
+                locale=lang
+            )
+
+        # Get the Apex classes
+        result = salesforce_service.get_apex_classes(connection_uuid)
+
+        logger.debug(f"Retrieved {result.get('total_size', 0)} Apex classes successfully")
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        ErrorService.handle_generic_exception(
+            exception=e,
+            operation="retrieving Apex classes",
+            request=http_request,
+            locale=lang
+        )
+
+@router.get("/apex/triggers")
+def get_apex_triggers(
+    http_request: Request,
+    lang: str = Query("en", description="Language code for messages"),
+    connection_uuid: str = Query(description="Connection UUID for the Salesforce connection")
+):
+    """
+    Get list of Apex triggers from Salesforce org
+
+    This endpoint retrieves all Apex triggers from the connected Salesforce organization
+    using the Tooling API. Returns trigger metadata including name, SObject, status, etc.
+
+    Args:
+        http_request: FastAPI request object
+        lang: Language code for messages
+        connection_uuid: Connection UUID for the Salesforce connection
+
+    Returns:
+        Dict containing list of Apex triggers with metadata
+    """
+    try:
+        logger.debug("Fetching Apex triggers from Salesforce")
+
+        # Initialize Salesforce connection from database using connection_uuid
+        try:
+            connection_data = connection_service.get_connection_with_credentials(connection_uuid)
+            if not connection_data or not connection_data.get('connectionData'):
+                raise ValueError("Connection credentials not found")
+
+            creds = connection_data.get('connectionData', {})
+
+            # Determine domain URL based on environment
+            environment = creds.get('environment', 'production').lower()
+            domain_url = 'https://test.salesforce.com' if 'sandbox' in environment or 'test' in environment else 'https://login.salesforce.com'
+
+            # Initialize the Salesforce service with the connection credentials
+            salesforce_service.initialize_connection(
+                username=creds.get('username'),
+                password=creds.get('password'),
+                domain_url=domain_url,
+                client_id=creds.get('clientId'),
+                client_secret=creds.get('clientSecret')
+            )
+        except Exception as init_error:
+            logger.error(f"Failed to initialize Salesforce connection: {str(init_error)}")
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.connection_failed",
+                details=f"Failed to initialize connection: {str(init_error)}",
+                request=http_request,
+                locale=lang
+            )
+
+        # Check if connected
+        if not salesforce_service.is_connected():
+            ErrorService.raise_connection_error(
+                message="salesforce.errors.no_connection",
+                details="No active Salesforce connection available",
+                request=http_request,
+                locale=lang
+            )
+
+        # Get the Apex triggers
+        result = salesforce_service.get_apex_triggers(connection_uuid)
+
+        logger.debug(f"Retrieved {result.get('total_size', 0)} Apex triggers successfully")
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        ErrorService.handle_generic_exception(
+            exception=e,
+            operation="retrieving Apex triggers",
             request=http_request,
             locale=lang
         )

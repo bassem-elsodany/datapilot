@@ -208,6 +208,8 @@ class ConnectionService:
                     "connectionUuid": conn.get("connection_uuid"),
                     "displayName": conn.get("display_name"),
                     "authProviderUuid": conn.get("auth_provider_uuid"),
+                    "lastUsed": conn.get("last_used"),
+                    "isConnectionActive": conn.get("is_connection_active", True),
                     "createdAt": conn.get("created_at"),
                     "updatedAt": conn.get("updated_at")
                 })
@@ -330,16 +332,16 @@ class ConnectionService:
         try:
             db = get_database()
             connections_collection = db.connections
-            
+
             # Build MongoDB query
             query = {"connection_uuid": connection_uuid}
-            
+
             # Find the connection
             connection = connections_collection.find_one(query)
-            
+
             if not connection:
                 return False
-            
+
             # Update display name
             update_data = {
                 "display_name": display_name,
@@ -347,20 +349,67 @@ class ConnectionService:
                 "updated_by": "user",
                 "version": connection.get("version", 0) + 1
             }
-            
+
             connections_collection.update_one(
                 {"connection_uuid": connection_uuid},
                 {"$set": update_data}
             )
-            
+
             logger.info(f"Connection updated", extra={
                 "service": "ConnectionService",
                 "connection_uuid": connection_uuid,
                 "new_display_name": display_name
             })
-            
+
             return True
-                
+
+        except Exception as e:
+            logger.error(f"Failed to update connection {connection_uuid}: {str(e)}", extra={"service": "ConnectionService"})
+            return False
+
+    def update_connection_full(
+        self,
+        connection_uuid: str,
+        display_name: Optional[str] = None,
+        connection_data: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """Update connection display name and/or re-encrypt credentials"""
+        if connection_data and not self.cipher_suite:
+            raise ValueError("Master key must be set before updating connection credentials")
+
+        try:
+            db = get_database()
+            connections_collection = db.connections
+
+            connection = connections_collection.find_one({"connection_uuid": connection_uuid})
+            if not connection:
+                return False
+
+            update_data: Dict[str, Any] = {
+                "updated_at": datetime.now(timezone.utc),
+                "updated_by": "user",
+                "version": connection.get("version", 0) + 1
+            }
+
+            if display_name:
+                update_data["display_name"] = display_name
+
+            if connection_data:
+                update_data["encrypted_credentials"] = self._encrypt_data(json.dumps(connection_data))
+
+            connections_collection.update_one(
+                {"connection_uuid": connection_uuid},
+                {"$set": update_data}
+            )
+
+            logger.info(f"Connection updated (full)", extra={
+                "service": "ConnectionService",
+                "connection_uuid": connection_uuid,
+                "credentials_updated": connection_data is not None
+            })
+
+            return True
+
         except Exception as e:
             logger.error(f"Failed to update connection {connection_uuid}: {str(e)}", extra={"service": "ConnectionService"})
             return False

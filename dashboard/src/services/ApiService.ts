@@ -114,7 +114,6 @@ export class ApiService {
   private onConnectionError?: () => void;
   private lastConnectionErrorTime: number = 0;
   private connectionErrorDebounceMs: number = 2000; // 2 seconds // Callback for connection errors
-  private translationsCache: Map<string, { data: any[], timestamp: number }> = new Map(); // Cache for translations
   private constructor() {
     // Get configuration from app config
     this.baseUrl = this.getBaseUrlFromConfig();
@@ -343,13 +342,6 @@ export class ApiService {
     return this.client.delete(url, config);
   }
 
-  /**
-   * Clear translations cache
-   */
-  clearTranslationsCache(): void {
-    this.translationsCache.clear();
-    logger.debug(' Translations cache cleared', 'ApiService');
-  }
 
   // ========================================
   // AVAILABILITY CHECK
@@ -618,6 +610,48 @@ export class ApiService {
   /**
    * Get all connections (REST compliant)
    */
+  /**
+   * Get lightweight connections list with pagination (PREFERRED)
+   * Optimized for performance - no credentials included
+   */
+  async getAllConnectionsLightweight(page: number = 1, pageSize: number = 25): Promise<{
+    connections: any[];
+    total_count: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
+  }> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      logger.debug('Fetching lightweight connections', 'ApiService', { page, pageSize });
+      const masterKey = getMasterKeyFromSession();
+
+      const response = await this.client.get(
+        this.addLangToUrl(`${this.getEndpointUrl('connections')}/lightweight`),
+        {
+          params: {
+            page,
+            page_size: pageSize
+          },
+          headers: {
+            'X-Master-Key': masterKey
+          }
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      const errorDetail = error.response?.data?.detail || 'Failed to get lightweight connections';
+      throw new Error(errorDetail);
+    }
+  }
+
+  /**
+   * Get all connections (DEPRECATED - use getAllConnectionsLightweight instead)
+   * Kept for backward compatibility but has poor performance with many connections
+   */
   async getAllConnections(): Promise<ConnectionResponse[]> {
     if (!this.isAvailable) {
       throw new Error('Python backend not available');
@@ -644,6 +678,7 @@ export class ApiService {
 
   /**
    * Get connection with decrypted credentials (REST compliant)
+   * Optimized endpoint for fetching full connection details including credentials
    */
   async getConnectionWithCredentials(connectionUuid: string): Promise<ConnectionResponse | null> {
     if (!this.isAvailable) {
@@ -666,6 +701,36 @@ export class ApiService {
       }
       // Return the i18n key from the API response
       const errorDetail = error.response?.data?.detail || 'Failed to get connection';
+      throw new Error(errorDetail);
+    }
+  }
+
+  /**
+   * Get only the credentials for a specific connection (lazy-load optimization)
+   * Use this with getAllConnectionsLightweight for two-stage loading
+   */
+  async getConnectionCredentials(connectionUuid: string): Promise<ConnectionResponse | null> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const masterKey = getMasterKeyFromSession();
+
+      const response = await this.client.get(
+        this.addLangToUrl(`${this.getEndpointUrl('connections')}/${connectionUuid}/credentials`),
+        {
+          headers: {
+            'X-Master-Key': masterKey
+          }
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+      const errorDetail = error.response?.data?.detail || 'Failed to get connection credentials';
       throw new Error(errorDetail);
     }
   }
@@ -728,234 +793,130 @@ export class ApiService {
   }
 
   /**
-   * Update connection display name (REST compliant)
+   * Test connection credentials without saving (REST compliant)
    */
-  async updateConnection(connectionUuid: string, displayName: string): Promise<any> {
+  async testConnectionCredentials(connectionData: {
+    username: string;
+    password: string;
+    environment: string;
+    consumerKey?: string;
+    consumerSecret?: string;
+    securityToken?: string;
+    clientId?: string;
+    clientSecret?: string;
+  }): Promise<{ success: boolean; message: string; user_info?: any }> {
     if (!this.isAvailable) {
       throw new Error('Python backend not available');
     }
 
     try {
-      // Get master key for authentication
       const masterKey = getMasterKeyFromSession();
 
-      const response = await this.client.put(this.addLangToUrl(`${this.getEndpointUrl('connections')}/${connectionUuid}`), {
+      const response = await this.client.post(
+        this.addLangToUrl(`${this.getEndpointUrl('connections')}/test`),
+        {
+          connection_data: {
+            username: connectionData.username,
+            password: connectionData.password,
+            environment: connectionData.environment,
+            consumer_key: connectionData.consumerKey || null,
+            consumer_secret: connectionData.consumerSecret || null,
+            security_token: connectionData.securityToken || null,
+            client_id: connectionData.clientId || null,
+            client_secret: connectionData.clientSecret || null,
+          }
+        },
+        { headers: { 'X-Master-Key': masterKey } }
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Connection test failed';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (typeof detail === 'object' && detail.message) {
+          errorMessage = detail.message;
+          if (detail.field_errors) {
+            const vals = Object.values(detail.field_errors);
+            if (vals.length > 0) errorMessage = String(vals[0]);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Update connection display name and/or credentials (REST compliant)
+   */
+  async updateConnection(
+    connectionUuid: string,
+    displayName: string,
+    connectionData?: {
+      username: string;
+      password: string;
+      environment: string;
+      consumerKey?: string;
+      consumerSecret?: string;
+      securityToken?: string;
+      clientId?: string;
+      clientSecret?: string;
+    }
+  ): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const masterKey = getMasterKeyFromSession();
+
+      const body: any = {
         display_name: displayName,
         master_key: masterKey
-      });
-      return response.data;
-    } catch (error: any) {
-      // Return the i18n key from the API response
-      const errorDetail = error.response?.data?.detail || 'Failed to update connection';
-      throw new Error(errorDetail);
-    }
-  }
+      };
 
-  // ========================================
-  // I18N ENDPOINTS
-  // ========================================
-
-  /**
-   * Get all languages (REST compliant)
-   */
-  async getAllLanguages(): Promise<any[]> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/languages`));
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to get languages');
-    }
-  }
-
-  /**
-   * Get all languages with optional filtering (REST compliant)
-   */
-  async getAllLanguagesWithFilter(isActive?: boolean): Promise<any[]> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      let url = `${this.getEndpointUrl('i18n')}/languages`;
-      if (isActive !== undefined) {
-        url += `?is_active=${isActive}`;
+      if (connectionData) {
+        body.connection_data = {
+          username: connectionData.username,
+          password: connectionData.password,
+          environment: connectionData.environment,
+          consumer_key: connectionData.consumerKey || null,
+          consumer_secret: connectionData.consumerSecret || null,
+          security_token: connectionData.securityToken || null,
+          client_id: connectionData.clientId || null,
+          client_secret: connectionData.clientSecret || null,
+        };
       }
-      
-      const response = await this.client.get(this.addLangToUrl(url));
+
+      const response = await this.client.put(
+        this.addLangToUrl(`${this.getEndpointUrl('connections')}/${connectionUuid}`),
+        body
+      );
       return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to get languages');
-    }
-  }
-
-  /**
-   * Get available locales (REST compliant) - only active languages
-   */
-  async getAvailableLocales(): Promise<Array<{code: string, name: string}>> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      logger.debug('Loading available languages', 'ApiService');
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/languages?is_active=true&fields=code,name`));
-      logger.debug('Languages response received', 'ApiService', { count: response.data?.length });
-      return response.data;
-    } catch (error: any) {
-      logger.error('Error getting available locales', 'ApiService', error);
-      throw new Error(error.response?.data?.detail || 'Failed to get available locales');
-    }
-  }
-
-  /**
-   * Get translations by locale (REST compliant)
-   * This method gets all available pages first, then fetches translations for each page
-   * Uses caching to prevent repeated API calls
-   */
-  async getTranslationsByLocale(locale: string): Promise<any[]> {
-    // Force a fresh availability check instead of relying on cached flag
-    await this.checkAvailability();
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    // Check cache first (5 minute TTL)
-    const cacheKey = locale;
-    const cached = this.translationsCache.get(cacheKey);
-    const now = Date.now();
-    const cacheTTL = 5 * 60 * 1000; // 5 minutes
-
-    if (cached && (now - cached.timestamp) < cacheTTL) {
-      logger.debug(' Using cached translations', 'ApiService', { locale, cacheAge: now - cached.timestamp });
-      return cached.data;
-    }
-
-    try {
-      logger.debug(' Loading translations from API', 'ApiService', { locale });
-      
-      // First, get all available pages
-      const pagesResponse = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/pages`));
-      const availablePages = pagesResponse.data;
-      
-      // Then, get translations for each page
-      const allTranslations = [];
-      for (const pageName of availablePages) {
-        try {
-          const pageResponse = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/${locale}/${pageName}`));
-          if (pageResponse.data) {
-            allTranslations.push(pageResponse.data);
+      let errorMessage = 'Failed to update connection';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (typeof detail === 'object' && detail.message) {
+          errorMessage = detail.message;
+          if (detail.field_errors) {
+            const fieldErrors = Object.values(detail.field_errors);
+            if (fieldErrors.length > 0) errorMessage = String(fieldErrors[0]);
           }
-        } catch (pageError: any) {
-          // Log warning but continue with other pages
-          logger.warn(`Failed to load translations for page ${pageName}`, 'ApiService', pageError);
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
         }
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-      
-      // Cache the result
-      this.translationsCache.set(cacheKey, { data: allTranslations, timestamp: now });
-      logger.debug(' Cached translations', 'ApiService', { locale, count: allTranslations.length });
-      
-      return allTranslations;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to get translations by locale');
+      throw new Error(errorMessage);
     }
   }
 
-  /**
-   * Get translation by page (REST compliant)
-   */
-  async getTranslationByPage(locale: string, pageName: string): Promise<any> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/${locale}/${pageName}`));
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        return null;
-      }
-      throw new Error(error.response?.data?.detail || 'Failed to get translation by page');
-    }
-  }
-
-  /**
-   * Get translation key (REST compliant)
-   */
-  async getTranslationKey(locale: string, key: string): Promise<string | null> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/${locale}/key/${encodeURIComponent(key)}`));
-      return response.data.value;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        return null;
-      }
-      throw new Error(error.response?.data?.detail || 'Failed to get translation key');
-    }
-  }
-
-  /**
-   * Get available locale objects (REST compliant) - only active languages
-   */
-  async getAvailableLocaleObjects(): Promise<any[]> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      logger.debug('Loading locale objects', 'ApiService');
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/locales/objects?is_active=true`));
-      logger.debug('Locale objects response received', 'ApiService', { count: response.data?.length });
-      return response.data;
-    } catch (error: any) {
-      logger.error('Error getting available locale objects', 'ApiService', error);
-      throw new Error(error.response?.data?.detail || 'Failed to get available locale objects');
-    }
-  }
-
-  /**
-   * Set default language (REST compliant)
-   */
-  async setDefaultLanguage(languageUuid: string): Promise<any> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      logger.debug(`Calling PUT /i18n/languages/${languageUuid}/default`, 'ApiService');
-      const response = await this.client.put(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/languages/${languageUuid}/default`));
-      logger.debug('Response received', 'ApiService', response.data);
-      return response.data;
-    } catch (error: any) {
-      logger.error('Error setting default language', 'ApiService', error);
-      throw new Error(error.response?.data?.detail || 'Failed to set default language');
-    }
-  }
-
-  /**
-   * Get translation stats (REST compliant)
-   */
-  async getTranslationStats(): Promise<any> {
-    if (!this.isAvailable) {
-      throw new Error('Python backend not available');
-    }
-
-    try {
-      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('i18n')}/translations/stats`));
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Failed to get translation stats');
-    }
-  }
+  // I18N ENDPOINTS REMOVED — translations now served from local JSON files in src/i18n/
 
   // ========================================
   // AUTH PROVIDERS ENDPOINTS
@@ -1248,12 +1209,13 @@ export class ApiService {
       
       return response.data;
     } catch (error: any) {
-      logger.error('/connections/{uuid}/connect endpoint failed', 'ApiService', { 
+      logger.error('/connections/{uuid}/connect endpoint failed', 'ApiService', {
         error: error.response?.data?.detail || error.message,
         status: error.response?.status,
         data: error.response?.data
       });
-      throw new Error(error.response?.data?.detail || 'Failed to connect to Salesforce');
+      // The axios response interceptor will handle the error notification
+      throw error;
     }
   }
 
@@ -1769,11 +1731,350 @@ export class ApiService {
   }
 
   // ========================================
-  // QUERY HISTORY ENDPOINTS
+  // SAVED APEX ENDPOINTS
   // ========================================
 
+  /**
+   * Get all saved Apex code for a connection
+   */
+  async getSavedApexList(connectionUuid: string, params?: { limit?: number; offset?: number; search?: string }): Promise<any[]> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
 
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('connection_uuid', connectionUuid);
+      if (params?.limit) queryParams.append('limit', String(params.limit));
+      if (params?.offset) queryParams.append('offset', String(params.offset));
+      if (params?.search) queryParams.append('search', params.search);
 
+      const response = await this.client.get(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/?${queryParams.toString()}`));
+      return response.data.saved_apex_list || [];
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to get saved Apex code');
+    }
+  }
+
+  /**
+   * Create a new saved Apex code
+   */
+  async createSavedApex(params: {
+    connection_uuid: string;
+    name: string;
+    apex_code: string;
+    code_type: string;
+    description?: string;
+    tags?: string;
+    is_favorite?: boolean;
+    debug_levels?: {
+      DB: string;
+      Workflow: string;
+      Validation: string;
+      Callouts: string;
+      Apex_Code: string;
+      Apex_Profiling: string;
+    };
+  }): Promise<string> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/`), params);
+      return response.data.saved_apex_uuid;
+    } catch (error: any) {
+      let errorMessage = 'Failed to create saved Apex code';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Update a saved Apex code
+   */
+  async updateSavedApex(savedApexUuid: string, params: {
+    name?: string;
+    apex_code?: string;
+    code_type?: string;
+    description?: string;
+    tags?: string;
+    is_favorite?: boolean;
+    debug_levels?: {
+      DB: string;
+      Workflow: string;
+      Validation: string;
+      Callouts: string;
+      Apex_Code: string;
+      Apex_Profiling: string;
+    };
+  }): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.put(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/${savedApexUuid}`), params);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to update saved Apex code');
+    }
+  }
+
+  /**
+   * Delete a saved Apex code
+   */
+  async deleteSavedApex(savedApexUuid: string): Promise<void> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      await this.client.delete(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/${savedApexUuid}`));
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to delete saved Apex code');
+    }
+  }
+
+  /**
+   * Toggle favorite status for a saved Apex code
+   */
+  async toggleApexFavorite(savedApexUuid: string): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/${savedApexUuid}/toggle-favorite`), {});
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'Failed to toggle favorite status');
+    }
+  }
+
+  /**
+   * Execute anonymous Apex code
+   */
+  async executeAnonymousApex(connectionUuid: string, params: {
+    apex_code: string;
+    debug_levels?: {
+      DB: string;
+      Workflow: string;
+      Validation: string;
+      Callouts: string;
+      Apex_Code: string;
+      Apex_Profiling: string;
+    };
+  }): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/execute-anonymous?connection_uuid=${encodeURIComponent(connectionUuid)}`),
+        {
+          apex_code: params.apex_code,
+          debug_levels: params.debug_levels
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to execute Apex code';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  async executeSavedApex(apex_uuid: string, connection_uuid: string): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(
+        this.addLangToUrl(`${this.getEndpointUrl('savedApex')}/${encodeURIComponent(apex_uuid)}/execute?connection_uuid=${encodeURIComponent(connection_uuid)}`)
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to execute saved Apex code';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Run Apex tests
+   */
+  async runApexTests(connectionUuid: string, params: {
+    test_classes?: string[];
+    test_methods?: string[];
+  }): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.post(
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/run-tests?connection_uuid=${encodeURIComponent(connectionUuid)}`),
+        {
+          test_classes: params.test_classes,
+          test_methods: params.test_methods
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to run Apex tests';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  async getApexClasses(connectionUuid: string): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.get(
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/classes?connection_uuid=${connectionUuid}`)
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to retrieve Apex classes';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  async getApexTriggers(connectionUuid: string): Promise<any> {
+    if (!this.isAvailable) {
+      throw new Error('Python backend not available');
+    }
+
+    try {
+      const response = await this.client.get(
+        this.addLangToUrl(`${this.getEndpointUrl('salesforce')}/apex/triggers?connection_uuid=${connectionUuid}`)
+      );
+      return response.data;
+    } catch (error: any) {
+      let errorMessage = 'Failed to retrieve Apex triggers';
+
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+
+        if (typeof detail === 'object') {
+          if (detail.message && typeof detail.message === 'string') {
+            errorMessage = detail.message;
+          } else if (detail.error_code && typeof detail.error_code === 'string') {
+            errorMessage = detail.error_code;
+          } else {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  // ========================================
+  // QUERY HISTORY ENDPOINTS
+  // ========================================
 
 
 

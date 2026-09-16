@@ -94,10 +94,14 @@ export function getComposedField(input: string | ComposeFieldInput): SoqlModels.
  * @returns FieldType
  */
 export function getField(input: string | ComposeFieldInput): SoqlModels.FieldType {
+  // startOffset/endOffset are only meaningful for fields parsed from raw SOQL text;
+  // composed (programmatically built) fields have no source position, so default to 0.
   if (typeof input === 'string') {
     return {
       type: 'Field',
       field: input,
+      startOffset: 0,
+      endOffset: 0,
     };
   } else if (isComposeFieldFunction(input)) {
     let parameters: string[] | SoqlModels.FieldFunctionExpression[] = [];
@@ -111,6 +115,8 @@ export function getField(input: string | ComposeFieldInput): SoqlModels.FieldTyp
       functionName: (input.functionName || input.fn)!,
       parameters,
       alias: input.alias,
+      startOffset: 0,
+      endOffset: 0,
     };
   } else if (isComposeFieldRelationship(input)) {
     return {
@@ -118,24 +124,32 @@ export function getField(input: string | ComposeFieldInput): SoqlModels.FieldTyp
       field: input.field,
       relationships: input.relationships,
       objectPrefix: input.objectPrefix,
-    };
+      startOffset: 0,
+      endOffset: 0,
+    } as SoqlModels.FieldType;
   } else if (isComposeFieldSubquery(input)) {
     return {
       type: 'FieldSubquery',
       subquery: input.subquery!,
+      startOffset: 0,
+      endOffset: 0,
     };
   } else if (isComposeFieldTypeof(input)) {
     return {
       type: 'FieldTypeof',
       field: input.field,
       conditions: input.conditions,
+      startOffset: 0,
+      endOffset: 0,
     };
   } else if (isComposeField(input)) {
     return {
       type: 'Field',
       field: input.field,
       objectPrefix: input.objectPrefix,
-    };
+      startOffset: 0,
+      endOffset: 0,
+    } as SoqlModels.FieldType;
   } else {
     throw new TypeError('The input object provided did not match any valid field types');
   }

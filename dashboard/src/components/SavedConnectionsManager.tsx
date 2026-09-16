@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -9,6 +9,7 @@ import { useTranslation } from '../services/I18nService';
 import { logger } from '../services/Logger';
 import { ApiService } from '../services/ApiService';
 import { useSessionContext } from '../contexts/SessionContext';
+import { ConnectionsList } from './connections/ConnectionsList';
 import '../assets/css/components/SavedConnectionsManager.css';
 import '../assets/css/components/Modal.css';
 import {
@@ -27,7 +28,9 @@ import {
   IconUser,
   IconKey,
   IconRefresh,
-  IconEdit
+  IconEdit,
+  IconEye,
+  IconEyeOff
 } from '@tabler/icons-react';
 import { ActionIcon, Group } from '@mantine/core';
 
@@ -88,10 +91,31 @@ export const SavedConnectionsManager: React.FC<SavedConnectionsManagerProps> = (
   const [isMounted, setIsMounted] = useState(false);
   const [successfulConnectionId, setSuccessfulConnectionId] = useState<string | null>(null);
   
-  // Rename state
+  // Rename state (kept for isRenaming flag used by ConnectionRow)
   const [isRenaming, setIsRenaming] = useState(false);
   const [renamingConnectionId, setRenamingConnectionId] = useState<string | null>(null);
   const [newConnectionName, setNewConnectionName] = useState('');
+
+  // Edit connection modal state
+  const [editingConnection, setEditingConnection] = useState<SavedConnection | null>(null);
+  const [isLoadingEditData, setIsLoadingEditData] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editDisplayName, setEditDisplayName] = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [editShowPassword, setEditShowPassword] = useState(false);
+  const [editEnvironment, setEditEnvironment] = useState<'production' | 'sandbox'>('production');
+  const [editConsumerKey, setEditConsumerKey] = useState('');
+  const [editConsumerSecret, setEditConsumerSecret] = useState('');
+  const [editShowConsumerSecret, setEditShowConsumerSecret] = useState(false);
+  const [editSecurityToken, setEditSecurityToken] = useState('');
+  const [editClientId, setEditClientId] = useState('');
+  const [editClientSecret, setEditClientSecret] = useState('');
+  const [editShowClientSecret, setEditShowClientSecret] = useState(false);
+  const [editOauthType, setEditOauthType] = useState<'salesforce_classic' | 'oauth_standard'>('oauth_standard');
+  const [editAuthProviderUuid, setEditAuthProviderUuid] = useState('');
+  const [isTestingEdit, setIsTestingEdit] = useState(false);
+  const [editTestResult, setEditTestResult] = useState<{ success: boolean; message: string; user_info?: any } | null>(null);
   
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1);
@@ -209,120 +233,280 @@ export const SavedConnectionsManager: React.FC<SavedConnectionsManagerProps> = (
     }
   };
 
-  const handleQuickConnect = async (connection: SavedConnection) => {
-    logger.debug('handleQuickConnect called with connection', 'SavedConnectionsManager', { connection });
-    try {
-      setConnectingConnectionId(connection.id);
-      setError(null);
-      
-      const decryptedConnection = await connectionManager.getConnection(connection.id);
-      
-      if (!decryptedConnection) {
-        setError(tSync('connections.error.decryptFailed', 'Failed to decrypt connection. Please check your master key.'));
+  const handleQuickConnect = useCallback(
+    async (connection: SavedConnection) => {
+      logger.debug('handleQuickConnect called with connection', 'SavedConnectionsManager', { connection });
+      try {
+        setConnectingConnectionId(connection.id);
+        setError(null);
+
+        const decryptedConnection = await connectionManager.getConnection(connection.id);
+
+        if (!decryptedConnection) {
+          setError(tSync('connections.error.decryptFailed', 'Failed to decrypt connection. Please check your master key.'));
+          return;
+        }
+
+        const domainUrl = decryptedConnection.environment === 'sandbox' ? 'https://test.salesforce.com' : 'https://login.salesforce.com';
+
+        let finalUsername = decryptedConnection.username;
+        let finalPassword = decryptedConnection.password || '';
+        let finalClientId = decryptedConnection.clientId || '';
+        let finalClientSecret = decryptedConnection.clientSecret || '';
+
+        if (decryptedConnection.oauthType === 'salesforce_classic') {
+          finalClientId = decryptedConnection.consumerKey || '';
+          finalClientSecret = decryptedConnection.consumerSecret || '';
+          finalPassword = decryptedConnection.securityToken ? `${finalPassword}${decryptedConnection.securityToken}` : finalPassword;
+        }
+
+        // Connect using the existing saved connection UUID
+        const result = await apiService.connectToSalesforce(connection.id);
+
+        if (result && result.user_info) {
+          logger.debug('Connection successful, calling onLogin', 'SavedConnectionsManager', { userInfo: result.user_info, connectionId: connection.id });
+
+          // Clean up decrypted connection object from memory
+          // This prevents sensitive data (passwords, tokens) from being held in memory
+          const cleanedConnection = { ...decryptedConnection };
+          cleanedConnection.password = '';
+          cleanedConnection.clientSecret = '';
+          cleanedConnection.consumerSecret = '';
+          cleanedConnection.securityToken = '';
+
+          // Show brief success state
+          setSuccessfulConnectionId(connection.id);
+          setTimeout(() => {
+            onLogin(result.user_info, connection.id);
+          }, 500); // Brief delay to show success state
+        } else {
+          throw new Error(result?.error || tSync('connections.error.connectionFailed', 'Connection failed'));
+        }
+      } catch (error) {
+        logger.error('handleQuickConnect error', 'SavedConnectionsManager', null, error as Error);
+        // Don't set local error state - the notification service will handle displaying the error
+        // This prevents duplicate error messages (one in notification, one in the alert box)
+      } finally {
+        setConnectingConnectionId(null);
+        // Clear all sensitive local variables to free up memory
+        // This ensures decrypted credentials are not held in memory after connection attempt
+      }
+    },
+    [onLogin, tSync]
+  );
+
+  const handleRemoveConnection = useCallback(
+    async (connectionId: string) => {
+      try {
+        await connectionManager.deleteConnection(connectionId);
+        await loadSavedConnections();
+
+        // Show success notification
+        notifications.show({
+          title: tSync('connections.delete.success.title', 'Connection Deleted'),
+          message: tSync('connections.delete.success.message', 'Connection has been deleted successfully'),
+          color: 'green',
+          icon: <IconTrash size={16} />,
+          autoClose: 3000,
+        });
+      } catch (error) {
+        logger.error('Failed to remove connection', 'SavedConnectionsManager', null, error as Error);
+
+        // Show error notification
+        notifications.show({
+          title: tSync('connections.delete.error.title', 'Delete Failed'),
+          message: tSync('connections.delete.error.message', 'Failed to delete connection. Please try again.'),
+          color: 'red',
+          autoClose: 3000,
+        });
+      }
+    },
+    [tSync]
+  );
+
+  const handleRenameConnection = useCallback(
+    async (connectionId: string, newName: string) => {
+      if (!newName.trim()) {
+        notifications.show({
+          title: tSync('connections.rename.error.invalid_name', 'Invalid Name'),
+          message: tSync('connections.rename.error.invalid_name_message', 'Please provide a valid connection name'),
+          color: 'red',
+          autoClose: 3000,
+        });
         return;
       }
 
-      const domainUrl = decryptedConnection.environment === 'sandbox' ? 'https://test.salesforce.com' : 'https://login.salesforce.com';
-      
-      let finalUsername = decryptedConnection.username;
-      let finalPassword = decryptedConnection.password || '';
-      let finalClientId = decryptedConnection.clientId || '';
-      let finalClientSecret = decryptedConnection.clientSecret || '';
+      try {
+        setIsRenaming(true);
+        setRenamingConnectionId(connectionId);
 
-      if (decryptedConnection.oauthType === 'salesforce_classic') {
-        finalClientId = decryptedConnection.consumerKey || '';
-        finalClientSecret = decryptedConnection.consumerSecret || '';
-        finalPassword = decryptedConnection.securityToken ? `${finalPassword}${decryptedConnection.securityToken}` : finalPassword;
+        await apiService.updateConnection(connectionId, newName.trim());
+        await loadSavedConnections();
+
+        notifications.show({
+          title: tSync('connections.rename.success.title', 'Connection Renamed'),
+          message: tSync('connections.rename.success.message', 'Connection has been renamed successfully'),
+          color: 'green',
+          icon: <IconEdit size={16} />,
+          autoClose: 3000,
+        });
+      } catch (error) {
+        logger.error('Failed to rename connection', 'SavedConnectionsManager', null, error as Error);
+        notifications.show({
+          title: tSync('connections.rename.error.title', 'Rename Failed'),
+          message: tSync('connections.rename.error.message', 'Failed to rename connection. Please try again.'),
+          color: 'red',
+          autoClose: 3000,
+        });
+      } finally {
+        setIsRenaming(false);
+        setRenamingConnectionId(null);
+        setNewConnectionName('');
       }
+    },
+    [tSync]
+  );
 
-      // Connect using the existing saved connection UUID
-      const result = await apiService.connectToSalesforce(connection.id);
+  const handleOpenEditModal = useCallback(
+    async (connection: SavedConnection) => {
+      setEditingConnection(connection);
+      setIsLoadingEditData(true);
+      setEditDisplayName(connection.displayName || connection.username);
+      setEditUsername('');
+      setEditPassword('');
+      setEditEnvironment('production');
+      setEditConsumerKey('');
+      setEditConsumerSecret('');
+      setEditSecurityToken('');
+      setEditClientId('');
+      setEditClientSecret('');
+      setEditShowPassword(false);
+      setEditShowConsumerSecret(false);
+      setEditShowClientSecret(false);
 
-      if (result && result.user_info) {
-        logger.debug('Connection successful, calling onLogin', 'SavedConnectionsManager', { userInfo: result.user_info, connectionId: connection.id });
-        
-        // Show brief success state
-        setSuccessfulConnectionId(connection.id);
-        setTimeout(() => {
-          onLogin(result.user_info, connection.id);
-        }, 500); // Brief delay to show success state
-      } else {
-        throw new Error(result?.error || tSync('connections.error.connectionFailed', 'Connection failed'));
+      try {
+        const credentials = await apiService.getConnectionCredentials(connection.id);
+        if (credentials) {
+          setEditDisplayName((credentials as any).display_name || connection.displayName);
+          setEditUsername((credentials as any).connection_data?.username || '');
+          setEditPassword((credentials as any).connection_data?.password || '');
+          setEditEnvironment(((credentials as any).connection_data?.environment as 'production' | 'sandbox') || 'production');
+          setEditConsumerKey((credentials as any).connection_data?.consumer_key || '');
+          setEditConsumerSecret((credentials as any).connection_data?.consumer_secret || '');
+          setEditSecurityToken((credentials as any).connection_data?.security_token || '');
+          setEditClientId((credentials as any).connection_data?.client_id || '');
+          setEditClientSecret((credentials as any).connection_data?.client_secret || '');
+          setEditAuthProviderUuid((credentials as any).auth_provider_uuid || '');
+
+          // Determine oauth type from credentials
+          const hasConsumerKey = !!(credentials as any).connection_data?.consumer_key;
+          const matchedProvider = oauthTypes.find(t => t.value === (credentials as any).auth_provider_uuid);
+          const isClassic = matchedProvider
+            ? matchedProvider.requires_consumer_key
+            : hasConsumerKey;
+          setEditOauthType(isClassic ? 'salesforce_classic' : 'oauth_standard');
+        }
+      } catch (error) {
+        logger.error('Failed to load connection credentials for edit', 'SavedConnectionsManager', null, error as Error);
+        notifications.show({
+          title: tSync('connections.edit.error.load_title', 'Load Failed'),
+          message: tSync('connections.edit.error.load_message', 'Failed to load connection details. Please try again.'),
+          color: 'red',
+          autoClose: 3000,
+        });
+        setEditingConnection(null);
+      } finally {
+        setIsLoadingEditData(false);
       }
+    },
+    [oauthTypes, tSync]
+  );
+
+  const handleCloseEditModal = useCallback(() => {
+    setEditingConnection(null);
+    setEditDisplayName('');
+    setEditUsername('');
+    setEditPassword('');
+    setEditEnvironment('production');
+    setEditConsumerKey('');
+    setEditConsumerSecret('');
+    setEditSecurityToken('');
+    setEditClientId('');
+    setEditClientSecret('');
+    setEditShowPassword(false);
+    setEditShowConsumerSecret(false);
+    setEditShowClientSecret(false);
+    setEditTestResult(null);
+  }, []);
+
+  const handleTestEdit = useCallback(async () => {
+    setIsTestingEdit(true);
+    setEditTestResult(null);
+    try {
+      const result = await apiService.testConnectionCredentials({
+        username: editUsername,
+        password: editPassword,
+        environment: editEnvironment,
+        consumerKey: editConsumerKey || undefined,
+        consumerSecret: editConsumerSecret || undefined,
+        securityToken: editSecurityToken || undefined,
+        clientId: editClientId || undefined,
+        clientSecret: editClientSecret || undefined,
+      });
+      setEditTestResult(result);
     } catch (error) {
-      logger.error('handleQuickConnect error', 'SavedConnectionsManager', null, error as Error);
-      setError(error instanceof Error ? error.message : tSync('connections.error.connectionFailed', 'Connection failed'));
+      setEditTestResult({ success: false, message: (error as Error).message || 'Connection test failed' });
     } finally {
-      setConnectingConnectionId(null);
+      setIsTestingEdit(false);
     }
-  };
+  }, [editUsername, editPassword, editEnvironment, editConsumerKey, editConsumerSecret, editSecurityToken, editClientId, editClientSecret]);
 
-  const handleRemoveConnection = async (connectionId: string) => {
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingConnection) return;
+
+    setIsSavingEdit(true);
     try {
-      await connectionManager.deleteConnection(connectionId);
-      await loadSavedConnections();
-      
-      // Show success notification
-      notifications.show({
-        title: tSync('connections.delete.success.title', 'Connection Deleted'),
-        message: tSync('connections.delete.success.message', 'Connection has been deleted successfully'),
-        color: 'green',
-        icon: <IconTrash size={16} />,
-        autoClose: 3000,
-      });
-      
-    } catch (error) {
-      logger.error('Failed to remove connection', 'SavedConnectionsManager', null, error as Error);
-      
-      // Show error notification
-      notifications.show({
-        title: tSync('connections.delete.error.title', 'Delete Failed'),
-        message: tSync('connections.delete.error.message', 'Failed to delete connection. Please try again.'),
-        color: 'red',
-        autoClose: 3000,
-      });
-    }
-  };
+      await apiService.updateConnection(
+        editingConnection.id,
+        editDisplayName.trim(),
+        {
+          username: editUsername,
+          password: editPassword,
+          environment: editEnvironment,
+          consumerKey: editConsumerKey || undefined,
+          consumerSecret: editConsumerSecret || undefined,
+          securityToken: editSecurityToken || undefined,
+          clientId: editClientId || undefined,
+          clientSecret: editClientSecret || undefined,
+        }
+      );
 
-  const handleRenameConnection = async (connectionId: string, newName: string) => {
-    if (!newName.trim()) {
-      notifications.show({
-        title: tSync('connections.rename.error.invalid_name', 'Invalid Name'),
-        message: tSync('connections.rename.error.invalid_name_message', 'Please provide a valid connection name'),
-        color: 'red',
-        autoClose: 3000,
-      });
-      return;
-    }
-
-    try {
-      setIsRenaming(true);
-      setRenamingConnectionId(connectionId);
-      
-      await apiService.updateConnection(connectionId, newName.trim());
       await loadSavedConnections();
-      
+      handleCloseEditModal();
+
       notifications.show({
-        title: tSync('connections.rename.success.title', 'Connection Renamed'),
-        message: tSync('connections.rename.success.message', 'Connection has been renamed successfully'),
+        title: tSync('connections.edit.success.title', 'Connection Updated'),
+        message: tSync('connections.edit.success.message', 'Connection details have been updated successfully'),
         color: 'green',
         icon: <IconEdit size={16} />,
         autoClose: 3000,
       });
     } catch (error) {
-      logger.error('Failed to rename connection', 'SavedConnectionsManager', null, error as Error);
+      logger.error('Failed to save connection edit', 'SavedConnectionsManager', null, error as Error);
       notifications.show({
-        title: tSync('connections.rename.error.title', 'Rename Failed'),
-        message: tSync('connections.rename.error.message', 'Failed to rename connection. Please try again.'),
+        title: tSync('connections.edit.error.save_title', 'Update Failed'),
+        message: (error as Error).message || tSync('connections.edit.error.save_message', 'Failed to update connection. Please check your credentials.'),
         color: 'red',
-        autoClose: 3000,
+        autoClose: 5000,
       });
     } finally {
-      setIsRenaming(false);
-      setRenamingConnectionId(null);
-      setNewConnectionName('');
+      setIsSavingEdit(false);
     }
-  };
+  }, [
+    editingConnection, editDisplayName, editUsername, editPassword, editEnvironment,
+    editConsumerKey, editConsumerSecret, editSecurityToken, editClientId, editClientSecret,
+    tSync, handleCloseEditModal
+  ]);
 
   const handleClearAllConnections = async () => {
     try {
@@ -896,95 +1080,29 @@ export const SavedConnectionsManager: React.FC<SavedConnectionsManagerProps> = (
                   </div>
                 </div>
               </div>
-              
-                             <div className="connections-table">
-                 <div className="connections-table-header">
-                   <div className="connection-name-header">{tSync('connections.name')}</div>
-                   <div className="connection-username-header">{tSync('connections.username')}</div>
-                   <div className="connection-environment-header">{tSync('connections.environment')}</div>
-                   <div className="connection-last-used-header">{tSync('connections.lastUsed')}</div>
-                   <div className="connection-actions-header">{tSync('connections.actions')}</div>
-                 </div>
-                 
-                 <div className="connections-table-body">
-                   {savedConnections.map((connection) => (
-                     <div key={connection.id} className="connection-row">
-                       <div className="connection-name">
-                         <div className="connection-name-text">
-                           {connection.displayName || connection.username}
-                         </div>
-                       </div>
-                       
-                       <div className="connection-username">
-                         {connection.username}
-                       </div>
-                       
-                       <div className="connection-environment">
-                         <span className={`environment-badge ${connection.environment}`}>
-                           {connection.environment === 'sandbox' ? 'Sandbox' : 'Production'}
-                         </span>
-                       </div>
-                       
-                       <div className="connection-last-used">
-                         {new Date(connection.lastUsed).toLocaleDateString()}
-                       </div>
-                       
-                       <div className="connection-actions">
-                         <button 
-                           className={`btn btn-primary btn-sm ${
-                             connectingConnectionId === connection.id ? 'loading' : 
-                             successfulConnectionId === connection.id ? 'success' : ''
-                           }`}
-                           onClick={() => {
-                             logger.debug('Connect button clicked for connection', 'SavedConnectionsManager', { connectionId: connection.id });
-                             handleQuickConnect(connection);
-                           }}
-                           disabled={connectingConnectionId === connection.id || successfulConnectionId === connection.id}
-                           title={tSync('connections.quickConnect')}
-                         >
-                           {connectingConnectionId === connection.id ? (
-                             <>
-                               <div className="loading-spinner"></div>
-                               {tSync('connections.connecting')}
-                             </>
-                           ) : successfulConnectionId === connection.id ? (
-                             <>
-                               <IconCheck size={14} />
-                               {tSync('connections.connected')}
-                             </>
-                           ) : (
-                             <>
-                               <IconLink size={14} />
-                               {tSync('connections.quickConnect')}
-                             </>
-                           )}
-                         </button>
-                         
-                         <button 
-                           className="btn btn-icon-only btn-secondary btn-sm"
-                           onClick={() => {
-                             setNewConnectionName(connection.displayName || connection.username);
-                             setRenamingConnectionId(connection.id);
-                           }}
-                           title={tSync('connections.renameConnection', 'Rename Connection')}
-                           disabled={connectingConnectionId === connection.id || successfulConnectionId === connection.id || isRenaming}
-                         >
-                           <IconEdit size={14} />
-                         </button>
-                         
-                         <button 
-                           className="btn btn-icon-only btn-danger btn-sm"
-                           onClick={() => handleRemoveConnection(connection.id)}
-                           title={tSync('connections.removeConnection')}
-                           disabled={connectingConnectionId === connection.id || successfulConnectionId === connection.id || isRenaming}
-                         >
-                           <IconTrash size={14} />
-                         </button>
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-               </div>
+
+              <div className="connections-table">
+                <div className="connections-table-header">
+                  <div className="connection-name-header">{tSync('connections.name')}</div>
+                  <div className="connection-username-header">{tSync('connections.username')}</div>
+                  <div className="connection-environment-header">{tSync('connections.environment')}</div>
+                  <div className="connection-last-used-header">{tSync('connections.lastUsed')}</div>
+                  <div className="connection-actions-header">{tSync('connections.actions')}</div>
+                </div>
+
+                {/* Virtualized connections list using react-window */}
+                <ConnectionsList
+                  connections={savedConnections}
+                  connectingConnectionId={connectingConnectionId}
+                  successfulConnectionId={successfulConnectionId}
+                  isRenaming={isRenaming}
+                  onConnect={handleQuickConnect}
+                  onRename={(connection) => handleOpenEditModal(connection)}
+                  onDelete={handleRemoveConnection}
+                  tSync={tSync}
+                  isLoading={isLoadingConnections}
+                />
+              </div>
             </div>
           )}
 
@@ -1012,73 +1130,259 @@ export const SavedConnectionsManager: React.FC<SavedConnectionsManagerProps> = (
         </div>
       </div>
 
-      {/* Rename Connection Modal */}
-      {renamingConnectionId && (
-        <div className="modal-overlay" onClick={() => {
-          setRenamingConnectionId(null);
-          setNewConnectionName('');
-        }}>
-          <div className="modal-content" style={{ maxWidth: '500px', width: '90%' }} onClick={(e) => e.stopPropagation()}>
+      {/* Edit Connection Modal */}
+      {editingConnection && (
+        <div className="modal-overlay" onClick={() => { if (!isSavingEdit) handleCloseEditModal(); }}>
+          <div className="modal-content" style={{ maxWidth: '560px', width: '95%' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">{tSync('connections.renameConnection', 'Rename Connection')}</h2>
-              <button 
+              <h2 className="modal-title">{tSync('connections.editConnection', 'Edit Connection')}</h2>
+              <button
                 className="modal-close"
-                onClick={() => {
-                  setRenamingConnectionId(null);
-                  setNewConnectionName('');
-                }}
+                onClick={handleCloseEditModal}
+                disabled={isSavingEdit}
               >
                 <IconX size={20} />
               </button>
             </div>
-            
-            <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">{tSync('connections.newName', 'New Name')}</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={newConnectionName}
-                  onChange={(e) => setNewConnectionName(e.target.value)}
-                  placeholder={tSync('connections.enterNewName', 'Enter new connection name')}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && newConnectionName.trim() && !isRenaming) {
-                      handleRenameConnection(renamingConnectionId, newConnectionName);
-                    } else if (e.key === 'Escape') {
-                      setRenamingConnectionId(null);
-                      setNewConnectionName('');
-                    }
-                  }}
-                />
+
+            {isLoadingEditData ? (
+              <div className="modal-body" style={{ textAlign: 'center', padding: '2rem' }}>
+                <div className="loading-spinner" style={{ margin: '0 auto 0.75rem' }}></div>
+                <p style={{ color: 'var(--text-secondary)' }}>{tSync('connections.loadingDetails', 'Loading connection details...')}</p>
               </div>
-            </div>
-            
-            <div className="modal-footer">
-              <button 
+            ) : (
+              <div className="modal-body">
+                {/* Connection Name */}
+                <div className="form-group">
+                  <label className="form-label">{tSync('connections.connectionName', 'Connection Name')}</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editDisplayName}
+                    onChange={(e) => setEditDisplayName(e.target.value)}
+                    placeholder={tSync('connections.enterConnectionName', 'Enter connection name')}
+                    autoFocus
+                    disabled={isSavingEdit}
+                  />
+                </div>
+
+                {/* Username */}
+                <div className="form-group">
+                  <label className="form-label">{tSync('connections.username', 'Username')}</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editUsername}
+                    onChange={(e) => { setEditUsername(e.target.value); setEditTestResult(null); }}
+                    placeholder={tSync('connections.enterUsername', 'Enter Salesforce username')}
+                    disabled={isSavingEdit}
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="form-group">
+                  <label className="form-label">{tSync('connections.password', 'Password')}</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input
+                      type={editShowPassword ? 'text' : 'password'}
+                      className="form-input"
+                      style={{ paddingRight: '2.5rem', flex: 1 }}
+                      value={editPassword}
+                      onChange={(e) => { setEditPassword(e.target.value); setEditTestResult(null); }}
+                      placeholder={tSync('connections.enterPassword', 'Enter password')}
+                      disabled={isSavingEdit}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-icon-only btn-secondary btn-sm"
+                      style={{ position: 'absolute', right: '4px', border: 'none', background: 'transparent' }}
+                      onClick={() => setEditShowPassword((v) => !v)}
+                      tabIndex={-1}
+                    >
+                      {editShowPassword ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Environment */}
+                <div className="form-group">
+                  <label className="form-label">{tSync('connections.environment', 'Environment')}</label>
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    {(['production', 'sandbox'] as const).map((env) => (
+                      <label key={env} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          name="edit-environment"
+                          value={env}
+                          checked={editEnvironment === env}
+                          onChange={() => { setEditEnvironment(env); setEditTestResult(null); }}
+                          disabled={isSavingEdit}
+                        />
+                        <span className={`environment-badge ${env}`}>
+                          {env === 'sandbox' ? tSync('connections.sandbox', 'Sandbox') : tSync('connections.production', 'Production')}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* OAuth-specific fields */}
+                {editOauthType === 'salesforce_classic' ? (
+                  <>
+                    <div className="form-group">
+                      <label className="form-label">{tSync('connections.consumerKey', 'Consumer Key')}</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editConsumerKey}
+                        onChange={(e) => { setEditConsumerKey(e.target.value); setEditTestResult(null); }}
+                        placeholder={tSync('connections.enterConsumerKey', 'Enter consumer key')}
+                        disabled={isSavingEdit}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{tSync('connections.consumerSecret', 'Consumer Secret')}</label>
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input
+                          type={editShowConsumerSecret ? 'text' : 'password'}
+                          className="form-input"
+                          style={{ paddingRight: '2.5rem', flex: 1 }}
+                          value={editConsumerSecret}
+                          onChange={(e) => { setEditConsumerSecret(e.target.value); setEditTestResult(null); }}
+                          placeholder={tSync('connections.enterConsumerSecret', 'Enter consumer secret')}
+                          disabled={isSavingEdit}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-icon-only btn-secondary btn-sm"
+                          style={{ position: 'absolute', right: '4px', border: 'none', background: 'transparent' }}
+                          onClick={() => setEditShowConsumerSecret((v) => !v)}
+                          tabIndex={-1}
+                        >
+                          {editShowConsumerSecret ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{tSync('connections.securityToken', 'Security Token')}</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editSecurityToken}
+                        onChange={(e) => { setEditSecurityToken(e.target.value); setEditTestResult(null); }}
+                        placeholder={tSync('connections.enterSecurityToken', 'Enter security token (optional)')}
+                        disabled={isSavingEdit}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="form-group">
+                      <label className="form-label">{tSync('connections.clientId', 'Client ID')}</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editClientId}
+                        onChange={(e) => { setEditClientId(e.target.value); setEditTestResult(null); }}
+                        placeholder={tSync('connections.enterClientId', 'Enter client ID')}
+                        disabled={isSavingEdit}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">{tSync('connections.clientSecret', 'Client Secret')}</label>
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input
+                          type={editShowClientSecret ? 'text' : 'password'}
+                          className="form-input"
+                          style={{ paddingRight: '2.5rem', flex: 1 }}
+                          value={editClientSecret}
+                          onChange={(e) => { setEditClientSecret(e.target.value); setEditTestResult(null); }}
+                          placeholder={tSync('connections.enterClientSecret', 'Enter client secret')}
+                          disabled={isSavingEdit}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-icon-only btn-secondary btn-sm"
+                          style={{ position: 'absolute', right: '4px', border: 'none', background: 'transparent' }}
+                          onClick={() => setEditShowClientSecret((v) => !v)}
+                          tabIndex={-1}
+                        >
+                          {editShowClientSecret ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Test result feedback */}
+                {editTestResult && (
+                  <div style={{
+                    marginTop: '0.75rem',
+                    padding: '0.6rem 0.875rem',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.5rem',
+                    fontSize: '0.875rem',
+                    background: editTestResult.success ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                    border: `1px solid ${editTestResult.success ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'}`,
+                    color: editTestResult.success ? '#16a34a' : '#dc2626',
+                  }}>
+                    {editTestResult.success
+                      ? <IconCheck size={16} style={{ flexShrink: 0, marginTop: '1px' }} />
+                      : <IconAlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} />}
+                    <span>
+                      {editTestResult.success
+                        ? `${tSync('connections.testSuccess', 'Connection successful')}${editTestResult.user_info?.user_name ? ` — ${editTestResult.user_info.user_name}` : ''}`
+                        : editTestResult.message}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+              <button
                 className="btn btn-secondary"
-                onClick={() => {
-                  setRenamingConnectionId(null);
-                  setNewConnectionName('');
-                }}
-                disabled={isRenaming}
+                onClick={handleCloseEditModal}
+                disabled={isSavingEdit || isLoadingEditData}
               >
                 {tSync('common.cancel', 'Cancel')}
               </button>
-              <button 
-                className="btn btn-primary"
-                onClick={() => handleRenameConnection(renamingConnectionId, newConnectionName)}
-                disabled={isRenaming || !newConnectionName.trim()}
-              >
-                {isRenaming ? (
-                  <>
-                    <div className="loading-spinner"></div>
-                    {tSync('connections.renaming', 'Renaming...')}
-                  </>
-                ) : (
-                  tSync('connections.save', 'Save')
-                )}
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleTestEdit}
+                  disabled={isTestingEdit || isSavingEdit || isLoadingEditData || !editUsername.trim() || !editPassword.trim()}
+                  title={tSync('connections.testConnectionTitle', 'Test credentials without saving')}
+                >
+                  {isTestingEdit ? (
+                    <>
+                      <div className="loading-spinner"></div>
+                      {tSync('connections.testing', 'Testing...')}
+                    </>
+                  ) : (
+                    <>
+                      <IconLink size={14} />
+                      {tSync('connections.testConnection', 'Test Connection')}
+                    </>
+                  )}
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleSaveEdit}
+                  disabled={isSavingEdit || isLoadingEditData || !editDisplayName.trim() || !editUsername.trim() || !editPassword.trim()}
+                >
+                  {isSavingEdit ? (
+                    <>
+                      <div className="loading-spinner"></div>
+                      {tSync('connections.validatingAndSaving', 'Validating & Saving...')}
+                    </>
+                  ) : (
+                    tSync('connections.saveChanges', 'Save Changes')
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

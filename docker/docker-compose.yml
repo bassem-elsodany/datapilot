@@ -13,7 +13,7 @@ services:
       MONGO_INITDB_USERNAME: datapilot
       MONGO_INITDB_PASSWORD: datapilot123
     ports:
-      - "27018:27017"
+      - "27918:27017"
     volumes:
       - mongodb_data:/data/db
       - ./mongodb-init:/docker-entrypoint-initdb.d
@@ -70,7 +70,15 @@ services:
     networks:
       - datapilot-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/api/v1/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost/api/v1/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

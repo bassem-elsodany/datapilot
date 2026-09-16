@@ -1,17 +1,16 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Button, Paper, Modal, TextInput, Group, ActionIcon, Menu, Tooltip, Text, Badge, Switch } from '@mantine/core';
-import { IconPlayerPlay, IconDatabase, IconDeviceFloppy, IconCode, IconCheck, IconTrash, IconFileImport, IconArrowBack, IconArrowForward, IconBookmark, IconGitBranch, IconChevronDown, IconChevronUp, IconDownload, IconFileExport, IconSettings } from '@tabler/icons-react';
+import { ActionIcon, Badge, Button, Group, Paper, Switch, Text, Tooltip } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import Editor from '@monaco-editor/react';
-import { useTranslation } from '../../services/I18nService';
-import { connectionManager } from '../../services/ConnectionManager';
-import { apiService } from '../../services/ApiService';
-import { logger } from '../../services/Logger';
-import { convertASTToGraphData } from '../../utils/astToGraphConverter';
-import { useConnectionSessionStorage } from '../../hooks/useSessionStorage';
-import { ResultsViewPage } from '../ResultsViewPage';
+import { IconArrowBack, IconArrowForward, IconBookmark, IconCheck, IconChevronDown, IconChevronUp, IconCode, IconDeviceFloppy, IconDownload, IconFileImport, IconGitBranch, IconPlayerPlay, IconTrash } from '@tabler/icons-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import '../../assets/css/components/query-editor/QueryTab.css';
 import '../../assets/css/components/query-editor/SaveQueryModal.css';
+import { configManager } from '../../config/app.config';
+import { useConnectionSessionStorage } from '../../hooks/useSessionStorage';
+import { apiService } from '../../services/ApiService';
+import { useTranslation } from '../../services/I18nService';
+import { logger } from '../../services/Logger';
+import { ResultsViewPage } from '../ResultsViewPage';
 
 // Saved Query interface
 interface SavedQuery {
@@ -27,8 +26,6 @@ interface SavedQuery {
 
 // Import all functionality from the modular structure
 import {
-  // Query parsing and tree building
-  parseQueryStructure,
   formatSOQLQuery,
   getAutocompleteContext,
   parseSoql
@@ -37,32 +34,19 @@ import {
 // Legacy treeBuilder, contextDetection, and relationshipResolver imports removed - replaced by enhanced parser
 
 import {
+  createFieldSuggestions,
+  createRelationshipSuggestions,
+  filterValidSuggestions,
   // Autocomplete
   getSObjectFields,
   getSObjectRelationships,
-  getSObjectSuggestions,
-  createFieldSuggestions,
-  createRelationshipSuggestions,
-  createNestingLevelSuggestion,
-  filterValidSuggestions,
-  createErrorSuggestion
+  getSObjectSuggestions
 } from './QueryTab/autocompleteProvider';
 
-import {
-  // Validation
-  SOQLValidator
-} from './QueryTab/queryValidator';
 
 import {
   // Drag and drop
-  handleDragDrop,
-  handleFieldDrop,
-  handleRelationshipFieldDrop,
-  detectSObjectRelationship,
-  detectNestedRelationship,
-  getMainFromSObject,
-  buildNestedSubquery,
-  escapeRegExp
+  handleDragDrop
 } from './QueryTab/dragDropHandler';
 
 interface QueryTabProps {
@@ -99,11 +83,11 @@ export const QueryTab: React.FC<QueryTabProps> = ({
   loadedQueryUuid
 }) => {
   const { tSync } = useTranslation();
-  
+
   // Results section state management
   const [resultsState, setResultsState] = useState<'collapsed' | 'expanded'>('collapsed');
   const [resultsHeight, setResultsHeight] = useState(300); // Default height for results section
-  
+
   // Function to toggle between collapsed and expanded
   const toggleResultsState = () => {
     setResultsState(prev => prev === 'collapsed' ? 'expanded' : 'collapsed');
@@ -111,7 +95,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
   // Drag separator functionality
   const [isDragging, setIsDragging] = useState(false);
-  
+
   const handleDragStart = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -119,18 +103,18 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
   const handleDragMove = (e: MouseEvent) => {
     if (!isDragging) return;
-    
+
     // Get the current viewport height and calculate available space
     const viewportHeight = window.innerHeight;
     const headerHeight = 50; // App header height
     const statusBarHeight = 40; // Status bar height
     const availableHeight = viewportHeight - headerHeight - statusBarHeight - 20; // Extra padding
-    
+
     // Calculate new height based on mouse position from bottom
     const newHeight = viewportHeight - e.clientY - statusBarHeight;
     const minHeight = 100; // Minimum results height
     const maxHeight = availableHeight - 150; // Leave minimum space for query editor
-    
+
     if (newHeight >= minHeight && newHeight <= maxHeight) {
       setResultsHeight(newHeight);
     }
@@ -145,7 +129,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
     if (isDragging) {
       document.addEventListener('mousemove', handleDragMove);
       document.addEventListener('mouseup', handleDragEnd);
-      
+
       return () => {
         document.removeEventListener('mousemove', handleDragMove);
         document.removeEventListener('mouseup', handleDragEnd);
@@ -160,7 +144,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
       setResultsState('expanded');
     }
   }, [queryResult, isQuerying]);
-  
+
   const [query, setQuery] = useState(initialQuery);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveQueryName, setSaveQueryName] = useState('');
@@ -170,14 +154,16 @@ export const QueryTab: React.FC<QueryTabProps> = ({
   const [isLoadingSavedQueries, setIsLoadingSavedQueries] = useState(false);
   const [currentSavedQueryUuid, setCurrentSavedQueryUuid] = useState<string | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
-  
+
   // Save modal state
   const [saveOperationMode, setSaveOperationMode] = useState<'create' | 'update'>('create');
   const [selectedQueryForUpdate, setSelectedQueryForUpdate] = useState<string | null>(null);
   const [isSaveModalClosing, setIsSaveModalClosing] = useState(false);
-  
-  // Auto-save toggle state
-  const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(false);
+
+  // Auto-save toggle state - initialize from config
+  const [isAutoSaveEnabled, setIsAutoSaveEnabled] = useState(() => {
+    return configManager.getConfigSection('features').enableAutoSave;
+  });
 
   // Update currentSavedQueryUuid when loadedQueryUuid prop changes
   useEffect(() => {
@@ -187,8 +173,9 @@ export const QueryTab: React.FC<QueryTabProps> = ({
   // Reset auto-save state when connection changes
   useEffect(() => {
     setCurrentSavedQueryUuid(null);
-    logger.debug('Connection changed, resetting auto-save state', 'QueryTab', { 
-      newConnectionUuid: currentConnectionUuid 
+    setIsAutoSaveEnabled(configManager.getConfigSection('features').enableAutoSave);
+    logger.debug('Connection changed, resetting auto-save state', 'QueryTab', {
+      newConnectionUuid: currentConnectionUuid
     });
   }, [currentConnectionUuid]);
 
@@ -196,14 +183,14 @@ export const QueryTab: React.FC<QueryTabProps> = ({
   const monacoRef = useRef<any>(null);
   const connectionUuidRef = useRef<string | null>(null);
   const providerRef = useRef<any>(null);
-  
+
   // Session-aware AST storage (shared with SchemaTab) - SINGLE SOURCE OF TRUTH
   const [astState, setAstState] = useConnectionSessionStorage<any>(
     'ast-state',
     currentConnectionUuid,
     null
   );
-  
+
   // Removed AST caching - causing issues with duplicates
 
   // Update connection UUID ref whenever it changes
@@ -228,15 +215,15 @@ export const QueryTab: React.FC<QueryTabProps> = ({
   const handleEditorDidMount = useCallback((editor: any, monaco: any) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
-    
+
     // Configure SOQL language features with enhanced nested query autocomplete
-    
+
     // CRITICAL: Dispose any existing providers to prevent duplicates
     if (providerRef.current) {
       providerRef.current.dispose();
       providerRef.current = null;
     }
-    
+
     // Register completion provider for SQL language
     const provider = monaco.languages.registerCompletionItemProvider('sql', {
       provideCompletionItems: async (model: any, position: any) => {
@@ -244,18 +231,18 @@ export const QueryTab: React.FC<QueryTabProps> = ({
         // CRITICAL: Always start with a fresh suggestions array
         const suggestions = [];
         const currentQuery = model.getValue();
-        
+
         // STEP 1: Parse query directly - parser will tell us if there are errors
         const connectionUuid = connectionUuidRef.current;
         const autocompleteContext = await getAutocompleteContext(model, position, connectionUuid);
-        
+
         // If parsing failed, no autocomplete
         if (!autocompleteContext) {
           return { suggestions: [] };
         }
-        
+
         const { context, ast } = autocompleteContext;
-        
+
         // Calculate the proper range for text replacement
         const word = model.getWordAtPosition(position);
         const range = word ? {
@@ -269,7 +256,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
           startColumn: position.column,
           endColumn: position.column
         };
-        
+
         if (autocompleteContext) {
           // RULE 1: SObject suggestions when cursor is in SObject context (SELECT * FROM)
           if (context.nodeType === 'sobject') {
@@ -277,21 +264,21 @@ export const QueryTab: React.FC<QueryTabProps> = ({
             const currentQuery = model.getValue();
             const cursorOffset = model.getOffsetAt(position);
             const partialSObjectName = currentQuery.substring(context.startOffset || cursorOffset, cursorOffset);
-            
+
             const sobjectSuggestions = await getSObjectSuggestions(partialSObjectName, monaco, position, connectionUuid);
             // Ensure SObject suggestions use the calculated range
             const sobjectSuggestionsWithRange = sobjectSuggestions.map(s => ({ ...s, range }));
             suggestions.push(...sobjectSuggestionsWithRange);
-            
+
             const validSuggestions = filterValidSuggestions(suggestions);
             return { suggestions: validSuggestions };
           }
-        
+
         // RULE 3: Field suggestions when cursor is in field context (using AST data structure)
-        
+
         // Get the correct SObject for autocomplete
         let parentSObjectName = null;
-          
+
           // For fields within subqueries, use the subquery's SObject
           if (context.isInSubquery && context.sObject) {
             parentSObjectName = context.sObject;
@@ -301,11 +288,11 @@ export const QueryTab: React.FC<QueryTabProps> = ({
             // For regular fields, use the parent SObject
             parentSObjectName = ast.sObject;
           }
-          
+
           if (parentSObjectName) {
             // Get fields for the parent SObject (metadata is cached per connection per object)
             const fields = await getSObjectFields(parentSObjectName, connectionUuid, monaco, position);
-            
+
             if (fields && Array.isArray(fields)) {
               if (fields.length === 1 && fields[0] && fields[0].label && typeof fields[0].label === 'string' && fields[0].label.startsWith('⚠️')) {
                 // Ensure error suggestions use the calculated range
@@ -318,7 +305,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 suggestions.push(...fieldSuggestionsWithRange);
               }
             }
-            
+
             // Get relationships for the parent SObject
             const relationships = await getSObjectRelationships(parentSObjectName, connectionUuid, monaco, position);
             if (relationships && Array.isArray(relationships)) {
@@ -335,20 +322,20 @@ export const QueryTab: React.FC<QueryTabProps> = ({
             }
           }
         }
-        
-        
+
+
         // Final validation: filter out any completion items with invalid properties
         const validSuggestions = filterValidSuggestions(suggestions);
-        
+
         // CRITICAL: Always return a fresh array to prevent Monaco from merging suggestions
         // Remove duplicates based on label AND insertText to catch more cases
-        const uniqueSuggestions = validSuggestions.filter((suggestion, index, self) => 
-          index === self.findIndex(s => 
-            s.label === suggestion.label && 
+        const uniqueSuggestions = validSuggestions.filter((suggestion, index, self) =>
+          index === self.findIndex(s =>
+            s.label === suggestion.label &&
             s.insertText === suggestion.insertText
           )
         );
-        
+
         return { suggestions: uniqueSuggestions };
         } catch (error) {
           logger.error('Error in autocomplete provider', 'QueryTab', error);
@@ -356,20 +343,20 @@ export const QueryTab: React.FC<QueryTabProps> = ({
         }
       }
     });
-    
+
     // Store provider reference for cleanup
     providerRef.current = provider;
-    
+
     // Add keyboard shortcut to manually trigger completion
     editor.addCommand(monaco.KeyCode.F1, () => {
       editor.trigger('manual', 'editor.action.triggerSuggest', {});
     });
-    
+
     // Add Ctrl+Space shortcut to manually trigger completion
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Space, () => {
       editor.trigger('manual', 'editor.action.triggerSuggest', {});
     });
-    
+
     // Define custom theme with clean selection colors
     monaco.editor.defineTheme('custom-sql-theme', {
       base: 'vs',
@@ -386,9 +373,9 @@ export const QueryTab: React.FC<QueryTabProps> = ({
         'editor.foreground': '#1e293b'
       }
     });
-    
+
     // Monaco Editor setup completed
-    
+
     // Set editor options - disable Monaco's theme handling
     editor.updateOptions({
       minimap: { enabled: false },
@@ -526,7 +513,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
         }
       }
     });
-    
+
     // Configure undo/redo functionality
     editor.addAction({
       id: 'undo',
@@ -549,7 +536,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
         ed.getModel()?.redo();
       }
     });
-    
+
   }, [fieldData]);
 
   // Cleanup provider on unmount
@@ -575,7 +562,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
         await autoSaveQuery();
       }
     }
-    
+
     onExecuteQuery();
   };
 
@@ -606,25 +593,25 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
     try {
       setIsAutoSaving(true);
-      
+
       await apiService.updateSavedQuery(currentSavedQueryUuid, {
         query_text: query.trim(),
         updated_by: 'user'
       });
-      
+
       // Update the local saved queries list to reflect the change
-      setSavedQueries(prev => prev.map(q => 
-        q.saved_queries_uuid === currentSavedQueryUuid 
+      setSavedQueries(prev => prev.map(q =>
+        q.saved_queries_uuid === currentSavedQueryUuid
           ? { ...q, query_text: query.trim(), updated_at: new Date().toISOString() }
           : q
       ));
-      
-      logger.debug('Query auto-saved successfully', 'QueryTab', { 
+
+      logger.debug('Query auto-saved successfully', 'QueryTab', {
         queryUuid: currentSavedQueryUuid,
         connectionUuid: currentConnectionUuid,
-        queryLength: query.trim().length 
+        queryLength: query.trim().length
       });
-      
+
     } catch (error) {
       logger.error('Failed to auto-save query', 'QueryTab', null, error as Error);
       // Don't show error notification for auto-save failures to avoid interrupting user workflow
@@ -649,11 +636,11 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
       // Parse the query to AST
       const ast = await parseSoql(query, currentConnectionUuid);
-      
+
       // Store the AST in shared session storage for SchemaTab to access
       setAstState(ast);
-      
-      
+
+
       if (!ast) {
         notifications.show({
           title: tSync('query.editor.astToGraph.error.title', 'Invalid Query'),
@@ -707,17 +694,17 @@ export const QueryTab: React.FC<QueryTabProps> = ({
     if (!currentConnectionUuid) {
       return;
     }
-    
+
     setIsLoadingSavedQueries(true);
-    
+
     // Add timeout to prevent stuck loading state
     const timeoutId = setTimeout(() => {
       setIsLoadingSavedQueries(false);
     }, 10000); // 10 second timeout
-    
+
     try {
       const response = await apiService.getSavedQueries(currentConnectionUuid);
-      
+
       // Handle different response structures
       let queries = [];
       if (Array.isArray(response)) {
@@ -729,7 +716,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
       } else if (response && (response as any).data) {
         queries = (response as any).data;
       }
-      
+
       setSavedQueries(queries);
     } catch (error) {
       logger.error('Failed to load saved queries', 'QueryTab', null, error as Error);
@@ -750,7 +737,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
       setCurrentSavedQueryUuid(null);
       return;
     }
-    
+
     const selectedQuery = savedQueries.find(q => q.saved_queries_uuid === queryUuid);
     if (selectedQuery) {
       handleQueryChange(selectedQuery.query_text);
@@ -770,9 +757,9 @@ export const QueryTab: React.FC<QueryTabProps> = ({
     if (editorRef.current) {
       try {
         // Use our local enhanced parser for professional SOQL formatting
-        const currentQuery = editorRef.current.getValue();        
+        const currentQuery = editorRef.current.getValue();
         const formatted = formatSOQLQuery(currentQuery);
-        
+
         // Only update if formatting actually changed something
         if (formatted !== currentQuery) {
           editorRef.current.setValue(formatted);
@@ -810,7 +797,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
       // Show error notification for invalid input
       notifications.show({
         title: tSync('query.editor.save.error.title', 'Save Failed'),
-        message: !currentConnectionUuid 
+        message: !currentConnectionUuid
           ? tSync('query.editor.save.error.no_connection', 'No active connection. Please connect to Salesforce first.')
           : tSync('query.editor.save.error.invalid', 'Please provide a valid query name'),
         color: 'red',
@@ -832,7 +819,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
     try {
       setIsSaving(true);
-      
+
       if (saveOperationMode === 'create') {
         // Create new query
         await apiService.createSavedQuery({
@@ -855,24 +842,24 @@ export const QueryTab: React.FC<QueryTabProps> = ({
           updated_by: 'user'
         });
       }
-      
+
       // Reset form and close modal
       setSaveQueryName('');
       setShowSaveModal(false);
       setSaveOperationMode('create');
       setSelectedQueryForUpdate(null);
-      
+
       // Reload saved queries to reflect changes
       await loadSavedQueries();
-      
+
       // Show success notification
-      const title = saveOperationMode === 'create' 
+      const title = saveOperationMode === 'create'
         ? tSync('query.editor.save.success.title', 'Query Saved')
         : tSync('query.editor.update.success.title', 'Query Updated');
       const message = saveOperationMode === 'create'
         ? tSync('query.editor.save.success.message', { name: saveQueryName.trim() }) || `"${saveQueryName.trim()}" has been saved successfully`
         : tSync('query.editor.update.success.message', { name: saveQueryName.trim() }) || `"${saveQueryName.trim()}" has been updated successfully`;
-      
+
       notifications.show({
         title: title,
         message: message,
@@ -880,15 +867,15 @@ export const QueryTab: React.FC<QueryTabProps> = ({
         icon: <IconDeviceFloppy size={16} />,
         autoClose: 3000,
       });
-      
+
     } catch (error) {
       logger.error('Failed to save query', 'QueryTab', null, error as Error);
-      
+
       // Check for specific error types and show appropriate messages
       let errorMessage = saveOperationMode === 'create'
         ? tSync('query.editor.save.error.message', 'Failed to save the query. Please try again.')
         : tSync('query.editor.update.error.message', 'Failed to update the query. Please try again.');
-      
+
       if (error instanceof Error) {
         if (error.message.includes('saved_query.error.duplicate_name')) {
           errorMessage = tSync('saved_query.error.duplicate_name', 'Query with this name already exists');
@@ -900,10 +887,10 @@ export const QueryTab: React.FC<QueryTabProps> = ({
           errorMessage = tSync('saved_query.error.invalid_connection', 'Invalid or missing connection');
         }
       }
-      
+
       // Show error notification
       notifications.show({
-        title: saveOperationMode === 'create' 
+        title: saveOperationMode === 'create'
           ? tSync('query.editor.save.error.title', 'Save Failed')
           : tSync('query.editor.update.error.title', 'Update Failed'),
         message: errorMessage,
@@ -917,8 +904,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
   const openSaveModal = () => {
     // Set default name based on query content
-    const defaultName = query.length > 30 
-      ? `${query.substring(0, 30)}...` 
+    const defaultName = query.length > 30
+      ? `${query.substring(0, 30)}...`
       : query || tSync('query.editor.untitled', 'Untitled Query');
     setSaveQueryName(defaultName);
     setSaveOperationMode('create');
@@ -937,16 +924,16 @@ export const QueryTab: React.FC<QueryTabProps> = ({
   };
 
   return (
-    <div className="query-tab-page" style={{ 
+    <div className="query-tab-page" style={{
       height: '100%',
       display: 'flex',
       flexDirection: 'column'
     }}>
-        <Paper 
+        <Paper
           className={`query-tab-page-input-container ${isDragOver ? 'drag-over' : ''}`}
-          shadow="sm" 
+          shadow="sm"
           radius="md"
-          style={{ 
+          style={{
             position: 'relative',
             flex: 1,
             minHeight: resultsState === 'expanded' ? '150px' : 'auto',
@@ -990,8 +977,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                     color="blue"
                     onClick={handleUndo}
                     leftSection={<IconArrowBack size={12} />}
-                    style={{ 
-                      padding: '4px 8px', 
+                    style={{
+                      padding: '4px 8px',
                       minHeight: '24px',
                       fontSize: '11px',
                       fontWeight: 500,
@@ -1002,15 +989,15 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                   >
                     {tSync('query.editor.undo', 'Undo')}
                   </Button>
-                  
+
                   <Button
                     size="xs"
                     variant="filled"
                     color="blue"
                     onClick={handleRedo}
                     leftSection={<IconArrowForward size={12} />}
-                    style={{ 
-                      padding: '4px 8px', 
+                    style={{
+                      padding: '4px 8px',
                       minHeight: '24px',
                       fontSize: '11px',
                       fontWeight: 500,
@@ -1022,7 +1009,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                     {tSync('query.editor.redo', 'Redo')}
                   </Button>
                 </Group>
-                
+
                 {/* Format/Clear Group */}
                 <Group gap="4px" style={{ padding: '2px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   <Button
@@ -1032,8 +1019,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                     onClick={handleFormatQuery}
                     disabled={!query.trim()}
                     leftSection={<IconCode size={12} />}
-                    style={{ 
-                      padding: '4px 8px', 
+                    style={{
+                      padding: '4px 8px',
                       minHeight: '24px',
                       fontSize: '11px',
                       fontWeight: 500,
@@ -1044,7 +1031,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                   >
                     {tSync('query.editor.format', 'Format')}
                   </Button>
-                  
+
                   <Button
                     size="xs"
                     variant="filled"
@@ -1052,8 +1039,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                     onClick={handleClearQuery}
                     disabled={!query.trim()}
                     leftSection={<IconTrash size={12} />}
-                    style={{ 
-                      padding: '4px 8px', 
+                    style={{
+                      padding: '4px 8px',
                       minHeight: '24px',
                       fontSize: '11px',
                       fontWeight: 500,
@@ -1069,50 +1056,57 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
               {/* Right Side - Execution and Management Actions */}
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: 'auto' }}>
-                {/* Auto-save Toggle */}
-                {currentConnectionUuid && currentSavedQueryUuid && (
-                  <Tooltip 
+                {/* Auto-save Toggle - Show when connected and there are saved queries available */}
+                {currentConnectionUuid && savedQueries.length > 0 && (
+                  <Tooltip
                     label={
-                      isAutoSaveEnabled 
-                        ? tSync('query.editor.autoSave.toggle.enabled', 'Auto-save enabled - queries will be saved after execution')
-                        : tSync('query.editor.autoSave.toggle.disabled', 'Auto-save disabled - click to enable')
+                      currentSavedQueryUuid
+                        ? (isAutoSaveEnabled
+                            ? tSync('query.editor.autoSave.toggle.enabled', 'Auto-save enabled - queries will be saved after execution')
+                            : tSync('query.editor.autoSave.toggle.disabled', 'Auto-save disabled - click to enable'))
+                        : tSync('query.editor.autoSave.toggle.loadQuery', 'Load a saved query to enable auto-save')
                     }
                     position="bottom"
                   >
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: '6px',
                       padding: '4px 8px',
-                      backgroundColor: isAutoSaveEnabled ? '#f0fdf4' : '#f8fafc',
-                      border: `1px solid ${isAutoSaveEnabled ? '#bbf7d0' : '#e2e8f0'}`,
+                      backgroundColor: (isAutoSaveEnabled && currentSavedQueryUuid) ? '#f0fdf4' : '#f8fafc',
+                      border: `1px solid ${(isAutoSaveEnabled && currentSavedQueryUuid) ? '#bbf7d0' : '#e2e8f0'}`,
                       borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
+                      cursor: currentSavedQueryUuid ? 'pointer' : 'not-allowed',
+                      transition: 'all 0.2s ease',
+                      opacity: currentSavedQueryUuid ? 1 : 0.7
                     }}>
-                      <IconDeviceFloppy 
-                        size={12} 
-                        style={{ 
-                          color: isAutoSaveEnabled ? '#16a34a' : '#64748b'
-                        }} 
+                      <IconDeviceFloppy
+                        size={12}
+                        style={{
+                          color: (isAutoSaveEnabled && currentSavedQueryUuid) ? '#16a34a' : '#64748b',
+                          opacity: currentSavedQueryUuid ? 1 : 0.5
+                        }}
                       />
                       <Switch
                         size="xs"
-                        checked={isAutoSaveEnabled}
+                        checked={isAutoSaveEnabled && !!currentSavedQueryUuid}
                         onChange={(event) => setIsAutoSaveEnabled(event.currentTarget.checked)}
+                        disabled={!currentSavedQueryUuid}
                         styles={{
                           track: {
-                            backgroundColor: isAutoSaveEnabled ? '#16a34a' : '#d1d5db',
-                            border: 'none'
+                            backgroundColor: (isAutoSaveEnabled && currentSavedQueryUuid) ? '#16a34a' : '#d1d5db',
+                            border: 'none',
+                            opacity: currentSavedQueryUuid ? 1 : 0.5
                           }
                         }}
                       />
-                      <Text 
-                        size="xs" 
-                        style={{ 
-                          color: isAutoSaveEnabled ? '#16a34a' : '#64748b',
+                      <Text
+                        size="xs"
+                        style={{
+                          color: (isAutoSaveEnabled && currentSavedQueryUuid) ? '#16a34a' : '#64748b',
                           fontWeight: 500,
-                          whiteSpace: 'nowrap'
+                          whiteSpace: 'nowrap',
+                          opacity: currentSavedQueryUuid ? 1 : 0.5
                         }}
                       >
                         {tSync('query.editor.autoSave.toggle.label', 'Auto-save')}
@@ -1124,17 +1118,17 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 {/* Quick Load Saved Queries */}
                 {currentConnectionUuid && (
                   <div style={{ position: 'relative', minWidth: '180px' }}>
-                    <IconBookmark 
-                      size={12} 
-                      style={{ 
-                        position: 'absolute', 
-                        left: '8px', 
-                        top: '50%', 
-                        transform: 'translateY(-50%)', 
+                    <IconBookmark
+                      size={12}
+                      style={{
+                        position: 'absolute',
+                        left: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
                         color: '#6b7280',
                         pointerEvents: 'none',
                         zIndex: 1
-                      }} 
+                      }}
                     />
                     <select
                       onChange={(e) => handleQuickLoadQuery(e.target.value || null)}
@@ -1153,7 +1147,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                       }}
                     >
                       <option value="">
-                        {isLoadingSavedQueries 
+                        {isLoadingSavedQueries
                           ? tSync('query.editor.quickLoad.loading', 'Loading...')
                           : savedQueries.length === 0
                           ? tSync('query.editor.quickLoad.noQueries', 'No Saved Queries')
@@ -1161,8 +1155,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                         }
                       </option>
                       {savedQueries.map(query => (
-                        <option 
-                          key={query.saved_queries_uuid} 
+                        <option
+                          key={query.saved_queries_uuid}
                           value={query.saved_queries_uuid}
                         >
                           {query.is_favorite ? '★ ' : ''}{query.name}
@@ -1177,9 +1171,9 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                   {/* Auto-save indicator */}
                   {isAutoSaving && (
                     <Tooltip label={tSync('query.editor.autoSaving', 'Auto-saving...')}>
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         padding: '2px 6px',
                         backgroundColor: '#fef3c7',
                         borderRadius: '4px',
@@ -1192,7 +1186,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                       </div>
                     </Tooltip>
                   )}
-                  
+
                   <Button
                     size="xs"
                   variant="filled"
@@ -1201,8 +1195,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                   disabled={!query.trim() || isQuerying || isAutoSaving}
                   loading={isQuerying || isAutoSaving}
                     leftSection={<IconPlayerPlay size={12} />}
-                  style={{ 
-                      padding: '4px 8px', 
+                  style={{
+                      padding: '4px 8px',
                       minHeight: '24px',
                     fontSize: '11px',
                       fontWeight: 500,
@@ -1213,7 +1207,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 >
                     {tSync('query.editor.execute', 'Run')}
                 </Button>
-                
+
                 <Button
                   size="xs"
                   variant="filled"
@@ -1221,8 +1215,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                   onClick={convertASTToGraph}
                   disabled={!query.trim()}
                   leftSection={<IconGitBranch size={12} />}
-                  style={{ 
-                    padding: '4px 8px', 
+                  style={{
+                    padding: '4px 8px',
                     minHeight: '24px',
                     fontSize: '11px',
                     fontWeight: 500,
@@ -1244,8 +1238,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                   onClick={openSaveModal}
                   disabled={!query.trim() || !currentConnectionUuid}
                     leftSection={<IconDeviceFloppy size={12} />}
-                  style={{ 
-                      padding: '4px 8px', 
+                  style={{
+                      padding: '4px 8px',
                       minHeight: '24px',
                     fontSize: '11px',
                       fontWeight: 500,
@@ -1256,7 +1250,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 >
                   {tSync('query.editor.saveQuery', 'Save')}
                 </Button>
-                  
+
                   <Button
                     size="xs"
                     variant="filled"
@@ -1264,8 +1258,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                     onClick={() => document.getElementById('query-file-input')?.click()}
                     disabled={false}
                     leftSection={<IconFileImport size={12} />}
-                    style={{ 
-                      padding: '4px 8px', 
+                    style={{
+                      padding: '4px 8px',
                       minHeight: '24px',
                       fontSize: '11px',
                       fontWeight: 500,
@@ -1279,7 +1273,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 </Group>
               </div>
             </div>
-            
+
             {/* Hidden file input for importing queries */}
             <input
               id="query-file-input"
@@ -1294,7 +1288,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                     const content = event.target?.result as string;
                     if (content) {
                       handleQueryChange(content);
-                      
+
                       // Show success notification
                       notifications.show({
                         title: tSync('query.editor.import.success.title', 'Query Imported'),
@@ -1303,7 +1297,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                         icon: <IconFileImport size={16} />,
                         autoClose: 3000,
                       });
-                      
+
                       // Reset file input
                       e.target.value = '';
                     }
@@ -1322,11 +1316,11 @@ export const QueryTab: React.FC<QueryTabProps> = ({
               }}
             />
           </div>
-          
-          <div 
+
+          <div
             className={`monaco-editor-container ${isDragOver ? 'drag-over' : ''}`}
-              style={{ 
-              height: '350px', 
+              style={{
+              height: '350px',
               border: 'none',
               borderTop: '1px solid #e2e8f0'
             }}
@@ -1362,7 +1356,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
       {/* Save Query Modal */}
       {showSaveModal && (
-        <div 
+        <div
           className={`save-query-modal-overlay${isSaveModalClosing ? ' closing' : ''}`}
           onClick={() => {
             setIsSaveModalClosing(true);
@@ -1375,18 +1369,18 @@ export const QueryTab: React.FC<QueryTabProps> = ({
             }, 350);
           }}
         >
-          <div 
+          <div
             className={`save-query-modal${isSaveModalClosing ? ' closing' : ''}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="save-query-modal-header">
               <h3>
-                {saveOperationMode === 'create' 
+                {saveOperationMode === 'create'
                   ? tSync('query.editor.saveModal.title', 'Save Query')
                   : tSync('query.editor.updateModal.title', 'Update Query')
                 }
               </h3>
-              <button 
+              <button
                 className="save-query-modal-close"
                 onClick={() => {
                   setIsSaveModalClosing(true);
@@ -1402,7 +1396,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 ×
               </button>
             </div>
-            
+
             <div className="save-query-modal-content">
               {/* Operation Mode Selection */}
               <div className="save-query-modal-input-group">
@@ -1419,8 +1413,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                         if (e.target.value === 'create') {
                           setSelectedQueryForUpdate(null);
                           // Reset to default name for create mode
-                          const defaultName = query.length > 30 
-                            ? `${query.substring(0, 30)}...` 
+                          const defaultName = query.length > 30
+                            ? `${query.substring(0, 30)}...`
                             : query || tSync('query.editor.untitled', 'Untitled Query');
                           setSaveQueryName(defaultName);
                         }
@@ -1439,8 +1433,8 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                         if (e.target.value === 'create') {
                           setSelectedQueryForUpdate(null);
                           // Reset to default name for create mode
-                          const defaultName = query.length > 30 
-                            ? `${query.substring(0, 30)}...` 
+                          const defaultName = query.length > 30
+                            ? `${query.substring(0, 30)}...`
                             : query || tSync('query.editor.untitled', 'Untitled Query');
                           setSaveQueryName(defaultName);
                         }
@@ -1479,7 +1473,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
               {/* Query Name Input */}
               <div className="save-query-modal-input-group">
                 <label>
-                  {saveOperationMode === 'create' 
+                  {saveOperationMode === 'create'
                     ? tSync('query.editor.saveModal.name.label', 'Query Name')
                     : tSync('query.editor.updateModal.name.label', 'New Query Name')
                   }
@@ -1487,7 +1481,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 <input
                   type="text"
                   placeholder={
-                    saveOperationMode === 'create' 
+                    saveOperationMode === 'create'
                       ? tSync('query.editor.saveModal.name.placeholder', 'Enter query name...')
                       : tSync('query.editor.updateModal.name.placeholder', 'Enter new name...')
                   }
@@ -1497,15 +1491,15 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                   disabled={saveOperationMode === 'update' && !selectedQueryForUpdate}
                 />
                 <small>
-                  {saveOperationMode === 'create' 
+                  {saveOperationMode === 'create'
                     ? tSync('query.editor.saveModal.name.description', 'Choose a descriptive name for your query')
                     : tSync('query.editor.updateModal.name.description', 'Enter the new name for the selected query')
                   }
                 </small>
               </div>
-              
+
               <div className="save-query-modal-actions">
-                <button 
+                <button
                   className="save-query-modal-button cancel"
                   onClick={() => {
                     setIsSaveModalClosing(true);
@@ -1520,18 +1514,18 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 >
                   {tSync('common.cancel', 'Cancel')}
                 </button>
-                <button 
+                <button
                   className="save-query-modal-button save"
                   onClick={handleSaveQuery}
                   disabled={
-                    !saveQueryName.trim() || 
-                    isSaving || 
+                    !saveQueryName.trim() ||
+                    isSaving ||
                     (saveOperationMode === 'update' && !selectedQueryForUpdate)
                   }
                 >
-                  {isSaving 
+                  {isSaving
                     ? (saveOperationMode === 'create' ? 'Saving...' : 'Updating...')
-                    : (saveOperationMode === 'create' 
+                    : (saveOperationMode === 'create'
                         ? tSync('query.editor.saveModal.save', 'Save Query')
                         : tSync('query.editor.updateModal.update', 'Update Query')
                       )
@@ -1545,7 +1539,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
       {/* Draggable Separator */}
       {queryResult && resultsState === 'expanded' && (
-        <div 
+        <div
           className={`results-separator ${isDragging ? 'dragging' : ''}`}
           onMouseDown={handleDragStart}
           style={{
@@ -1579,9 +1573,9 @@ export const QueryTab: React.FC<QueryTabProps> = ({
 
       {/* Query Results Section - Only show when there are results */}
       {queryResult && (
-        <div 
+        <div
           className={`results-section ${resultsState === 'collapsed' ? 'collapsed' : ''}`}
-          style={{ 
+          style={{
             marginTop: '16px',
             flex: 1,
             overflow: 'hidden',
@@ -1594,7 +1588,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
           }}
         >
           {resultsState === 'collapsed' ? (
-            <div style={{ 
+            <div style={{
               height: '30px',
               display: 'flex',
               alignItems: 'center',
@@ -1603,11 +1597,11 @@ export const QueryTab: React.FC<QueryTabProps> = ({
               backgroundColor: '#f8fafc'
             }}>
               <Group gap={4}>
-                  <ActionIcon 
-                    variant="filled" 
-                    size="sm" 
+                  <ActionIcon
+                    variant="filled"
+                    size="sm"
                     onClick={toggleResultsState}
-                    style={{ 
+                    style={{
                       cursor: 'pointer',
                       backgroundColor: '#3b82f6',
                       color: 'white',
@@ -1629,7 +1623,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
             </div>
           ) : (
             <>
-              <div style={{ 
+              <div style={{
                 height: '30px',
                 display: 'flex',
                 alignItems: 'center',
@@ -1639,11 +1633,11 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 backgroundColor: '#f8fafc'
               }}>
                 <Group gap={8}>
-                  <ActionIcon 
-                    variant="filled" 
-                    size="sm" 
+                  <ActionIcon
+                    variant="filled"
+                    size="sm"
                     onClick={toggleResultsState}
-                    style={{ 
+                    style={{
                       cursor: 'pointer',
                       backgroundColor: resultsState === 'expanded' ? '#ef4444' : '#10b981',
                       color: 'white',
@@ -1662,7 +1656,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                     </Badge>
                   )}
                   {maxRecordsWarning && (
-                    <Text size="xs" c="orange" fw={500} style={{ 
+                    <Text size="xs" c="orange" fw={500} style={{
                       padding: '2px 6px',
                       backgroundColor: '#fff3cd',
                       border: '1px solid #ffeaa7',
@@ -1673,7 +1667,7 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                     </Text>
                   )}
                   {maxRecordsReached && (
-                    <Text size="xs" c="red" fw={500} style={{ 
+                    <Text size="xs" c="red" fw={500} style={{
                       padding: '2px 6px',
                       backgroundColor: '#fef2f2',
                       border: '1px solid #fecaca',
@@ -1687,18 +1681,18 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                 <Group gap="xs">
                   {/* Export Button - Exact copy from original App.tsx */}
                   {queryResult && queryResult.records && queryResult.records.length > 0 && (
-                    <Button 
+                    <Button
                       variant="filled"
                       color="gray"
-                      size="compact-xs" 
+                      size="compact-xs"
                       onClick={() => {
                         // Export functionality - exact copy from original
                         const event = new CustomEvent('exportData', { detail: { format: 'json' } });
                         window.dispatchEvent(event);
                       }}
                       leftSection={<IconDownload size={10} />}
-                      style={{ 
-                        padding: '2px 6px', 
+                      style={{
+                        padding: '2px 6px',
                         minHeight: '20px',
                         fontSize: '10px',
                         fontWeight: 500,
@@ -1710,18 +1704,18 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                       Export
                     </Button>
                   )}
-                  
+
                   {/* Query More Button - Always show when there are results */}
                   {queryResult && queryResult.records && queryResult.records.length > 0 && (
-                    <Button 
+                    <Button
                       variant="filled"
                       color="blue"
-                      size="compact-xs" 
+                      size="compact-xs"
                       onClick={onQueryMore}
                       disabled={isQuerying || (queryResult.records?.length || 0) >= maxRecordsLimit || !queryResult.metadata?.nextRecordsUrl}
                       leftSection={<IconChevronDown size={10} />}
-                      style={{ 
-                        padding: '2px 6px', 
+                      style={{
+                        padding: '2px 6px',
                         minHeight: '20px',
                         fontSize: '10px',
                         fontWeight: 500,
@@ -1730,17 +1724,17 @@ export const QueryTab: React.FC<QueryTabProps> = ({
                         border: `1px solid ${(isQuerying || (queryResult.records?.length || 0) >= maxRecordsLimit || !queryResult.metadata?.nextRecordsUrl) ? '#94a3b8' : '#3b82f6'}`
                       }}
                     >
-                      {isQuerying ? tSync('common.loading', 'Loading...') : 
+                      {isQuerying ? tSync('common.loading', 'Loading...') :
                        (queryResult.records?.length || 0) >= maxRecordsLimit ? tSync('results.maxReached', 'Max Reached') :
                        !queryResult.metadata?.nextRecordsUrl ? tSync('results.noMoreRecords', 'No More Records') : tSync('results.loadMore', 'Load More')}
                     </Button>
                   )}
-                  
+
                 </Group>
               </div>
-              <div style={{ 
+              <div style={{
                 height: 'calc(100% - 30px)',
-                overflow: 'hidden' 
+                overflow: 'hidden'
               }}>
                 <ResultsViewPage
                   result={queryResult}

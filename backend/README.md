@@ -152,15 +152,28 @@ make run
 ```bash
 # Method 1: Using Makefile (Recommended)
 make run                    # Development server with auto-reload
-make run-prod              # Production server
+make run-prod              # Production server (4 workers)
 make dev                   # Alias for run
 
-# Method 2: Using start.sh script
+# Method 2: Using dedicated runner script (Recommended for production)
+python run_server.py --dev --reload          # Development mode
+python run_server.py --prod --workers 4      # Production mode
+python run_server.py --host 0.0.0.0 --port 8080  # Custom host/port
+python run_server.py --skip-checks           # Skip pre-flight checks
+
+# Method 3: Using start.sh script
 ./start.sh                 # Automated setup and startup
 
-# Method 3: Direct uv command
+# Method 4: Direct uvicorn command (legacy)
 uv run python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+**Note**: The dedicated `run_server.py` script provides:
+- Pre-flight checks (database connectivity, configuration validation)
+- Production-ready process management (gunicorn with multiple workers)
+- Graceful shutdown handling
+- Environment detection (dev vs prod)
+- Better logging configuration
 
 ---
 
@@ -318,7 +331,7 @@ This project is licensed under the DataPilot License - see the [LICENSE](../LICE
 make install-dev && make run
 ```
 
-**🌐 Backend running at: http://localhost:8000**  
+**🌐 Backend running at: http://localhost:8000**
 **📚 API Documentation: http://localhost:8000/docs**
 
 ---

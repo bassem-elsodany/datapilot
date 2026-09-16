@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Group, Badge } from '@mantine/core';
+import { Group, Badge, Modal, Button, Stack, Text } from '@mantine/core';
 import { IconLogout, IconLanguage, IconInfoCircle, IconMenu2, IconX, IconUser, IconWorld, IconHelp, IconMessage, IconDatabase, IconSettings } from '@tabler/icons-react';
 import { SalesforceUserInfo } from '../services/SalesforceService';
 import { useTranslation } from '../services/I18nService';
@@ -15,6 +15,9 @@ interface AppHeaderProps {
   onShowAbout: () => void;
   onShowSavedConnections: () => void;
   isOnSavedConnectionsPage?: boolean;
+  isConnected?: boolean;
+  currentConnectionUuid?: string | null;
+  onDisconnect?: () => Promise<void>;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -25,7 +28,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onLocaleChange,
   onShowAbout,
   onShowSavedConnections,
-  isOnSavedConnectionsPage = false
+  isOnSavedConnectionsPage = false,
+  isConnected = false,
+  currentConnectionUuid = null,
+  onDisconnect
 }) => {
   const { tSync, getCurrentLocale } = useTranslation();
   
@@ -41,6 +47,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
 
 
   // Close settings menu when clicking outside or resizing window
@@ -121,8 +128,36 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   const handleSavedConnectionsClick = () => {
-    onShowSavedConnections();
+    // Close settings menu first
+    console.log('[handleSavedConnectionsClick] START - showDisconnectModal:', showDisconnectModal);
     setShowSettingsMenu(false);
+
+    // If currently connected, show confirmation dialog
+    console.log('[handleSavedConnectionsClick] isConnected:', isConnected, 'currentConnectionUuid:', currentConnectionUuid);
+    if (isConnected && currentConnectionUuid) {
+      console.log('[handleSavedConnectionsClick] SETTING showDisconnectModal TO TRUE');
+      setShowDisconnectModal(true);
+    } else {
+      console.log('[handleSavedConnectionsClick] No connection, navigating directly');
+      onShowSavedConnections();
+    }
+  };
+
+  const handleConfirmDisconnect = async () => {
+    try {
+      setShowDisconnectModal(false);
+      if (onDisconnect) {
+        await onDisconnect();
+      }
+      onShowSavedConnections();
+    } catch (error) {
+      logger.error('Failed to disconnect', 'AppHeader', null, error as Error);
+      setShowDisconnectModal(false);
+    }
+  };
+
+  const handleCancelDisconnect = () => {
+    setShowDisconnectModal(false);
   };
 
   return (
@@ -288,7 +323,82 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </div>
         </div>
       </div>
-      
+
+      {/* Disconnect Confirmation Modal - Custom Overlay */}
+      {showDisconnectModal && (
+        <>
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'auto'
+            }}
+            onClick={handleCancelDisconnect}
+          >
+            <div
+              style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                padding: '24px',
+                maxWidth: '500px',
+                width: '90%',
+                margin: 'auto',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                zIndex: 10000,
+                position: 'relative'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px', fontWeight: 600 }}>
+                {tSync('connections.disconnect.title', 'Close Connection')}
+              </h2>
+              <p style={{ marginBottom: '24px', color: '#666', lineHeight: 1.5 }}>
+                {tSync(
+                  'connections.disconnect.message',
+                  'The current Salesforce connection will be closed. This will clear all decrypted credentials from memory. Do you want to continue?'
+                )}
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={handleCancelDisconnect}
+                  style={{
+                    padding: '8px 16px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    backgroundColor: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  {tSync('connections.disconnect.cancel', 'Cancel')}
+                </button>
+                <button
+                  onClick={handleConfirmDisconnect}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: '4px',
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  {tSync('connections.disconnect.confirm', 'Yes, Close Connection')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
