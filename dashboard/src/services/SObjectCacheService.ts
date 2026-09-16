@@ -239,7 +239,7 @@ export class SObjectCacheService {
     logger.debug('Cache miss for describeGlobal, fetching from API', 'SObjectCacheService', { cacheKey });
     
     try {
-      const sobjectNames = await SalesforceService.getSObjectList();
+      const sobjectNames = await SalesforceService.getSObjectList(connUuid);
       
       // Convert to the expected format
       const sobjects = sobjectNames.map(name => ({ name }));

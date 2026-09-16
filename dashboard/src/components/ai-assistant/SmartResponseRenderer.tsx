@@ -41,7 +41,7 @@ import { useTranslation } from '../../services/I18nService';
 import { logger } from '../../services/Logger';
 
 interface StructuredAIResponse {
-  response_type: 'metadata_query' | 'data_query' | 'clarification_needed' | 'relationship_query' | 'field_details_query';
+  response_type: 'metadata_query' | 'data_query' | 'clarification_needed' | 'relationship_query' | 'mixed_query' | 'field_details_query';
   confidence?: number;
   confidence_label?: 'high' | 'medium' | 'low' | 'unknown';
   intent_understood?: string;

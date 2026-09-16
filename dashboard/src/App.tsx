@@ -154,7 +154,7 @@ const AppContent: React.FC = () => {
     loadAvailableLocales();
   }, []);
 
-  // Handle locale change - both frontend and backend
+  // Handle locale change - persisted locally via I18nService
   const handleLocaleChange = async (languageUuid: string) => {
     try {
       // Find the language object for the selected UUID
@@ -163,15 +163,11 @@ const AppContent: React.FC = () => {
         logger.warn(`Language not found for UUID: ${languageUuid}`, 'App');
         return;
       }
-      
+
       // Set frontend locale using the language code
       await setLocale(selectedLanguage.code);
-      
-      // Call backend to set as default language
-      const { apiService } = await import('./services/ApiService');
-      await apiService.setDefaultLanguage(languageUuid);
       logger.debug(`Set default language to ${selectedLanguage.code} (UUID: ${languageUuid})`, 'App');
-      
+
       // Force page reload to reflect the new language
       window.location.reload();
     } catch (error) {
@@ -667,7 +663,7 @@ function MainApp({ userInfo, isConnected, onLogin, setUserInfo, setIsConnected, 
   
   const { tSync, setLocale, getCurrentLocale, getAvailableLocales, waitForReady } = useTranslation();
   
-  // Handle locale change - both frontend and backend
+  // Handle locale change - persisted locally via I18nService
   const handleLocaleChange = async (languageUuid: string) => {
     try {
       // Find the language object for the selected UUID
@@ -676,13 +672,9 @@ function MainApp({ userInfo, isConnected, onLogin, setUserInfo, setIsConnected, 
         logger.warn(`Language not found for UUID: ${languageUuid}`, 'App');
         return;
       }
-      
+
       // Set frontend locale using the language code
       await setLocale(selectedLanguage.code);
-      
-      // Call backend to set as default language
-      const { apiService } = await import('./services/ApiService');
-      await apiService.setDefaultLanguage(languageUuid);
       logger.debug(`Set default language to ${selectedLanguage.code} (UUID: ${languageUuid})`, 'App');
     } catch (error) {
       logger.error('Failed to change locale:', error);
